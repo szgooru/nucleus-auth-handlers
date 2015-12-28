@@ -8,7 +8,7 @@
     </appender>
 
     <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>nucleus-resource.log</file>
+        <file>auth-service.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
             <fileNamePattern>logFile.%d{yyyy-MM-dd}.log</fileNamePattern>
             <!-- keep 30 days' worth of history -->
@@ -20,7 +20,7 @@
         </encoder>
     </appender>
 
-    <logger name="org.gooru.nucleus" level="debug">
+    <logger name="org.gooru.auth" level="debug">
             <appender-ref ref="STDOUT"/>
     </logger>
 

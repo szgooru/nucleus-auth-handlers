@@ -22,10 +22,11 @@ if (!JavaVersion.current().java8Compatible) {
 // Define a version registry so that we can avoid hard coding of the version numbers
 // Note that this applies only to dependencies and not to the plugins and build
 ext {
-    vertxVersion = '3.1.0'
+    vertxVersion = '3.2.0'
     slf4jVersion ='1.7.12'
     junitVersion = '4.12'
     logbackVersion = '1.0.13'
+    
 }
 
 version = "0.1-snapshot"
@@ -43,6 +44,10 @@ dependencies {
     // Vertx specific dependencies
     compile "io.vertx:vertx-core:${vertxVersion}"
     compile "io.vertx:vertx-hazelcast:${vertxVersion}"
+    compile "io.vertx:vertx-dropwizard-metrics:${vertxVersion}"
+    compile "io.vertx:vertx-redis-client:${vertxVersion}"
+    compile "io.vertx:vertx-rx-java:${vertxVersion}"
+    compile "io.vertx:vertx-jdbc-client:${vertxVersion}"
 
     // Other dependencies
     compile "ch.qos.logback:logback-classic:${logbackVersion}"
@@ -55,7 +60,7 @@ shadowJar {
     classifier = 'fat'
     manifest {
         attributes 'Main-Class': 'io.vertx.core.Launcher'
-        attributes 'Main-Verticle': 'org.gooru.nucleus.handlers.resources.bootstrap.GoogleDriveVerticle'
+        attributes 'Main-Verticle': 'org.gooru.auth.handlers.bootstrap.AuthenticationVerticle'
         attributes 'Created-By' : 'Gooru.org'
     }
 }
