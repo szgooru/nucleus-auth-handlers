@@ -1,4 +1,4 @@
-package org.gooru.auth.handlers.authentication.impl;
+package org.gooru.auth.handlers.authentication.service;
 
 import io.vertx.core.json.JsonObject;
 

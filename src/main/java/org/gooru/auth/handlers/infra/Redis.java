@@ -1,21 +1,29 @@
-package org.gooru.auth.handlers.infra.redis;
+package org.gooru.auth.handlers.infra;
 
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 import io.vertx.redis.RedisClient;
 import io.vertx.redis.RedisOptions;
 
-public final class Redis {
+import org.gooru.auth.handlers.bootstrap.startup.Initializer;
+
+public final class Redis implements Initializer {
 
   public static RedisClient client;
 
-  public void create(Vertx vertx, JsonObject config) {
+  @Override
+  public void initializeComponent(Vertx vertx, JsonObject config) {
     if (client == null) {
       client = RedisClient.create(vertx, new RedisOptions(config));
     }
   }
 
+
   public static RedisClient client() {
     return client;
   }
+
+
+  
+
 }

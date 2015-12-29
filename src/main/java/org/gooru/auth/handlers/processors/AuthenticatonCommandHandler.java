@@ -1,18 +1,17 @@
-package org.gooru.auth.handlers.message;
+package org.gooru.auth.handlers.processors;
 
-import io.vertx.core.AsyncResult;
-import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
 import io.vertx.core.json.JsonObject;
+import io.vertx.rx.java.RxHelper;
 
-import org.gooru.auth.handlers.authentication.impl.AuthenticationService;
 import org.gooru.auth.handlers.authentication.model.AuthClient;
+import org.gooru.auth.handlers.authentication.service.AuthenticationService;
 import org.gooru.auth.handlers.constants.CommandConstants;
 import org.gooru.auth.handlers.constants.MessageConstants;
 
-public final class AuthenticatonCommandHandler extends CommandHandler {
+import rx.Observable;
 
-  private static Command instance = null;
+public final class AuthenticatonCommandHandler extends CommandHandler {
 
   private AuthenticationService authenticationService;
 
@@ -21,11 +20,11 @@ public final class AuthenticatonCommandHandler extends CommandHandler {
   }
 
   @Override
-  public void send(String command, MultiMap headers,JsonObject params, JsonObject body, Handler<AsyncResult<JsonObject>> reply) {
-
+  public Observable<JsonObject> exec(String command, MultiMap headers, JsonObject params, JsonObject body) {
+    Observable<JsonObject> observable = RxHelper.observableFuture();
     switch (command) {
     case CommandConstants.CREATE_ACCESS_TOKEN:
-      getAuthenticationService().createAccessToken(new AuthClient(body)).subscribe(result -> System.out.print("aaaj" + result));
+     getAuthenticationService().createAccessToken(new AuthClient(body)).subscribe(result -> System.out.print("aaaj" + result));
       break;
     case CommandConstants.GET_ACCESS_TOKEN:
       break;
@@ -37,14 +36,7 @@ public final class AuthenticatonCommandHandler extends CommandHandler {
       getAuthenticationService().authorize();
       break;
     }
-
-  }
-
-  public static synchronized Command getInstance() {
-    if (instance == null) {
-      instance = new AuthenticatonCommandHandler();
-    }
-    return instance;
+    return null;
   }
 
   public AuthenticationService getAuthenticationService() {

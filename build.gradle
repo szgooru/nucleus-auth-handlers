@@ -26,7 +26,8 @@ ext {
     slf4jVersion ='1.7.12'
     junitVersion = '4.12'
     logbackVersion = '1.0.13'
-    
+    hikariCPVersion = '2.4.3'
+    postgresVersion = '9.4-1206-jdbc42'
 }
 
 version = "0.1-snapshot"
@@ -48,9 +49,13 @@ dependencies {
     compile "io.vertx:vertx-redis-client:${vertxVersion}"
     compile "io.vertx:vertx-rx-java:${vertxVersion}"
     compile "io.vertx:vertx-jdbc-client:${vertxVersion}"
-
+    
+ 
     // Other dependencies
     compile "ch.qos.logback:logback-classic:${logbackVersion}"
+    compile "com.zaxxer:HikariCP:${hikariCPVersion}"
+    compile "org.postgresql:postgresql:${postgresVersion}"
+
 
     // Test dependencies
     testCompile "junit:junit:${junitVersion}"
