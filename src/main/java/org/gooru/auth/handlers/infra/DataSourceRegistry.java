@@ -2,9 +2,7 @@ package org.gooru.auth.handlers.infra;
 
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.jdbc.spi.impl.HikariCPDataSourceProvider;
 
-import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -17,6 +15,7 @@ import org.gooru.auth.handlers.bootstrap.startup.Initializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 
 public class DataSourceRegistry implements Initializer, Finalizer {
@@ -31,14 +30,15 @@ public class DataSourceRegistry implements Initializer, Finalizer {
   private List<String> datasources = Arrays.asList(DEFAULT_DATA_SOURCE);
   private Map<String, DataSource> registry = new HashMap<>();
   boolean initialized = false;
-  
+
   @Override
   public void initializeComponent(Vertx vertx, JsonObject config) {
     // Skip if we are already initialized
     LOG.debug("Initialization called upon.");
     if (!initialized) {
       LOG.debug("May have to do initialization");
-      // We need to do initialization, however, we are running it via verticle instance which is going to run in 
+      // We need to do initialization, however, we are running it via verticle
+      // instance which is going to run in
       // multiple threads hence we need to be safe for this operation
       synchronized (Holder.INSTANCE) {
         LOG.debug("Will initialize after double checking");
@@ -46,7 +46,7 @@ public class DataSourceRegistry implements Initializer, Finalizer {
           LOG.debug("Initializing now");
           for (String datasource : datasources) {
             JsonObject dbConfig = config.getJsonObject(datasource);
-            if (dbConfig != null) {        
+            if (dbConfig != null) {
               DataSource ds = initializeDataSource(dbConfig);
               registry.put(datasource, ds);
             }
@@ -56,47 +56,140 @@ public class DataSourceRegistry implements Initializer, Finalizer {
       }
     }
   }
-  
+
   public DataSource getDefaultDataSource() {
-    return registry.get(DEFAULT_DATA_SOURCE);
+    DataSource dataSource = registry.get(DEFAULT_DATA_SOURCE);
+    if (dataSource == null) {
+      LOG.error("Not able to find default data source. Will return null");
+    }
+    return dataSource;
   }
-  
+
   public DataSource getDataSourceByName(String name) {
     if (name != null) {
-      return registry.get(name);
+      DataSource dataSource = registry.get(name);
+      if (dataSource == null) {
+        LOG.error("Not able to find data source named {}. Will return null ", name);
+      }
+    } else {
+      LOG.error("Invalid name passed for data source. Returning null");
     }
     return null;
   }
 
-  private DataSource initializeDataSource(JsonObject dbConfig)  {
-    // The default DS provider is hikari, so if set explicitly or not set use it, else error out
+  private DataSource initializeDataSource(JsonObject dbConfig) {
+    // The default DS provider is hikari, so if set explicitly or not set use
+    // it, else error out
     String dsType = dbConfig.getString(DEFAULT_DATA_SOURCE_TYPE);
-    DataSource dataSource = null; 
     if (dsType != null && !dsType.equals(DS_HIKARI)) {
       // No support
       throw new IllegalStateException("Unsupported data store type");
-    } else { 
-      try {
-        dataSource = new HikariCPDataSourceProvider().getDataSource(dbConfig);
-      } catch (SQLException e) {
-        throw new IllegalStateException("Failed to create data source");
+    }
+    final HikariConfig config = new HikariConfig();
+
+    for (Map.Entry<String, Object> entry : dbConfig) {
+      switch (entry.getKey()) {
+      case "dataSourceClassName":
+        config.setDataSourceClassName((String) entry.getValue());
+        break;
+      case "jdbcUrl":
+        config.setJdbcUrl((String) entry.getValue());
+        break;
+      case "username":
+        config.setUsername((String) entry.getValue());
+        break;
+      case "password":
+        config.setPassword((String) entry.getValue());
+        break;
+      case "autoCommit":
+        config.setAutoCommit((Boolean) entry.getValue());
+        break;
+      case "connectionTimeout":
+        config.setConnectionTimeout((Long) entry.getValue());
+        break;
+      case "idleTimeout":
+        config.setIdleTimeout((Long) entry.getValue());
+        break;
+      case "maxLifetime":
+        config.setMaxLifetime((Long) entry.getValue());
+        break;
+      case "connectionTestQuery":
+        config.setConnectionTestQuery((String) entry.getValue());
+        break;
+      case "minimumIdle":
+        config.setMinimumIdle((Integer) entry.getValue());
+        break;
+      case "maximumPoolSize":
+        config.setMaximumPoolSize((Integer) entry.getValue());
+        break;
+      case "metricRegistry":
+        throw new UnsupportedOperationException(entry.getKey());
+      case "healthCheckRegistry":
+        throw new UnsupportedOperationException(entry.getKey());
+      case "poolName":
+        config.setPoolName((String) entry.getValue());
+        break;
+      case "initializationFailFast":
+        config.setInitializationFailFast((Boolean) entry.getValue());
+        break;
+      case "isolationInternalQueries":
+        config.setIsolateInternalQueries((Boolean) entry.getValue());
+        break;
+      case "allowPoolSuspension":
+        config.setAllowPoolSuspension((Boolean) entry.getValue());
+        break;
+      case "readOnly":
+        config.setReadOnly((Boolean) entry.getValue());
+        break;
+      case "registerMBeans":
+        config.setRegisterMbeans((Boolean) entry.getValue());
+        break;
+      case "catalog":
+        config.setCatalog((String) entry.getValue());
+        break;
+      case "connectionInitSql":
+        config.setConnectionInitSql((String) entry.getValue());
+        break;
+      case "driverClassName":
+        config.setDriverClassName((String) entry.getValue());
+        break;
+      case "transactionIsolation":
+        config.setTransactionIsolation((String) entry.getValue());
+        break;
+      case "validationTimeout":
+        config.setValidationTimeout((Long) entry.getValue());
+        break;
+      case "leakDetectionThreshold":
+        config.setLeakDetectionThreshold((Long) entry.getValue());
+        break;
+      case "dataSource":
+        throw new UnsupportedOperationException(entry.getKey());
+      case "threadFactory":
+        throw new UnsupportedOperationException(entry.getKey());
+      case "datasource":
+        for (Map.Entry<String, Object> key : ((JsonObject) entry.getValue())) {
+          config.addDataSourceProperty(key.getKey(), key.getValue());
+        }
+        break;
       }
     }
-    return dataSource;
+
+    return new HikariDataSource(config);
+
   }
 
   @Override
   public void finalizeComponent() {
     for (String datasource : datasources) {
       DataSource ds = registry.get(datasource);
-      if (ds != null) {        
+      if (ds != null) {
         if (ds instanceof HikariDataSource) {
           ((HikariDataSource) ds).close();
         }
       }
-    }     
+    }
   }
-  
+
   public static DataSourceRegistry getInstance() {
     return Holder.INSTANCE;
   }
@@ -104,7 +197,7 @@ public class DataSourceRegistry implements Initializer, Finalizer {
   private DataSourceRegistry() {
     // TODO Auto-generated constructor stub
   }
-  
+
   private static class Holder {
     private static DataSourceRegistry INSTANCE = new DataSourceRegistry();
   }

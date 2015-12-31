@@ -17,13 +17,16 @@ public class MessageProcessor implements Processor {
   private final static String REQUEST_PARAMS = "request.params";
 
   private Message<Object> message;
+  
+  private Command handler;
 
-  public MessageProcessor(Message<Object> message) {
+  public MessageProcessor(Command handler, Message<Object> message) {
     this.message = message;
+    this.handler = handler;
   }
 
   @Override
-  public JsonObject process(String name) {
+  public JsonObject process() {
     JsonObject result = null;
     try {
       if (message == null || !(message.body() instanceof JsonObject)) {
@@ -33,12 +36,7 @@ public class MessageProcessor implements Processor {
       JsonObject data = (JsonObject) message.body();
       MultiMap headers = message.headers();
       String command = headers.get(MessageConstants.MSG_HEADER_OP);
-      switch (name) {
-      case MessagebusEndpoints.MBEP_AUTHENTICATION:
-        CommandFactory.getInstance(AuthenticatonCommandHandler.class).exec(command, headers, params(data), requestBody(data));
-        break;
-      }
-
+      result = handler.exec(command, headers, params(data), requestBody(data));
     } catch (InvalidRequestException e) {
 
     }

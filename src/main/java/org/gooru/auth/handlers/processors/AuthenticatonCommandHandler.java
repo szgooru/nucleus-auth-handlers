@@ -2,17 +2,18 @@ package org.gooru.auth.handlers.processors;
 
 import io.vertx.core.MultiMap;
 import io.vertx.core.json.JsonObject;
-import io.vertx.rx.java.RxHelper;
 
-import org.gooru.auth.handlers.authentication.model.AuthClient;
 import org.gooru.auth.handlers.authentication.service.AuthenticationService;
 import org.gooru.auth.handlers.constants.CommandConstants;
 import org.gooru.auth.handlers.constants.MessageConstants;
-
-import rx.Observable;
+import org.gooru.auth.handlers.processors.exceptions.InvalidRequestException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public final class AuthenticatonCommandHandler extends CommandHandler {
 
+  private static final Logger LOG = LoggerFactory.getLogger(AuthenticatonCommandHandler.class);
+  
   private AuthenticationService authenticationService;
 
   public AuthenticatonCommandHandler() {
@@ -20,11 +21,11 @@ public final class AuthenticatonCommandHandler extends CommandHandler {
   }
 
   @Override
-  public Observable<JsonObject> exec(String command, MultiMap headers, JsonObject params, JsonObject body) {
-    Observable<JsonObject> observable = RxHelper.observableFuture();
+  public JsonObject exec(String command, MultiMap headers, JsonObject params, JsonObject body) {
+    JsonObject result = null;
     switch (command) {
     case CommandConstants.CREATE_ACCESS_TOKEN:
-     getAuthenticationService().createAccessToken(new AuthClient(body)).subscribe(result -> System.out.print("aaaj" + result));
+      result = getAuthenticationService().createAnonymousAccessToken(body.getString("client_id"), body.getString("client_key"));
       break;
     case CommandConstants.GET_ACCESS_TOKEN:
       break;
@@ -35,8 +36,11 @@ public final class AuthenticatonCommandHandler extends CommandHandler {
     case CommandConstants.AUTHORIZE:
       getAuthenticationService().authorize();
       break;
+    default:
+      LOG.error("Invalid command type passed in, not able to handle");
+      throw new InvalidRequestException();
     }
-    return null;
+    return result;
   }
 
   public AuthenticationService getAuthenticationService() {

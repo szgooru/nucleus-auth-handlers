@@ -10,6 +10,7 @@ import org.gooru.auth.handlers.bootstrap.shutdown.Finalizers;
 import org.gooru.auth.handlers.bootstrap.startup.Initializer;
 import org.gooru.auth.handlers.bootstrap.startup.Initializers;
 import org.gooru.auth.handlers.constants.MessagebusEndpoints;
+import org.gooru.auth.handlers.processors.AuthenticatonCommandHandler;
 import org.gooru.auth.handlers.processors.ProcessorBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,16 +34,16 @@ public class AuthenticationVerticle extends AbstractVerticle {
     EventBus eb = vertx.eventBus();
 
     eb.consumer(MessagebusEndpoints.MBEP_AUTHENTICATION, message -> {
-
       LOG.debug("Received message: " + message.body());
-
-      vertx.executeBlocking(future -> {
-        JsonObject result = new ProcessorBuilder(message).build().process(MessagebusEndpoints.MBEP_AUTHENTICATION);
-        future.complete(result);
-      }, res -> {
-        JsonObject result = (JsonObject) res.result();
-        message.reply(result);
-      });
+        vertx.executeBlocking(future -> {
+          System.out.println("sheeban :::::");
+          JsonObject result = new ProcessorBuilder(AuthenticatonCommandHandler.class, message).build().process();
+          System.out.println(result);
+          future.complete(result);
+        }, res -> {
+          JsonObject result = (JsonObject) res.result();
+          message.reply(result);
+        });
 
     }).completionHandler(result -> {
       if (result.succeeded()) {

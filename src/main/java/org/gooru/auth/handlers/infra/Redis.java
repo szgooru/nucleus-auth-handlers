@@ -18,12 +18,12 @@ public final class Redis implements Initializer {
     }
   }
 
-
   public static RedisClient client() {
     return client;
   }
 
-
-  
+  public static  Redis  getInstance() {
+    return new Redis();
+  }
 
 }

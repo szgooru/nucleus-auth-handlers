@@ -10,8 +10,7 @@
          "jdbcUrl" : "jdbc:postgresql://localhost:5432/nucleus",
          "username" : "nucleus",
          "password" : "password",
-         "connectionTimeout" : 30000,
-         "minimumIdle" : 5,
-         "maximumPoolSize" : 5
+         "autoCommit" : false,
+         "maximumPoolSize" : 2
    }
 }
