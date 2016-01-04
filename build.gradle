@@ -31,6 +31,7 @@ ext {
     logbackVersion = '1.0.13'
     hikariCPVersion = '2.4.3'
     postgresVersion = '9.4-1206-jdbc42'
+    redisVersion = '2.8.0'
 }
 
 version = "0.1-snapshot"
@@ -49,7 +50,7 @@ dependencies {
     compile "io.vertx:vertx-core:${vertxVersion}"
     compile "io.vertx:vertx-hazelcast:${vertxVersion}"
     compile "io.vertx:vertx-dropwizard-metrics:${vertxVersion}"
-    compile "io.vertx:vertx-redis-client:${vertxVersion}"
+    compile "redis.clients:jedis:${redisVersion}"
     
     
     // active jdbc
@@ -71,7 +72,7 @@ shadowJar {
     classifier = 'fat'
     manifest {
         attributes 'Main-Class': 'io.vertx.core.Launcher'
-        attributes 'Main-Verticle': 'org.gooru.auth.handlers.bootstrap.AuthenticationVerticle'
+        attributes 'Main-Verticle': 'org.gooru.auth.handlers.authentication.bootstrap.AuthenticationVerticle'
         attributes 'Created-By' : 'Gooru.org'
     }
 }
