@@ -12,7 +12,7 @@ public class CommandConstants {
   // User command
   public static final String CREATE_USER = "create.user";
   public static final String UPDATE_USER = "update.user";
-  public static final String UPDATE_USER_PREFERENCE = "update.user.preference";
   public static final String GET_USER = "get.user";
-  
+  public static final String UPDATE_USER_PREFERENCE = "update.user.preference";
+  public static final String GET_USER_PREFERENCE = "get.user.preference"; 
 }

@@ -24,12 +24,19 @@ public final class UserCommandExecutor implements CommandExecutor {
     JsonObject result = null;
     switch (command) {
     case CommandConstants.CREATE_USER:
+      result = getUserService().createUser(null, null);
       break;
     case CommandConstants.UPDATE_USER:
+      result = getUserService().updateUser(null, null);
       break;
     case CommandConstants.GET_USER:
+      result = getUserService().getUser(null, false);
       break;
     case CommandConstants.UPDATE_USER_PREFERENCE:
+      result = getUserService().updateUserPreference(null);
+      break;
+    case CommandConstants.GET_USER_PREFERENCE:
+      result = getUserService().getUserPreference(null);
       break;
     default:
       LOG.error("Invalid command type passed in, not able to handle");
