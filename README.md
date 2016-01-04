@@ -29,7 +29,10 @@ DONE
 
 TODO
 ----
-
+* Support to store the content, user profile repository urls in auth_client table
+* Authorize user - it will be used by auth-node based implementation of google connect, WSFED and SAML
+* Create user, Update user, get user
+* Update user preference, get user preference
 
 To understand build related stuff, take a look at **BUILD_README.md**.
 
