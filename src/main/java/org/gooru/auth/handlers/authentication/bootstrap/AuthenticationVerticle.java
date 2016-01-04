@@ -6,10 +6,6 @@ import io.vertx.core.eventbus.DeliveryOptions;
 import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.json.JsonObject;
 
-import org.gooru.auth.handlers.authentication.bootstrap.shutdown.Finalizer;
-import org.gooru.auth.handlers.authentication.bootstrap.shutdown.Finalizers;
-import org.gooru.auth.handlers.authentication.bootstrap.startup.Initializer;
-import org.gooru.auth.handlers.authentication.bootstrap.startup.Initializers;
 import org.gooru.auth.handlers.authentication.constants.MessageConstants;
 import org.gooru.auth.handlers.authentication.constants.MessagebusEndpoints;
 import org.gooru.auth.handlers.authentication.processors.AuthenticatonCommandExecutor;
@@ -22,17 +18,6 @@ public class AuthenticationVerticle extends AbstractVerticle {
 
   @Override
   public void start(Future<Void> voidFuture) throws Exception {
-
-    vertx.executeBlocking(blockingFuture -> {
-      startApplication();
-    }, future -> {
-      if (future.succeeded()) {
-        voidFuture.complete();
-      } else {
-        voidFuture.fail("Not able to initialize the Authentication machinery properly");
-      }
-    });
-
     EventBus eb = vertx.eventBus();
 
     eb.consumer(MessagebusEndpoints.MBEP_AUTHENTICATION, message -> {
@@ -61,31 +46,7 @@ public class AuthenticationVerticle extends AbstractVerticle {
         Runtime.getRuntime().halt(1);
       }
     });
-
   }
 
-  @Override
-  public void stop() throws Exception {
-    shutDownApplication();
-    super.stop();
-  }
 
-  private void startApplication() {
-    Initializers initializers = new Initializers();
-    try {
-      for (Initializer initializer : initializers) {
-        initializer.initializeComponent(vertx, config());
-      }
-    } catch (IllegalStateException ie) {
-      LOG.error("Error initializing application", ie);
-      Runtime.getRuntime().halt(1);
-    }
-  }
-
-  private void shutDownApplication() {
-    Finalizers finalizers = new Finalizers();
-    for (Finalizer finalizer : finalizers) {
-      finalizer.finalizeComponent();
-    }
-  }
 }

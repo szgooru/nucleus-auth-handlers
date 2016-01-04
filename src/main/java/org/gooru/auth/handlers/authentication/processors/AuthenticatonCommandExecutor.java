@@ -43,9 +43,6 @@ public final class AuthenticatonCommandExecutor implements CommandExecutor  {
     case CommandConstants.DELETE_ACCESS_TOKEN:
       getAuthenticationService().deleteAccessToken(headers.get(MessageConstants.MSG_HEADER_TOKEN));
       break;
-    case CommandConstants.AUTHORIZE:
-      getAuthenticationService().authorize();
-      break;
     default:
       LOG.error("Invalid command type passed in, not able to handle");
       throw new InvalidRequestException();

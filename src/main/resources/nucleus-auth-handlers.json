@@ -12,5 +12,6 @@
          "password" : "password",
          "autoCommit" : false,
          "maximumPoolSize" : 2
-   }
+   },
+   "verticles.deploy.list": ["service:org.gooru.auth.handlers.authentication.bootstrap.AuthenticationVerticle"]
 }

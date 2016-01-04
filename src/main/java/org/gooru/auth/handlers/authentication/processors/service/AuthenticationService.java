@@ -15,5 +15,4 @@ public interface AuthenticationService {
 
   boolean deleteAccessToken(String token);
 
-  JsonObject authorize();
 }

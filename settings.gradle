@@ -16,4 +16,4 @@ include 'api'
 include 'services:webservice'
 */
 
-rootProject.name = 'auth-service'
+rootProject.name = 'nucleus-auth-handlers'

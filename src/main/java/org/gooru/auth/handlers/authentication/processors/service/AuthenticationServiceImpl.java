@@ -111,11 +111,6 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     return authClient;
   }
 
-  @Override
-  public JsonObject authorize() {
-    return null;
-  }
-
   private void verifyClientkeyDomains(String requestDomain, JsonArray registeredRefererDomains) {
     if (requestDomain != null && registeredRefererDomains != null) {
       boolean isValidReferrer = false;

@@ -8,7 +8,7 @@ public class ParameterConstants {
   public static final String PARAM_PROVIDED_AT = "provided_at";
   public static final String PARAM_ACCESS_TOKEN = "access_token";
   public static final String PARAM_STATUS_DEACTIVTED = "deactived";
-  public static final String PARAM_STANDARD_PREFERENCE = "standard_preference";
+  public static final String PARAM_STANDARD_PREFERENCE = "prefs";
   public static final String PARAM_ACCESS_TOKEN_VALIDITY = "access_token_validity";
   
 }
