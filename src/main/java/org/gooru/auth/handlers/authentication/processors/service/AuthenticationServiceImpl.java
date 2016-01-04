@@ -38,9 +38,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
   @Override
   public JsonObject createAnonymousAccessToken(String clientId, String clientKey, String grantType, String requestDomain) {
-
     final AuthClient authClient = validateAuthClient(clientId, clientKey, grantType);
-
     verifyClientkeyDomains(requestDomain, authClient.getRefererDomains());
     final JsonObject accessToken = new JsonObject();
     accessToken.put(ParameterConstants.PARAM_USER_ID, MessageConstants.MSG_USER_ANONYMOUS);
@@ -76,8 +74,12 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     accessToken.put(ParameterConstants.PARAM_PROVIDED_AT, System.currentTimeMillis());
     final String token = InternalHelper.generateToken(userIdentity.getUserId());
     final UserPreference userPreference = getUserPreferenceRepo().getUserPreference(userIdentity.getUserId());
-    if (userPreference != null && userPreference.getStandardPreference() != null) {
-      accessToken.put(ParameterConstants.PARAM_STANDARD_PREFERENCE, userPreference.getStandardPreference());
+    if (userPreference != null) {
+      JsonObject prefs = new JsonObject();
+      if (userPreference.getStandardPreference() != null) {
+        prefs.put(ParameterConstants.PARAM_TAXONOMY, userPreference.getStandardPreference());
+      }
+      accessToken.put(ParameterConstants.PARAM_USER_PREFERENCE, prefs);
     }
     saveAccessToken(token, accessToken, authClient.getAccessTokenValidity());
     accessToken.put(ParameterConstants.PARAM_ACCESS_TOKEN, token);
