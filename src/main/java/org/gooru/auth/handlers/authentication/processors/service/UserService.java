@@ -11,9 +11,9 @@ public interface UserService {
     return new UserServiceImpl();
   }
 
-  JsonObject createUser(User user, UserIdentity userIdentity);
+  JsonObject createUser(JsonObject userJson);
 
-  JsonObject updateUser(User user, UserIdentity userIdentity);
+  JsonObject updateUser(JsonObject user);
 
   JsonObject getUser(String userId, boolean includeIdentities);
 

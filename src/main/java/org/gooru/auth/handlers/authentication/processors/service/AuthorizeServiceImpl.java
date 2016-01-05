@@ -4,10 +4,10 @@ import io.vertx.core.json.JsonObject;
 
 public class AuthorizeServiceImpl implements AuthorizeService {
 
-  private AuthenticationService authenticationService;
+  private AuthorizeService authorizeService;
   
   public AuthorizeServiceImpl() {
-    setAuthenticationService(AuthenticationService.getInstance());
+    setAuthorizeService(AuthorizeService.getInstance());
   }
   
   @Override
@@ -16,12 +16,14 @@ public class AuthorizeServiceImpl implements AuthorizeService {
     return null;
   }
 
-  public AuthenticationService getAuthenticationService() {
-    return authenticationService;
+  public AuthorizeService getAuthorizeService() {
+    return authorizeService;
   }
 
-  public void setAuthenticationService(AuthenticationService authenticationService) {
-    this.authenticationService = authenticationService;
+  public void setAuthorizeService(AuthorizeService authorizeService) {
+    this.authorizeService = authorizeService;
   }
+
+
 
 }

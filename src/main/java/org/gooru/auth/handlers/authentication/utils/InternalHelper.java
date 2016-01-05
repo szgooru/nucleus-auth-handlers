@@ -1,8 +1,10 @@
 package org.gooru.auth.handlers.authentication.utils;
 
-import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Base64;
 import java.util.Date;
 
@@ -12,6 +14,8 @@ import org.gooru.auth.handlers.authentication.processors.exceptions.InvalidUserE
 
 public class InternalHelper {
 
+  private static String CLIENT_KEY_HASH = "$GooruCLIENTKeyHash$";
+
   public static String generateToken(String name) {
     StringBuilder sourceInfo = new StringBuilder();
     sourceInfo.append(name).append(new Date().toString()).append(System.currentTimeMillis());
@@ -20,17 +24,22 @@ public class InternalHelper {
   }
 
   public static String encryptPassword(final String password) {
+    return encrypt(password);
+  }
+
+  public static String encryptClientKey(final String key) {
+    String text = CLIENT_KEY_HASH + key;
+    return encrypt(text);
+  }
+
+  public static String encrypt(final String text) {
     MessageDigest messageDigest = null;
     try {
       messageDigest = MessageDigest.getInstance("SHA-1");
     } catch (NoSuchAlgorithmException e) {
       throw new InvalidRequestException("Error while authenticating user - No algorithm exists");
     }
-    try {
-      messageDigest.update(password.getBytes("UTF-8"));
-    } catch (UnsupportedEncodingException e) {
-      throw new InvalidRequestException("Error while authenticating user - No algorithm exists");
-    }
+    messageDigest.update(text.getBytes(StandardCharsets.UTF_8));
     byte raw[] = messageDigest.digest();
     return Base64.getEncoder().encodeToString(raw);
   }
@@ -44,5 +53,15 @@ public class InternalHelper {
     }
     return credentials;
   }
-  
+
+  public static boolean isValidDate(String inDate) {
+    SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy");
+    dateFormat.setLenient(false);
+    try {
+      dateFormat.parse(inDate.trim());
+    } catch (ParseException pe) {
+      return false;
+    }
+    return true;
+  }
 }

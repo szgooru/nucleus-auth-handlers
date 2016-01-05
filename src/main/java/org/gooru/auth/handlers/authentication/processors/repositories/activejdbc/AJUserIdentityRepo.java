@@ -4,43 +4,53 @@ import org.gooru.auth.handlers.authentication.processors.repositories.UserIdenti
 import org.gooru.auth.handlers.authentication.processors.repositories.activejdbc.entities.UserIdentity;
 import org.javalite.activejdbc.Base;
 import org.javalite.activejdbc.LazyList;
+import org.javalite.activejdbc.Model;
 
 public class AJUserIdentityRepo extends AJAbstractRepo implements UserIdentityRepo {
 
+  private static final String GET_BY_USERNAME_PASSWORD = "username = ?  and password = ? and login_type = 'credential' and status != 'deleted'";
+  private static final String GET_BY_EMAIL_PASSWORD = "email_id = ?  and password = ? and login_type = 'credential' and status != 'deleted'";
+  private static final String GET_BY_EMAIL = "email_id = ? and status != 'deleted'";
+  private static final String GET_BY_USERNAME = "username = ? and status != 'deleted'";
+  private static final String GET_BY_REFERENCE = "reference_id = ? and status != 'deleted'";
+
   @Override
   public UserIdentity getUserIdentityByUsernameAndPassword(String username, String password) {
-    Base.open(dataSource());
-    LazyList<UserIdentity> results = UserIdentity.where("username = ?  and password = ? and login_type = 'credential' and status != 'deleted'", username, password);
-    UserIdentity userIdentity = results.size() > 0 ? results.get(0) : null;
-    Base.close();
-    return userIdentity;
+    return (UserIdentity) query(GET_BY_USERNAME_PASSWORD, username, password);
   }
 
   @Override
   public UserIdentity getUserIdentityByEmailIdAndPassword(String emailId, String password) {
-    Base.open(dataSource());
-    LazyList<UserIdentity> results = UserIdentity.where("email_id = ?  and password = ? and login_type = 'credential' and status != 'deleted'", emailId, password);
-    UserIdentity userIdentity = results.size() > 0 ? results.get(0) : null;
-    Base.close();
-    return userIdentity;
+    return (UserIdentity) query(GET_BY_EMAIL_PASSWORD, emailId, password);
   }
 
   @Override
   public UserIdentity getUserIdentityByEmailId(String emailId) {
-    Base.open(dataSource());
-    LazyList<UserIdentity> results = UserIdentity.where("email_id = ?", emailId);
-    UserIdentity userIdentity = results.size() > 0 ? results.get(0) : null;
-    Base.close();
-    return userIdentity;
+    return (UserIdentity) query(GET_BY_EMAIL, emailId);
   }
 
   @Override
   public UserIdentity getUserIdentityByReferenceId(String referenceId) {
+    return (UserIdentity) query(GET_BY_REFERENCE, referenceId);
+  }
+
+  @Override
+  public UserIdentity getUserIdentityByUsername(String username) {
+    return (UserIdentity) query(GET_BY_USERNAME, username);
+  }
+
+  @Override
+  public UserIdentity createUserIdentity() {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  public <T extends Model> T query(String whereClause, Object... params) {
     Base.open(dataSource());
-    LazyList<UserIdentity> results = UserIdentity.where("reference_id = ?", referenceId);
-    UserIdentity userIdentity = results.size() > 0 ? results.get(0) : null;
+    LazyList<T> results = UserIdentity.<T> where(whereClause, params);
+    T result = results.size() > 0 ? results.get(0) : null;
     Base.close();
-    return userIdentity;
+    return result;
   }
 
 }

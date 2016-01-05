@@ -22,6 +22,12 @@ public class ServerValidationUtility {
       exceptionHandler(errorCode, code, placeHolderRepalcer);
     }
   }
+  
+  public static void rejectIfNullOrEmpty(String data, String code, int errorCode, String... placeHolderRepalcer) {
+    if (data == null || data.trim().length() == 0) {
+      exceptionHandler(errorCode, code, placeHolderRepalcer);
+    }
+  }
 
   public static void rejectIfMaxLimitExceed(int maxlimit, String content, String code, String... placeHolderRepalcer) {
     if (content != null && content.length() > maxlimit) {

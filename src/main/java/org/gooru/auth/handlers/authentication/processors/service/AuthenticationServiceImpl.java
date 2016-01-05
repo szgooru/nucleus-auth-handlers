@@ -38,7 +38,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
   @Override
   public JsonObject createAnonymousAccessToken(String clientId, String clientKey, String grantType, String requestDomain) {
-    final AuthClient authClient = validateAuthClient(clientId, clientKey, grantType);
+    final AuthClient authClient = validateAuthClient(clientId, InternalHelper.encryptClientKey(clientKey), grantType);
     verifyClientkeyDomains(requestDomain, authClient.getRefererDomains());
     final JsonObject accessToken = new JsonObject();
     accessToken.put(ParameterConstants.PARAM_USER_ID, MessageConstants.MSG_USER_ANONYMOUS);
@@ -47,14 +47,15 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     final String token = InternalHelper.generateToken(MessageConstants.MSG_USER_ANONYMOUS);
     saveAccessToken(token, accessToken, authClient.getAccessTokenValidity());
     accessToken.put(ParameterConstants.PARAM_ACCESS_TOKEN, token);
+    accessToken.put(ParameterConstants.PARAM_CDN_URLS, authClient.getCdnUrls());
     return accessToken;
   }
 
   @Override
   public JsonObject
           createBasicAuthAccessToken(String clientId, String clientKey, String grantType, String requestDomain, String basicAuthCredentials) {
-    ServerValidationUtility.rejectIfNull(basicAuthCredentials, ServerMessageConstants.AU0006, HttpConstants.HttpStatus.UNAUTHORIZED.getCode());
-    final AuthClient authClient = validateAuthClient(clientId, clientKey, grantType);
+    ServerValidationUtility.rejectIfNullOrEmpty(basicAuthCredentials, ServerMessageConstants.AU0006, HttpConstants.HttpStatus.UNAUTHORIZED.getCode());
+    final AuthClient authClient = validateAuthClient(clientId, InternalHelper.encryptClientKey(clientKey), grantType);
     verifyClientkeyDomains(requestDomain, authClient.getRefererDomains());
     final String credentials[] = InternalHelper.getUsernameAndPassword(basicAuthCredentials);
     final String username = credentials[0];
@@ -83,6 +84,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     }
     saveAccessToken(token, accessToken, authClient.getAccessTokenValidity());
     accessToken.put(ParameterConstants.PARAM_ACCESS_TOKEN, token);
+    accessToken.put(ParameterConstants.PARAM_CDN_URLS, authClient.getCdnUrls());
     return accessToken;
   }
 
@@ -103,9 +105,9 @@ public class AuthenticationServiceImpl implements AuthenticationService {
   }
 
   private AuthClient validateAuthClient(String clientId, String clientKey, String grantType) {
-    ServerValidationUtility.rejectIfNull(clientId, ServerMessageConstants.AU0001, HttpConstants.HttpStatus.UNAUTHORIZED.getCode());
-    ServerValidationUtility.rejectIfNull(clientKey, ServerMessageConstants.AU0002, HttpConstants.HttpStatus.UNAUTHORIZED.getCode());
-    ServerValidationUtility.rejectIfNull(grantType, ServerMessageConstants.AU0003, HttpConstants.HttpStatus.UNAUTHORIZED.getCode());
+    ServerValidationUtility.rejectIfNullOrEmpty(clientId, ServerMessageConstants.AU0001, HttpConstants.HttpStatus.UNAUTHORIZED.getCode());
+    ServerValidationUtility.rejectIfNullOrEmpty(clientKey, ServerMessageConstants.AU0002, HttpConstants.HttpStatus.UNAUTHORIZED.getCode());
+    ServerValidationUtility.rejectIfNullOrEmpty(grantType, ServerMessageConstants.AU0003, HttpConstants.HttpStatus.UNAUTHORIZED.getCode());
     AuthClient authClient = getAuthClientRepo().getAuthClient(clientId, clientKey);
     ServerValidationUtility.rejectIfNull(authClient, ServerMessageConstants.AU0004, HttpConstants.HttpStatus.UNAUTHORIZED.getCode());
     ServerValidationUtility.reject((authClient.getGrantTypes() == null || !authClient.getGrantTypes().contains(grantType)),
@@ -164,5 +166,4 @@ public class AuthenticationServiceImpl implements AuthenticationService {
   public void setJedis(Jedis jedis) {
     this.jedis = jedis;
   }
-
 }

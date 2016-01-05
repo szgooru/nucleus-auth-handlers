@@ -4,10 +4,9 @@ import javax.sql.DataSource;
 
 import org.gooru.auth.handlers.authentication.infra.DataSourceRegistry;
 
+public abstract class AJAbstractRepo {
 
-public abstract class AJAbstractRepo {  
-  
-  protected DataSource dataSource() { 
+  protected DataSource dataSource() {
     return DataSourceRegistry.getInstance().getDefaultDataSource();
   }
 

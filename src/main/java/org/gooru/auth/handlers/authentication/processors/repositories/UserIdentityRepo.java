@@ -15,4 +15,8 @@ public interface UserIdentityRepo {
   
   UserIdentity getUserIdentityByReferenceId(String referenceId);
   
+  UserIdentity getUserIdentityByUsername(String username);
+  
+  UserIdentity createUserIdentity();
+  
 }

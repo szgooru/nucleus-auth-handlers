@@ -24,10 +24,10 @@ public final class UserCommandExecutor implements CommandExecutor {
     JsonObject result = null;
     switch (command) {
     case CommandConstants.CREATE_USER:
-      result = getUserService().createUser(null, null);
+      result = getUserService().createUser(body);
       break;
     case CommandConstants.UPDATE_USER:
-      result = getUserService().updateUser(null, null);
+      result = getUserService().updateUser(body);
       break;
     case CommandConstants.GET_USER:
       result = getUserService().getUser(null, false);
