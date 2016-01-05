@@ -2,7 +2,6 @@ package org.gooru.auth.handlers.authentication.processors.repositories.activejdb
 
 import org.gooru.auth.handlers.authentication.processors.repositories.AuthClientRepo;
 import org.gooru.auth.handlers.authentication.processors.repositories.activejdbc.entities.AuthClient;
-import org.gooru.auth.handlers.authentication.processors.repositories.activejdbc.entities.UserIdentity;
 import org.javalite.activejdbc.Base;
 import org.javalite.activejdbc.LazyList;
 import org.javalite.activejdbc.Model;
