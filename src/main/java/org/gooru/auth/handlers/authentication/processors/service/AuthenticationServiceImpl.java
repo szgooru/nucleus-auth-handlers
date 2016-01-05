@@ -3,6 +3,7 @@ package org.gooru.auth.handlers.authentication.processors.service;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
+import org.gooru.auth.handlers.authentication.constants.HelperConstants.GrantType;
 import org.gooru.auth.handlers.authentication.constants.HttpConstants;
 import org.gooru.auth.handlers.authentication.constants.MessageConstants;
 import org.gooru.auth.handlers.authentication.constants.ParameterConstants;
@@ -38,6 +39,8 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
   @Override
   public JsonObject createAnonymousAccessToken(String clientId, String clientKey, String grantType, String requestDomain) {
+    ServerValidationUtility.reject(!(GrantType.ANONYMOUS.getType().equalsIgnoreCase(grantType)), ServerMessageConstants.AU0003,
+            HttpConstants.HttpStatus.UNAUTHORIZED.getCode());
     final AuthClient authClient = validateAuthClient(clientId, InternalHelper.encryptClientKey(clientKey), grantType);
     verifyClientkeyDomains(requestDomain, authClient.getRefererDomains());
     final JsonObject accessToken = new JsonObject();
@@ -54,6 +57,8 @@ public class AuthenticationServiceImpl implements AuthenticationService {
   @Override
   public JsonObject
           createBasicAuthAccessToken(String clientId, String clientKey, String grantType, String requestDomain, String basicAuthCredentials) {
+    ServerValidationUtility.reject(!(GrantType.CREDENTIAL.getType().equalsIgnoreCase(grantType)), ServerMessageConstants.AU0003,
+            HttpConstants.HttpStatus.UNAUTHORIZED.getCode());
     ServerValidationUtility.rejectIfNullOrEmpty(basicAuthCredentials, ServerMessageConstants.AU0006, HttpConstants.HttpStatus.UNAUTHORIZED.getCode());
     final AuthClient authClient = validateAuthClient(clientId, InternalHelper.encryptClientKey(clientKey), grantType);
     verifyClientkeyDomains(requestDomain, authClient.getRefererDomains());
@@ -107,7 +112,6 @@ public class AuthenticationServiceImpl implements AuthenticationService {
   private AuthClient validateAuthClient(String clientId, String clientKey, String grantType) {
     ServerValidationUtility.rejectIfNullOrEmpty(clientId, ServerMessageConstants.AU0001, HttpConstants.HttpStatus.UNAUTHORIZED.getCode());
     ServerValidationUtility.rejectIfNullOrEmpty(clientKey, ServerMessageConstants.AU0002, HttpConstants.HttpStatus.UNAUTHORIZED.getCode());
-    ServerValidationUtility.rejectIfNullOrEmpty(grantType, ServerMessageConstants.AU0003, HttpConstants.HttpStatus.UNAUTHORIZED.getCode());
     AuthClient authClient = getAuthClientRepo().getAuthClient(clientId, clientKey);
     ServerValidationUtility.rejectIfNull(authClient, ServerMessageConstants.AU0004, HttpConstants.HttpStatus.UNAUTHORIZED.getCode());
     ServerValidationUtility.reject((authClient.getGrantTypes() == null || !authClient.getGrantTypes().contains(grantType)),

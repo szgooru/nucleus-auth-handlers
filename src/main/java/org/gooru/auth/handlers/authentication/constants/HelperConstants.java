@@ -35,7 +35,7 @@ public class HelperConstants {
     private UserIdentityProvisionType(String type) {
       this.type = type;
     }
-    
+
     public String getType() {
       return this.type;
     }
@@ -49,11 +49,12 @@ public class HelperConstants {
     private UserIdentityLoginType(String type) {
       this.type = type;
     }
+
     public String getType() {
       return this.type;
     }
   }
-  
+
   public enum UserIdentityStatus {
     ACTIVE("active"), DEACTIVED("deactived"), DELETED("deleted");
 
@@ -62,8 +63,23 @@ public class HelperConstants {
     private UserIdentityStatus(String status) {
       this.status = status;
     }
+
     public String getStatus() {
       return this.status;
+    }
+  }
+
+  public enum GrantType {
+    ANONYMOUS("anonymous"), CREDENTIAL("credential");
+
+    public String type;
+
+    private GrantType(String type) {
+      this.type = type;
+    }
+
+    public String getType() {
+      return this.type;
     }
   }
 
