@@ -5,7 +5,7 @@ import io.vertx.core.json.JsonArray;
 import org.javalite.activejdbc.Model;
 import org.javalite.activejdbc.annotations.Table;
 
-@Table("user")
+@Table("user_demograph")
 public class User extends Model {
 
   public String getUserId() {
@@ -131,5 +131,18 @@ public class User extends Model {
 
   public void setStateId(Long stateId) {
     set("state_id", stateId);
+  }
+
+  public JsonArray getCourse() {
+    String json = getString("course");
+    JsonArray course = null;
+    if (json != null) {
+      course = new JsonArray(json);
+    }
+    return course;
+  }
+
+  public void setCourse(JsonArray course) {
+    set("course", course);
   }
 }

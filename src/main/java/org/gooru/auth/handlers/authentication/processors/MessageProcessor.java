@@ -36,7 +36,8 @@ public class MessageProcessor implements Processor {
       String command = headers.get(MessageConstants.MSG_HEADER_OP);
       JsonObject body = data.getJsonObject(MessageConstants.MSG_HTTP_BODY);
       JsonObject params = data.getJsonObject(MessageConstants.MSG_HTTP_PARAM);
-      JsonObject result = handler.exec(command, headers, params, body);
+      JsonObject usercontext = data.getJsonObject(MessageConstants.MSG_USER_CONTEXT_HOLDER);
+      JsonObject result = handler.exec(command, usercontext, headers, params, body);
       return new ResponseTransformerBuilder().build(result).transform();
     } catch (InvalidRequestException e) {
       LOG.warn("Caught Invalid Request exception while processing", e);

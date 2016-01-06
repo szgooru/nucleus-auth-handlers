@@ -8,22 +8,22 @@ import io.vertx.core.json.JsonObject;
 
 import org.gooru.auth.handlers.authentication.constants.MessageConstants;
 import org.gooru.auth.handlers.authentication.constants.MessagebusEndpoints;
-import org.gooru.auth.handlers.authentication.processors.AuthorizeCommandExecutor;
 import org.gooru.auth.handlers.authentication.processors.ProcessorBuilder;
+import org.gooru.auth.handlers.authentication.processors.UserCommandExecutor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class AuthorizeVerticle extends AbstractVerticle {
-  static final Logger LOG = LoggerFactory.getLogger(AuthorizeVerticle.class);
+public class UserPrefsVerticle extends AbstractVerticle {
+  static final Logger LOG = LoggerFactory.getLogger(UserPrefsVerticle.class);
 
   @Override
   public void start(Future<Void> voidFuture) throws Exception {
     EventBus eb = vertx.eventBus();
 
-    eb.consumer(MessagebusEndpoints.MBEP_AUTHORIZE, message -> {
+    eb.consumer(MessagebusEndpoints.MBEP_USER_PREFS, message -> {
       LOG.debug("Received message: " + message.body());
         vertx.executeBlocking(future -> {
-          JsonObject result = new ProcessorBuilder(AuthorizeCommandExecutor.class, message).build().process();
+          JsonObject result = new ProcessorBuilder(UserCommandExecutor.class, message).build().process();
           future.complete(result);
         }, res -> {
           LOG.debug("Worker thread done. Taking processing forward.");
@@ -40,9 +40,9 @@ public class AuthorizeVerticle extends AbstractVerticle {
 
     }).completionHandler(result -> {
       if (result.succeeded()) {
-        LOG.info("Authorize end point ready to listen");
+        LOG.info("User end point ready to listen");
       } else {
-        LOG.error("Error registering the authorize handler. Halting the authorize machinery");
+        LOG.error("Error registering the authentication handler. Halting the Authentication machinery");
         Runtime.getRuntime().halt(1);
       }
     });

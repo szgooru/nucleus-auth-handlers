@@ -27,6 +27,7 @@ public class ServerMessageConstants {
   public final static String AU0023 = "AU0023";
   public final static String AU0024 = "AU0024";
   public final static String AU0025 = "AU0025";
+  public final static String AU0026 = "AU0026";
   
   
 }

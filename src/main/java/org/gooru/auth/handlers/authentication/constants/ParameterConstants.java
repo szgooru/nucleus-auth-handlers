@@ -16,6 +16,7 @@ public class ParameterConstants {
   public static final String PARAM_CDN_URLS = "cdn_urls";
   
   // User
+  public static final String PARAM_USER = "user";
   public static final String PARAM_USER_FIRSTNAME = "firstname";
   public static final String PARAM_USER_LASTNAME = "lastname";
   public static final String PARAM_USER_USERNAME = "username";
@@ -30,5 +31,6 @@ public class ParameterConstants {
   public static final String PARAM_USER_STATE_ID = "state_id";
   public static final String PARAM_USER_PASSWORD = "password";
   public static final String PARAM_GRADE = "grade";
+  public static final String PARAM_USER_ME = "me";
   
 }

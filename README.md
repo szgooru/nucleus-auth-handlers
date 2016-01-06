@@ -1,9 +1,9 @@
-Nucleus Lookup
-================
+Nucleus auth handlers
+=====================
 
-This is the Lookup handler for Project Nucleus.
+This is the auth handler for Project Nucleus.
 
-This project contains just one main verticle which is responsible for listening for Lookup address on message bus.
+This project contains just one main verticle which is responsible for listening for Authentication, Authorize, User, School, School District Country, State address on message bus.
 
 DONE
 ----

@@ -40,15 +40,18 @@ public class AJUserIdentityRepo extends AJAbstractRepo implements UserIdentityRe
   }
 
   @Override
-  public UserIdentity createUserIdentity() {
-    // TODO Auto-generated method stub
-    return null;
+  public UserIdentity saveOrUpdate(UserIdentity userIdentity) {
+    Base.open(dataSource());
+    userIdentity.saveIt();
+    Base.close();
+    return userIdentity;
   }
 
-  public <T extends Model> T query(String whereClause, Object... params) {
+  @Override
+  protected <T extends Model> T query(String whereClause, Object... params) {
     Base.open(dataSource());
-    LazyList<T> results = UserIdentity.<T> where(whereClause, params);
-    T result = results.size() > 0 ? results.get(0) : null;
+    LazyList<T> results = UserIdentity.where(whereClause, params);
+    T result = results.size() > 0 ? (T) results.get(0) : null;
     Base.close();
     return result;
   }

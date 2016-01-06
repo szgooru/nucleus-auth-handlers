@@ -94,16 +94,6 @@ public class AuthenticationServiceImpl implements AuthenticationService {
   }
 
   @Override
-  public JsonObject getAccessToken(String token) {
-    JsonObject accessToken = new JsonObject(getJedis().get(token));
-    if (accessToken != null) {
-      int expireAtInSeconds = accessToken.getInteger(ParameterConstants.PARAM_ACCESS_TOKEN_VALIDITY);
-      getJedis().expire(token, expireAtInSeconds);
-    }
-    return accessToken;
-  }
-
-  @Override
   public boolean deleteAccessToken(String token) {
     getJedis().del(token);
     return true;

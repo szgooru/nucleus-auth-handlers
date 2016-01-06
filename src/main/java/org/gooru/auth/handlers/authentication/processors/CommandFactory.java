@@ -13,10 +13,15 @@ public class CommandFactory {
       synchronized (CommandFactory.class) {
         if (classz.equals(AuthenticatonCommandExecutor.class)) {
           cmd = new AuthenticatonCommandExecutor();
+        } else if (classz.equals(AuthorizeCommandExecutor.class)) {
+          cmd = new AuthorizeCommandExecutor();
+        } else if (classz.equals(UserCommandExecutor.class)) {
+          cmd = new UserCommandExecutor();
         }
       }
       instances.put(classz, cmd);
     }
+    
     return cmd;
 
   }

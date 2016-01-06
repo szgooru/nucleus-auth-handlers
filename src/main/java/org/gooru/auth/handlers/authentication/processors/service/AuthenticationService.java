@@ -11,8 +11,6 @@ public interface AuthenticationService {
 
   JsonObject createBasicAuthAccessToken(String clientId, String clientKey, String grantType, String requestDomain, String basicAuthCredentials);
 
-  JsonObject getAccessToken(String token);
-
   boolean deleteAccessToken(String token);
 
 }

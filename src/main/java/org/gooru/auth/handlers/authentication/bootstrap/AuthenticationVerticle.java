@@ -40,9 +40,9 @@ public class AuthenticationVerticle extends AbstractVerticle {
 
     }).completionHandler(result -> {
       if (result.succeeded()) {
-        LOG.info("Authentication end point ready to listen");
+        LOG.info("authentication end point ready to listen");
       } else {
-        LOG.error("Error registering the authentication handler. Halting the Authentication machinery");
+        LOG.error("Error registering the authentication handler. Halting the authentication machinery");
         Runtime.getRuntime().halt(1);
       }
     });

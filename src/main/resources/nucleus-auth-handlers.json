@@ -13,5 +13,5 @@
          "autoCommit" : false,
          "maximumPoolSize" : 2
    },
-   "verticles.deploy.list": ["service:org.gooru.auth.handlers.authentication.bootstrap.AuthenticationVerticle", "service:org.gooru.auth.handlers.authentication.bootstrap.AuthorizeVerticle", "service:org.gooru.auth.handlers.authentication.bootstrap.UserVerticle"]
+   "verticles.deploy.list": ["service:org.gooru.auth.handlers.authentication.bootstrap.AuthVerticle", "service:org.gooru.auth.handlers.authentication.bootstrap.AuthenticationVerticle", "service:org.gooru.auth.handlers.authentication.bootstrap.AuthorizeVerticle", "service:org.gooru.auth.handlers.authentication.bootstrap.UserVerticle"]
 }

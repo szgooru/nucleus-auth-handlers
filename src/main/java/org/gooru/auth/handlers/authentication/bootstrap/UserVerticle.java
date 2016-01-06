@@ -42,7 +42,7 @@ public class UserVerticle extends AbstractVerticle {
       if (result.succeeded()) {
         LOG.info("User end point ready to listen");
       } else {
-        LOG.error("Error registering the authentication handler. Halting the Authentication machinery");
+        LOG.error("Error registering the user handler. Halting the user machinery");
         Runtime.getRuntime().halt(1);
       }
     });

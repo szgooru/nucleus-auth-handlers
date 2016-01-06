@@ -22,7 +22,7 @@ public final class AuthenticatonCommandExecutor implements CommandExecutor  {
   }
 
   @Override
-  public JsonObject exec(String command, MultiMap headers, JsonObject params, JsonObject body) {
+  public JsonObject exec(String command, JsonObject userContext, MultiMap headers, JsonObject params, JsonObject body) {
     JsonObject result = null;
     switch (command) {
     case CommandConstants.CREATE_ACCESS_TOKEN:
@@ -36,9 +36,6 @@ public final class AuthenticatonCommandExecutor implements CommandExecutor  {
       } else {
         result = getAuthenticationService().createBasicAuthAccessToken(clientId, clientKey, grantType, requestDomain, basicAuthCredentials);
       }
-      break;
-    case CommandConstants.GET_ACCESS_TOKEN:
-      result = getAuthenticationService().getAccessToken(headers.get(MessageConstants.MSG_HEADER_TOKEN));
       break;
     case CommandConstants.DELETE_ACCESS_TOKEN:
       getAuthenticationService().deleteAccessToken(headers.get(MessageConstants.MSG_HEADER_TOKEN));

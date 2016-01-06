@@ -4,6 +4,7 @@ import io.vertx.core.MultiMap;
 import io.vertx.core.json.JsonObject;
 
 import org.gooru.auth.handlers.authentication.constants.CommandConstants;
+import org.gooru.auth.handlers.authentication.constants.ParameterConstants;
 import org.gooru.auth.handlers.authentication.processors.exceptions.InvalidRequestException;
 import org.gooru.auth.handlers.authentication.processors.service.UserService;
 import org.slf4j.Logger;
@@ -20,17 +21,25 @@ public final class UserCommandExecutor implements CommandExecutor {
   }
 
   @Override
-  public JsonObject exec(String command, MultiMap headers, JsonObject params, JsonObject body) {
+  public JsonObject exec(String command, JsonObject userContext, MultiMap headers, JsonObject params, JsonObject body) {
     JsonObject result = null;
     switch (command) {
     case CommandConstants.CREATE_USER:
-      result = getUserService().createUser(body);
+      result = getUserService().createUser(body, userContext.getString(ParameterConstants.PARAM_CLIENT_ID));
       break;
     case CommandConstants.UPDATE_USER:
-      result = getUserService().updateUser(body);
+      String updateuserId = params.getString(ParameterConstants.PARAM_USER_ID);
+      if (updateuserId.equalsIgnoreCase(ParameterConstants.PARAM_USER_ME)) {
+        updateuserId = userContext.getString(ParameterConstants.PARAM_USER_ID);
+      }
+      result = getUserService().updateUser(updateuserId, body);
       break;
     case CommandConstants.GET_USER:
-      result = getUserService().getUser(null, false);
+      String userId = params.getString(ParameterConstants.PARAM_USER_ID);
+      if (userId.equalsIgnoreCase(ParameterConstants.PARAM_USER_ME)) {
+        userId = userContext.getString(ParameterConstants.PARAM_USER_ID);
+      }
+      result = getUserService().getUser(userId);
       break;
     case CommandConstants.UPDATE_USER_PREFERENCE:
       result = getUserService().updateUserPreference(null);

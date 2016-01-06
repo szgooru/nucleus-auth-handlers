@@ -17,6 +17,6 @@ public interface UserIdentityRepo {
   
   UserIdentity getUserIdentityByUsername(String username);
   
-  UserIdentity createUserIdentity();
+  UserIdentity saveOrUpdate(UserIdentity userIdentity);
   
 }

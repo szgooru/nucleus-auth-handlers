@@ -20,10 +20,10 @@ public class HelperConstants {
 
   static {
     Map<String, String> gender = new HashMap<String, String>();
-    gender.put("Teacher", "Teacher");
-    gender.put("Student", "Student");
-    gender.put("Parent", "Parent");
-    gender.put("Other", "Other");
+    gender.put("teacher", "Teacher");
+    gender.put("student", "Student");
+    gender.put("parent", "Parent");
+    gender.put("other", "Other");
     USER_CATEGORY = Collections.unmodifiableMap(gender);
   }
 
