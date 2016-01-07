@@ -14,9 +14,12 @@ public class AJUserRepo extends AJAbstractRepo implements UserRepo {
   }
 
   @Override
-  public User saveOrUpdate(User user) {
+  public User save(User user) {
     Base.open(dataSource());
-    user.saveIt();
+    user.setId(user.getId());
+    user.toInsert();
+    user.insert();
+    Base.commitTransaction();
     Base.close();
     return user;
   }

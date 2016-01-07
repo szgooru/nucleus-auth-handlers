@@ -3,11 +3,13 @@ package org.gooru.auth.handlers.authentication.processors.repositories.activejdb
 import java.util.Date;
 
 import org.javalite.activejdbc.Model;
+import org.javalite.activejdbc.annotations.IdName;
 import org.javalite.activejdbc.annotations.Table;
 
 @Table("user_identity")
+@IdName("identity_id")
 public class UserIdentity extends Model {
-  
+
   public String getUsername() {
     return getString("username");
   }
@@ -37,7 +39,7 @@ public class UserIdentity extends Model {
   }
 
   public void setLoginType(String loginType) {
-    set("login_type", loginType);
+    set("login_type", DBEnums.loginType(loginType));
   }
 
   public String getProvisionType() {
@@ -45,7 +47,7 @@ public class UserIdentity extends Model {
   }
 
   public void setProvisionType(String provisionType) {
-    set("provision_type", provisionType);
+    set("provision_type", DBEnums.provisionType(provisionType));
   }
 
   public Date getLastLogin() {
@@ -77,16 +79,15 @@ public class UserIdentity extends Model {
   }
 
   public void setStatus(String status) {
-    set("status", status);
+    set("status", DBEnums.userIdentityStatus(status));
   }
 
-  public String getEmail() {
-    return getString("email");
+  public String getEmailId() {
+    return getString("email_id");
   }
 
-  public void setEmail(String email) {
-    set("email", email);
+  public void setEmailId(String emailId) {
+    set("email_id", emailId);
   }
-  
-  
+
 }

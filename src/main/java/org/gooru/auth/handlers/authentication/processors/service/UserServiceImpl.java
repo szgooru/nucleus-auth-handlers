@@ -35,7 +35,7 @@ public class UserServiceImpl implements UserService {
   @Override
   public JsonObject createUser(JsonObject userJson, String clientId) {
     User user = validateUserAndSetValue(userJson);
-    getUserRepo().saveOrUpdate(user);
+    getUserRepo().save(user);
     UserIdentity userIdentity = setUserIdenityValue(userJson, user, clientId);
     getUserIdentityRepo().saveOrUpdate(userIdentity);
     return new JsonObject(user.toMap());
@@ -155,7 +155,7 @@ public class UserServiceImpl implements UserService {
     user.setFirstname(firstname);
     user.setLastname(lastname);
     user.setUserCategory(userCategory);
-    user.setEmail(email);
+    user.setEmailId(email);
     user.setModifiedBy(userId);
 
     JsonArray grade = userJson.getJsonArray(ParameterConstants.PARAM_GRADE);
@@ -176,7 +176,7 @@ public class UserServiceImpl implements UserService {
   private UserIdentity setUserIdenityValue(JsonObject userJson, User user, String clientId) {
     UserIdentity userIdentity = new UserIdentity();
     userIdentity.setUsername(userJson.getString(ParameterConstants.PARAM_USER_USERNAME));
-    userIdentity.setEmail(user.getEmail());
+    userIdentity.setEmailId(user.getEmailId());
     userIdentity.setUserId(user.getUserId());
     userIdentity.setLoginType(HelperConstants.UserIdentityLoginType.CREDENTIAL.getType());
     userIdentity.setProvisionType(HelperConstants.UserIdentityProvisionType.REGISTERED.getType());

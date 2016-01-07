@@ -11,5 +11,5 @@ public interface UserRepo {
   
   User getUser(String userId);
   
-  User saveOrUpdate(User user);
+  User save(User user);
 }

@@ -3,9 +3,11 @@ package org.gooru.auth.handlers.authentication.processors.repositories.activejdb
 import io.vertx.core.json.JsonArray;
 
 import org.javalite.activejdbc.Model;
+import org.javalite.activejdbc.annotations.IdName;
 import org.javalite.activejdbc.annotations.Table;
 
 @Table("user_demograph")
+@IdName("user_id")
 public class User extends Model {
 
   public String getUserId() {
@@ -13,6 +15,7 @@ public class User extends Model {
   }
 
   public void setUserId(String userId) {
+    setId(userId);
     set("user_id", userId);
   }
 
@@ -45,7 +48,7 @@ public class User extends Model {
   }
 
   public void setUserCategory(String userCategory) {
-    set("user_category", userCategory);
+    set("user_category", DBEnums.userCategory(userCategory));
   }
 
   public String getBirthDate() {
@@ -109,12 +112,12 @@ public class User extends Model {
     set("school_district_id", schoolDistrictId);
   }
 
-  public String getEmail() {
-    return getString("email");
+  public String getEmailId() {
+    return getString("email_id");
   }
 
-  public void setEmail(String email) {
-    set("email", email);
+  public void setEmailId(String emailId) {
+    set("email_id", emailId);
   }
 
   public Long getCountryId() {

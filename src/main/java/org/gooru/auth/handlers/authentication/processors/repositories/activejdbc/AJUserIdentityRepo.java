@@ -43,6 +43,7 @@ public class AJUserIdentityRepo extends AJAbstractRepo implements UserIdentityRe
   public UserIdentity saveOrUpdate(UserIdentity userIdentity) {
     Base.open(dataSource());
     userIdentity.saveIt();
+    Base.commitTransaction();
     Base.close();
     return userIdentity;
   }
