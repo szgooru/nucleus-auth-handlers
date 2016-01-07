@@ -72,7 +72,7 @@ shadowJar {
     classifier = 'fat'
     manifest {
         attributes 'Main-Class': 'io.vertx.core.Launcher'
-        attributes 'Main-Verticle': 'org.gooru.auth.handlers.authentication.bootstrap.BootstrapVerticle'
+        attributes 'Main-Verticle': 'org.gooru.auth.handlers.bootstrap.BootstrapVerticle'
         attributes 'Created-By' : 'Gooru.org'
     }
 }
