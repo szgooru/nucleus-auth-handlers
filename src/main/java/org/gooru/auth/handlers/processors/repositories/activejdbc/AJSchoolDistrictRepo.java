@@ -1,14 +1,15 @@
 package org.gooru.auth.handlers.processors.repositories.activejdbc;
 
-import java.util.List;
-
 import org.gooru.auth.handlers.processors.repositories.SchoolDistrictRepo;
 import org.gooru.auth.handlers.processors.repositories.activejdbc.entities.SchoolDistrict;
 import org.javalite.activejdbc.Base;
+import org.javalite.activejdbc.LazyList;
 
 public class AJSchoolDistrictRepo extends AJAbstractRepo implements SchoolDistrictRepo {
 
-  private static final String LIST_SCHOOL_DISTRICT = "name like  ?";
+  private static final String GET_SCHOOL_DISTRICT_BY_NAME = "name = ?";
+
+  private static final String GET_SCHOOL_DISTRICT_BY_ID = "id = ?";
 
   @Override
   public SchoolDistrict createSchoolDistrict(SchoolDistrict schoolDistrict) {
@@ -21,14 +22,23 @@ public class AJSchoolDistrictRepo extends AJAbstractRepo implements SchoolDistri
   }
 
   @Override
-  public List<SchoolDistrict> getSchoolDistricts(String name, long offset, long limit) {
-    return queryList(LIST_SCHOOL_DISTRICT, offset, limit, beginsWithPattern(name));
+  public SchoolDistrict getSchoolDistrictById(String id) {
+    return query(GET_SCHOOL_DISTRICT_BY_ID, id);
   }
 
-  private List<SchoolDistrict> queryList(String whereClause, long offset, long limit, Object... params) {
-    Base.open(dataSource());
-    List<SchoolDistrict> results = SchoolDistrict.where(whereClause, params).offset(offset).limit(limit);
-    Base.close();
-    return results;
+  @Override
+  public SchoolDistrict getSchoolDistrictByName(String name) {
+    return query(GET_SCHOOL_DISTRICT_BY_NAME, name);
   }
+  
+  private SchoolDistrict query(String whereClause, Object... params) {
+    Base.open(dataSource());
+    LazyList<SchoolDistrict> results = SchoolDistrict.where(whereClause, params);
+    SchoolDistrict schoolDistrict = results.size() > 0 ? results.get(0) : null;
+    Base.close();
+    return schoolDistrict;
+  }
+
+  
+  
 }

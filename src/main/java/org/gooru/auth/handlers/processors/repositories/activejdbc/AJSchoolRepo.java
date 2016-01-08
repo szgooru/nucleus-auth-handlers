@@ -1,17 +1,15 @@
 package org.gooru.auth.handlers.processors.repositories.activejdbc;
 
-import java.util.List;
-
 import org.gooru.auth.handlers.processors.repositories.SchoolRepo;
 import org.gooru.auth.handlers.processors.repositories.activejdbc.entities.School;
-import org.gooru.auth.handlers.processors.repositories.activejdbc.entities.State;
 import org.javalite.activejdbc.Base;
+import org.javalite.activejdbc.LazyList;
 
 public class AJSchoolRepo extends AJAbstractRepo implements SchoolRepo {
 
-  private static final String LIST_SCHOOL = "name like  ?";
-  
-  private static final String LIST_SCHOOL_DISTRICT_SCHOOL = "school_district_id = ? and name like  ?";
+  private static final String GET_SCHOOL_BY_NAME = "name = ?";
+
+  private static final String GET_SCHOOL_BY_ID = "id = ?";
 
   @Override
   public School createSchool(School school) {
@@ -22,22 +20,23 @@ public class AJSchoolRepo extends AJAbstractRepo implements SchoolRepo {
     Base.close();
     return school;
   }
-
   @Override
-  public List<School> getSchools(String name, long offset, long limit) {
-    return queryList(LIST_SCHOOL, offset, limit, beginsWithPattern(name));
+  public School getSchoolById(String id) {
+    return query(GET_SCHOOL_BY_ID, id);
   }
 
   @Override
-  public List<School> getSchools(String name, String schoolDistrictId, long offset, long limit) {
-    return queryList(LIST_SCHOOL_DISTRICT_SCHOOL, offset, limit, schoolDistrictId, beginsWithPattern(name));
+  public School getSchoolByName(String name) {
+    return query(GET_SCHOOL_BY_NAME, name);
   }
-
-  private List<School> queryList(String whereClause, long offset, long limit, Object... params) {
+  
+  private School query(String whereClause, Object... params) {
     Base.open(dataSource());
-    List<School> results = State.where(whereClause, params).offset(offset).limit(limit);
+    LazyList<School> results = School.where(whereClause, params);
+    School school = results.size() > 0 ? results.get(0) : null;
     Base.close();
-    return results;
+    return school;
   }
+
 
 }

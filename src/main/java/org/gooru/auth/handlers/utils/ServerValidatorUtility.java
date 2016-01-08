@@ -8,21 +8,35 @@ import static org.gooru.auth.handlers.constants.HttpConstants.HttpStatus.UNAUTHO
 import java.util.Map;
 import java.util.ResourceBundle;
 
+import org.gooru.auth.handlers.constants.ServerMessageConstants;
+import org.gooru.auth.handlers.processors.error.Errors;
 import org.gooru.auth.handlers.processors.exceptions.AccessDeniedException;
 import org.gooru.auth.handlers.processors.exceptions.BadRequestException;
 import org.gooru.auth.handlers.processors.exceptions.NotFoundException;
 import org.gooru.auth.handlers.processors.exceptions.UnauthorizedException;
 
-public class ServerValidationUtility {
+public class ServerValidatorUtility {
 
   private static ResourceBundle message = ResourceBundle.getBundle("message");
+
+  public static void addValidatorIfNullError(Errors errors, String fieldName, Object data, String code, String... placeHolderRepalcer) {
+    if (data == null) {
+      addError(errors, fieldName, code, placeHolderRepalcer);
+    }
+  }
+
+  public static void addValidatorIfNullError(Errors errors, Object data, String code, String... placeHolderRepalcer) {
+    if (data == null) {
+      addError(errors, code, placeHolderRepalcer);
+    }
+  }
 
   public static void rejectIfNull(Object data, String code, int errorCode, String... placeHolderRepalcer) {
     if (data == null) {
       exceptionHandler(errorCode, code, placeHolderRepalcer);
     }
   }
-  
+
   public static void rejectIfNullOrEmpty(String data, String code, int errorCode, String... placeHolderRepalcer) {
     if (data == null || data.trim().length() == 0) {
       exceptionHandler(errorCode, code, placeHolderRepalcer);
@@ -90,5 +104,20 @@ public class ServerValidationUtility {
       }
     }
     return rawData;
+  }
+
+  public static void addError(Errors errors, String fieldName, String code, String... placeHolderRepalcer) {
+    org.gooru.auth.handlers.processors.error.Error error = new org.gooru.auth.handlers.processors.error.Error();
+    error.setCode(code);
+    error.setMessage(generateErrorMessage(code, placeHolderRepalcer));
+    error.setFieldName(fieldName);
+    errors.add(error);
+  }
+
+  public static void addError(Errors errors, String code, String... placeHolderRepalcer) {
+    org.gooru.auth.handlers.processors.error.Error error = new org.gooru.auth.handlers.processors.error.Error();
+    error.setCode(code);
+    error.setMessage(generateErrorMessage(code, placeHolderRepalcer));
+    errors.add(error);
   }
 }

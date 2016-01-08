@@ -49,7 +49,7 @@ public class InternalHelper {
     String credential = new String(credentialsDecoded, 0, credentialsDecoded.length);
     String[] credentials = credential.split(":");
     if (credentials.length != 2) {
-      throw new InvalidUserException(ServerValidationUtility.generateErrorMessage(ServerMessageConstants.AU0007));
+      throw new InvalidUserException(ServerValidatorUtility.generateErrorMessage(ServerMessageConstants.AU0007));
     }
     return credentials;
   }

@@ -1,7 +1,5 @@
 package org.gooru.auth.handlers.processors.repositories.activejdbc;
 
-import io.vertx.core.json.JsonArray;
-
 import org.gooru.auth.handlers.processors.repositories.CountryRepo;
 import org.gooru.auth.handlers.processors.repositories.activejdbc.entities.Country;
 import org.javalite.activejdbc.Base;
@@ -9,7 +7,19 @@ import org.javalite.activejdbc.LazyList;
 
 public class AJCountryRepo extends AJAbstractRepo implements CountryRepo {
 
-  private static final String LIST_COUNTRIES = "creator_id is null and name like  ?";
+  private static final String GET_COUNTRY_BY_NAME = "name = ?";
+
+  private static final String GET_COUNTRY_BY_ID = "id = ?";
+
+  @Override
+  public Country getCountry(String id) {
+    return query(GET_COUNTRY_BY_NAME, id);
+  }
+
+  @Override
+  public Country getCountryByName(String name) {
+    return query(GET_COUNTRY_BY_ID, name);
+  }
 
   @Override
   public Country createCountry(Country country) {
@@ -20,17 +30,11 @@ public class AJCountryRepo extends AJAbstractRepo implements CountryRepo {
     return country;
   }
 
-  @Override
-  public JsonArray getCountries(String name, long offset, long limit) {
-    return queryList(LIST_COUNTRIES, offset, limit, beginsWithPattern(name));
-  }
-
-  private JsonArray queryList(String sql, long offset, long limit, Object... params) {
-    JsonArray result = null;
+  private Country query(String whereClause, Object... params) {
     Base.open(dataSource());
-    LazyList<Country> results = Country.where(sql, params).offset(offset).limit(limit);
-    result = new JsonArray(results.toJson(false, "country_id", "name", "code"));
+    LazyList<Country> results = Country.where(whereClause, params);
+    Country country = results.size() > 0 ? results.get(0) : null;
     Base.close();
-    return result;
+    return country;
   }
 }

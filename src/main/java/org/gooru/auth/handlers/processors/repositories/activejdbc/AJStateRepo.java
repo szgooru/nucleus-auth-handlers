@@ -1,16 +1,15 @@
 package org.gooru.auth.handlers.processors.repositories.activejdbc;
 
-import java.util.List;
-
 import org.gooru.auth.handlers.processors.repositories.StateRepo;
 import org.gooru.auth.handlers.processors.repositories.activejdbc.entities.State;
 import org.javalite.activejdbc.Base;
+import org.javalite.activejdbc.LazyList;
 
 public class AJStateRepo extends AJAbstractRepo implements StateRepo {
 
-  private static final String LIST_STATES = "name like  ?";
+  private static final String GET_STATE_BY_NAME = "name = ?";
 
-  private static final String LIST_COUNTRY_STATES = "country_id = ? and name like  ?";
+  private static final String GET_STATE_BY_ID = "country_id = ? and id = ?";
 
   @Override
   public State createState(State state) {
@@ -22,20 +21,20 @@ public class AJStateRepo extends AJAbstractRepo implements StateRepo {
   }
 
   @Override
-  public List<State> getStates(String name, long offset, long limit) {
-    return queryList(LIST_STATES, offset, limit, beginsWithPattern(name));
+  public State getStateById(String countryId, String id) {
+    return query(GET_STATE_BY_ID, id);
   }
 
   @Override
-  public List<State> getStates(String countryId, String name, long offset, long limit) {
-    return queryList(LIST_COUNTRY_STATES, offset, limit, countryId, beginsWithPattern(name));
+  public State getStateByName(String countryId, String name) {
+    return query(GET_STATE_BY_NAME, countryId, name);
   }
 
-  private List<State> queryList(String whereClause, long offset, long limit, Object... params) {
+  private State query(String whereClause, Object... params) {
     Base.open(dataSource());
-    List<State> results = State.where(whereClause, params).offset(offset).limit(limit);
+    LazyList<State> results = State.where(whereClause, params);
+    State state = results.size() > 0 ? results.get(0) : null;
     Base.close();
-    return results;
+    return state;
   }
-
 }

@@ -19,15 +19,7 @@ public class CommandFactory {
           cmd = new UserCommandExecutor();
         } else if (classz.equals(UserPrefsCommandExecutor.class)) {
           cmd = new UserPrefsCommandExecutor();
-        } else if (classz.equals(SchoolCommandExecutor.class)) {
-          cmd = new SchoolCommandExecutor();
-        } else if (classz.equals(SchoolDistrictCommandExecutor.class)) {
-          cmd = new SchoolDistrictCommandExecutor();
-        } else if (classz.equals(StateCommandExecutor.class)) {
-          cmd = new StateCommandExecutor();
-        } else if (classz.equals(CountryCommandExecutor.class)) {
-          cmd = new CountryCommandExecutor();
-        }
+        } 
       }
       instances.put(classz, cmd);
     }

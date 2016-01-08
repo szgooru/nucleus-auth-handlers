@@ -5,7 +5,7 @@ import org.javalite.activejdbc.annotations.IdName;
 import org.javalite.activejdbc.annotations.Table;
 
 @Table("state")
-@IdName("state_id")
+@IdName("id")
 public class State extends Model {
 
 }
