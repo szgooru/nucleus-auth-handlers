@@ -8,7 +8,6 @@ import static org.gooru.auth.handlers.constants.HttpConstants.HttpStatus.UNAUTHO
 import java.util.Map;
 import java.util.ResourceBundle;
 
-import org.gooru.auth.handlers.constants.ServerMessageConstants;
 import org.gooru.auth.handlers.processors.error.Errors;
 import org.gooru.auth.handlers.processors.exceptions.AccessDeniedException;
 import org.gooru.auth.handlers.processors.exceptions.BadRequestException;
@@ -31,6 +30,18 @@ public class ServerValidatorUtility {
     }
   }
 
+  public static void addValidatorIfNullOrEmptyError(Errors errors, String fieldName, String data, String code, String... placeHolderRepalcer) {
+    if (data == null || data.trim().length() == 0) {
+      addError(errors, fieldName, code, placeHolderRepalcer);
+    }
+  }
+
+  public static void addValidator(Errors errors, Boolean data, String fieldName, String code, String... placeHolderRepalcer) {
+    if (data) {
+      addError(errors, fieldName, code, placeHolderRepalcer);
+    }
+  }
+
   public static void rejectIfNull(Object data, String code, int errorCode, String... placeHolderRepalcer) {
     if (data == null) {
       exceptionHandler(errorCode, code, placeHolderRepalcer);
@@ -43,18 +54,6 @@ public class ServerValidatorUtility {
     }
   }
 
-  public static void rejectIfMaxLimitExceed(int maxlimit, String content, String code, String... placeHolderRepalcer) {
-    if (content != null && content.length() > maxlimit) {
-      throw new BadRequestException(generateErrorMessage(code, placeHolderRepalcer), code);
-    }
-  }
-
-  public static void rejectIfAlreadyExist(Object data, String code, String... placeHolderRepalcer) {
-    if (data != null) {
-      throw new BadRequestException(generateErrorMessage(code, placeHolderRepalcer), code);
-    }
-  }
-
   public static void reject(Boolean data, String code, int errorCode, String... placeHolderRepalcer) {
     if (data) {
       exceptionHandler(errorCode, code, placeHolderRepalcer);
@@ -63,13 +62,13 @@ public class ServerValidatorUtility {
 
   private static void exceptionHandler(int errorCode, String code, String... placeHolderRepalcer) {
     if (errorCode == NOT_FOUND.getCode()) {
-      throw new NotFoundException(generateErrorMessage(code, placeHolderRepalcer), code);
+      throw new NotFoundException(generateErrorMessage(code, placeHolderRepalcer));
     } else if (errorCode == FORBIDDEN.getCode()) {
-      throw new AccessDeniedException(generateErrorMessage(code, placeHolderRepalcer), code);
+      throw new AccessDeniedException(generateErrorMessage(code, placeHolderRepalcer));
     } else if (errorCode == UNAUTHORIZED.getCode()) {
-      throw new UnauthorizedException(generateErrorMessage(code, placeHolderRepalcer), code);
+      throw new UnauthorizedException(generateErrorMessage(code, placeHolderRepalcer));
     } else if (errorCode == BAD_REQUEST.getCode()) {
-      throw new BadRequestException(generateErrorMessage(code, placeHolderRepalcer), code);
+      throw new BadRequestException(generateErrorMessage(code, placeHolderRepalcer));
     }
   }
 
@@ -104,6 +103,17 @@ public class ServerValidatorUtility {
       }
     }
     return rawData;
+  }
+
+  public static void rejectError(Errors errors, int errorCode, String message) {
+    if (errors != null && errors.size() > 0) {
+      org.gooru.auth.handlers.processors.error.Error error = new org.gooru.auth.handlers.processors.error.Error();
+      error.setMessage(message);
+      error.setErrors(errors);
+      if (errorCode == BAD_REQUEST.getCode()) {
+        throw new BadRequestException(error.toString());
+      }
+    }
   }
 
   public static void addError(Errors errors, String fieldName, String code, String... placeHolderRepalcer) {

@@ -10,10 +10,6 @@ public class UnauthorizedException extends RuntimeException {
   public UnauthorizedException() {
   }
 
-  public UnauthorizedException(String message, String customMsgCode) {
-    super(message);
-  }
-  
   public UnauthorizedException(String message) {
     super(message);
   }

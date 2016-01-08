@@ -3,25 +3,28 @@ package org.gooru.auth.handlers.processors.service.user;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
+import java.util.Base64;
 import java.util.UUID;
 
+import org.gooru.auth.handlers.constants.ErrorConstants;
 import org.gooru.auth.handlers.constants.HelperConstants;
 import org.gooru.auth.handlers.constants.HttpConstants;
 import org.gooru.auth.handlers.constants.ParameterConstants;
 import org.gooru.auth.handlers.constants.ServerMessageConstants;
+import org.gooru.auth.handlers.processors.error.Errors;
 import org.gooru.auth.handlers.processors.repositories.UserIdentityRepo;
 import org.gooru.auth.handlers.processors.repositories.UserRepo;
 import org.gooru.auth.handlers.processors.repositories.activejdbc.entities.User;
 import org.gooru.auth.handlers.processors.repositories.activejdbc.entities.UserIdentity;
+import org.gooru.auth.handlers.processors.service.Validator;
 import org.gooru.auth.handlers.utils.InternalHelper;
 import org.gooru.auth.handlers.utils.ServerValidatorUtility;
 
-public class UserServiceImpl implements UserService {
+public class UserServiceImpl extends ServerValidatorUtility implements UserService {
 
   private UserIdentityRepo userIdentityRepo;
 
   private UserRepo userRepo;
-
 
   public UserServiceImpl() {
     setUserIdentityRepo(UserIdentityRepo.getInstance());
@@ -30,15 +33,17 @@ public class UserServiceImpl implements UserService {
 
   @Override
   public JsonObject createUser(JsonObject userJson, String clientId) {
-    User user = validateUserAndSetValue(userJson);
-    getUserRepo().create(user);
-    UserIdentity userIdentity = setUserIdenityValue(userJson, user, clientId);
+    Validator<User> userValidator = createUserValidator(userJson);
+    rejectError(userValidator.getErrors(), HttpConstants.HttpStatus.BAD_REQUEST.getCode(), ErrorConstants.VALIDATION_ERROR);
+    User user = getUserRepo().create(userValidator.getModel());
+    UserIdentity userIdentity = setUserIdenityValue(userJson, userValidator.getModel(), clientId);
     getUserIdentityRepo().saveOrUpdate(userIdentity);
     return new JsonObject(user.toMap());
   }
 
   @Override
   public JsonObject updateUser(String userId, JsonObject userJson) {
+
     User user = getUserRepo().getUser(userId);
     ServerValidatorUtility.rejectIfNull(user, ServerMessageConstants.AU0026, HttpConstants.HttpStatus.NOT_FOUND.getCode(),
             ParameterConstants.PARAM_USER);
@@ -83,79 +88,84 @@ public class UserServiceImpl implements UserService {
     return new JsonObject(user.toMap());
   }
 
-  private User validateUserAndSetValue(JsonObject userJson) {
+  private Validator<User> createUserValidator(JsonObject userJson) {
     String firstname = userJson.getString(ParameterConstants.PARAM_USER_FIRSTNAME);
-    ServerValidatorUtility.rejectIfNullOrEmpty(firstname, ServerMessageConstants.AU0011, HttpConstants.HttpStatus.BAD_REQUEST.getCode());
     String lastname = userJson.getString(ParameterConstants.PARAM_USER_LASTNAME);
-    ServerValidatorUtility.rejectIfNullOrEmpty(lastname, ServerMessageConstants.AU0012, HttpConstants.HttpStatus.BAD_REQUEST.getCode());
     String username = userJson.getString(ParameterConstants.PARAM_USER_USERNAME);
-    ServerValidatorUtility.rejectIfNullOrEmpty(username, ServerMessageConstants.AU0013, HttpConstants.HttpStatus.BAD_REQUEST.getCode());
-    String email = userJson.getString(ParameterConstants.PARAM_USER_EMAIL);
-    ServerValidatorUtility.rejectIfNullOrEmpty(email, ServerMessageConstants.AU0014, HttpConstants.HttpStatus.BAD_REQUEST.getCode());
-    String dob = userJson.getString(ParameterConstants.PARAM_USER_BIRTH_DATE);
-    ServerValidatorUtility.rejectIfNullOrEmpty(dob, ServerMessageConstants.AU0015, HttpConstants.HttpStatus.BAD_REQUEST.getCode());
-    String category = userJson.getString(ParameterConstants.PARAM_USER_CATEGORY);
-    ServerValidatorUtility.rejectIfNullOrEmpty(category, ServerMessageConstants.AU0016, HttpConstants.HttpStatus.BAD_REQUEST.getCode());
-    String password = userJson.getString(ParameterConstants.PARAM_USER_PASSWORD);
-    ServerValidatorUtility.rejectIfNullOrEmpty(password, ServerMessageConstants.AU0019, HttpConstants.HttpStatus.BAD_REQUEST.getCode());
-    ServerValidatorUtility.reject(!username.matches("[a-zA-Z0-9]+"), ServerMessageConstants.AU0017, HttpConstants.HttpStatus.BAD_REQUEST.getCode(),
-            ParameterConstants.PARAM_USER_USERNAME);
-    ServerValidatorUtility.reject((username.length() < 4 && username.length() > 20), ServerMessageConstants.AU0018,
-            HttpConstants.HttpStatus.BAD_REQUEST.getCode(), ParameterConstants.PARAM_USER_USERNAME, "4", "20");
-    ServerValidatorUtility.reject((password.length() < 5 && password.length() > 14), ServerMessageConstants.AU0018,
-            HttpConstants.HttpStatus.BAD_REQUEST.getCode(), ParameterConstants.PARAM_USER_USERNAME, "5", "14");
-    ServerValidatorUtility.reject(!(email.indexOf("@") > 1), ServerMessageConstants.AU0020, HttpConstants.HttpStatus.BAD_REQUEST.getCode());
-    ServerValidatorUtility.reject(!firstname.matches("[a-zA-Z0-9 ]+"), ServerMessageConstants.AU0021,
-            HttpConstants.HttpStatus.BAD_REQUEST.getCode(), ParameterConstants.PARAM_USER_FIRSTNAME);
-    ServerValidatorUtility.reject(!lastname.matches("[a-zA-Z0-9 ]+"), ServerMessageConstants.AU0021, HttpConstants.HttpStatus.BAD_REQUEST.getCode(),
-            ParameterConstants.PARAM_USER_LASTNAME);
-    ServerValidatorUtility.reject(!(InternalHelper.isValidDate(dob)), ServerMessageConstants.AU0022, HttpConstants.HttpStatus.BAD_REQUEST.getCode());
-    UserIdentity userIdentityUsername = getUserIdentityRepo().getUserIdentityByUsername(username);
-    ServerValidatorUtility.reject(!(userIdentityUsername == null), ServerMessageConstants.AU0023, HttpConstants.HttpStatus.BAD_REQUEST.getCode(),
-            username, ParameterConstants.PARAM_USER_USERNAME);
-    UserIdentity userIdentityEmail = getUserIdentityRepo().getUserIdentityByEmailId(email);
-    ServerValidatorUtility.reject(!(userIdentityEmail == null), ServerMessageConstants.AU0023, HttpConstants.HttpStatus.BAD_REQUEST.getCode(),
-            email, ParameterConstants.PARAM_USER_EMAIL);
-    String gender = userJson.getString(ParameterConstants.PARAM_USER_GENDER);
+    String emailId = userJson.getString(ParameterConstants.PARAM_USER_EMAIL_ID);
+    String birthDate = userJson.getString(ParameterConstants.PARAM_USER_BIRTH_DATE);
     String userCategory = userJson.getString(ParameterConstants.PARAM_USER_CATEGORY);
-    ServerValidatorUtility.reject((HelperConstants.USER_CATEGORY.get(userCategory) == null), ServerMessageConstants.AU0025,
-            HttpConstants.HttpStatus.BAD_REQUEST.getCode());
-    User user = new User();
-    if (gender != null) {
-      ServerValidatorUtility.reject((HelperConstants.USER_GENDER.get(gender) == null), ServerMessageConstants.AU0024,
-              HttpConstants.HttpStatus.BAD_REQUEST.getCode());
-      user.setGender(gender);
-    }
+    String gender = userJson.getString(ParameterConstants.PARAM_USER_GENDER);
     String aboutMe = userJson.getString(ParameterConstants.PARAM_USER_ABOUT_ME);
 
-    String userId = UUID.randomUUID().toString();
-    user.setUserId(userId);
+    Errors errors = new Errors();
+    User user = new User();
+    addValidatorIfNullOrEmptyError(errors, ParameterConstants.PARAM_USER_FIRSTNAME, firstname, ServerMessageConstants.AU0011);
+    addValidatorIfNullOrEmptyError(errors, ParameterConstants.PARAM_USER_LASTNAME, lastname, ServerMessageConstants.AU0012);
+    addValidatorIfNullOrEmptyError(errors, ParameterConstants.PARAM_USER_USERNAME, username, ServerMessageConstants.AU0013);
+    addValidatorIfNullOrEmptyError(errors, ParameterConstants.PARAM_USER_EMAIL_ID, emailId, ServerMessageConstants.AU0014);
+    addValidatorIfNullOrEmptyError(errors, ParameterConstants.PARAM_USER_BIRTH_DATE, birthDate, ServerMessageConstants.AU0015);
+    addValidatorIfNullOrEmptyError(errors, ParameterConstants.PARAM_USER_CATEGORY, userCategory, ServerMessageConstants.AU0016);
+    String password = userJson.getString(ParameterConstants.PARAM_USER_PASSWORD);
+    addValidatorIfNullOrEmptyError(errors, ParameterConstants.PARAM_USER_PASSWORD, password, ServerMessageConstants.AU0016);
+    addValidator(errors, !(username != null && username.matches("[a-zA-Z0-9]+")), ParameterConstants.PARAM_USER_USERNAME,
+            ServerMessageConstants.AU0017);
+    addValidator(errors, (username != null && (username.length() < 4 || username.length() > 20)), ParameterConstants.PARAM_USER_USERNAME,
+            ServerMessageConstants.AU0018, ParameterConstants.PARAM_USER_USERNAME, "4", "20");
+    addValidator(errors, (password != null && (password.length() < 5 || password.length() > 14)), ParameterConstants.PARAM_USER_PASSWORD,
+            ServerMessageConstants.AU0018, ParameterConstants.PARAM_USER_PASSWORD, "5", "14");
+
+    addValidator(errors, !(emailId != null && emailId.indexOf("@") > 1), ParameterConstants.PARAM_USER_EMAIL_ID, ServerMessageConstants.AU0020);
+    addValidator(errors, !(firstname != null && firstname.matches("[a-zA-Z0-9 ]+")), ParameterConstants.PARAM_USER_FIRSTNAME,
+            ServerMessageConstants.AU0021);
+    addValidator(errors, !(lastname != null && lastname.matches("[a-zA-Z0-9 ]+")), ParameterConstants.PARAM_USER_LASTNAME,
+            ServerMessageConstants.AU0021);
+    addValidator(errors, !(birthDate != null && InternalHelper.isValidDate(birthDate)), ParameterConstants.PARAM_USER_BIRTH_DATE,
+            ServerMessageConstants.AU0022);
+    if (username != null) {
+      UserIdentity userIdentityUsername = getUserIdentityRepo().getUserIdentityByUsername(username);
+      addValidator(errors, !(userIdentityUsername == null), ParameterConstants.PARAM_USER_USERNAME, ServerMessageConstants.AU0023, username,
+              ParameterConstants.PARAM_USER_USERNAME);
+    }
+    if (emailId != null) {
+      UserIdentity userIdentityEmail = getUserIdentityRepo().getUserIdentityByEmailId(emailId);
+      addValidator(errors, !(userIdentityEmail == null), ParameterConstants.PARAM_USER_EMAIL_ID, ServerMessageConstants.AU0023, emailId,
+              ParameterConstants.PARAM_USER_EMAIL_ID);
+    }
+    addValidator(errors, (userCategory != null && HelperConstants.USER_CATEGORY.get(userCategory) == null), ParameterConstants.PARAM_USER_CATEGORY,
+            ServerMessageConstants.AU0025);
+
+    if (gender != null) {
+      addValidator(errors, (HelperConstants.USER_GENDER.get(gender) == null), ParameterConstants.PARAM_USER_GENDER, ServerMessageConstants.AU0024);
+    }
+    if (aboutMe != null) {
+      user.setAboutMe(aboutMe);
+    }
+    user.setId(UUID.randomUUID().toString());
     user.setFirstname(firstname);
     user.setLastname(lastname);
     user.setUserCategory(userCategory);
-    user.setEmailId(email);
-    user.setModifiedBy(userId);
+    user.setEmailId(emailId);
+    user.setModifiedBy(user.getId());
 
     JsonArray grade = userJson.getJsonArray(ParameterConstants.PARAM_GRADE);
     if (grade != null) {
       user.setGrade(grade);
     }
-    if (aboutMe != null) {
-      user.setAboutMe(aboutMe);
-    }
+
     // TO-DO Added validation
     /*
      * school school district country state set values in state, school, school
      * district provide support for set parent user id
      */
-    return user;
+    return new Validator<User>(user, errors);
   }
 
   private UserIdentity setUserIdenityValue(JsonObject userJson, User user, String clientId) {
     UserIdentity userIdentity = new UserIdentity();
     userIdentity.setUsername(userJson.getString(ParameterConstants.PARAM_USER_USERNAME));
     userIdentity.setEmailId(user.getEmailId());
-    userIdentity.setUserId(user.getUserId());
+    userIdentity.setUserId(user.getId());
     userIdentity.setLoginType(HelperConstants.UserIdentityLoginType.CREDENTIAL.getType());
     userIdentity.setProvisionType(HelperConstants.UserIdentityProvisionType.REGISTERED.getType());
     userIdentity.setPassword(InternalHelper.encryptPassword(userJson.getString(ParameterConstants.PARAM_USER_PASSWORD)));
@@ -178,5 +188,10 @@ public class UserServiceImpl implements UserService {
 
   public void setUserRepo(UserRepo userRepo) {
     this.userRepo = userRepo;
+  }
+
+  public static void main(String a[]) {
+    System.out.println(Base64.getEncoder().encodeToString("sheeban@gooru.org:sheeban".getBytes()));
+    System.out.println(InternalHelper.encryptPassword("sheeban"));
   }
 }

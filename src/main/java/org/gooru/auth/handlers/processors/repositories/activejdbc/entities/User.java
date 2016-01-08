@@ -7,16 +7,11 @@ import org.javalite.activejdbc.annotations.IdName;
 import org.javalite.activejdbc.annotations.Table;
 
 @Table("user_demograph")
-@IdName("user_id")
+@IdName("id")
 public class User extends Model {
 
-  public String getUserId() {
-    return getString("user_id");
-  }
-
-  public void setUserId(String userId) {
-    setId(userId);
-    set("user_id", userId);
+  public String getId() {
+    return getString("id");
   }
 
   public String getFirstname() {
@@ -148,4 +143,5 @@ public class User extends Model {
   public void setCourse(JsonArray course) {
     set("course", course);
   }
+
 }
