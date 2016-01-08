@@ -192,6 +192,6 @@ public class UserServiceImpl extends ServerValidatorUtility implements UserServi
 
   public static void main(String a[]) {
     System.out.println(Base64.getEncoder().encodeToString("sheeban@gooru.org:sheeban".getBytes()));
-    System.out.println(InternalHelper.encryptPassword("sheeban"));
+    System.out.println(InternalHelper.encryptClientKey("gooru"));
   }
 }

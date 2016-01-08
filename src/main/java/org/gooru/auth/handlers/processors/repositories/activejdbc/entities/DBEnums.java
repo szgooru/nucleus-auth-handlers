@@ -10,16 +10,16 @@ public final class DBEnums {
 
   private static final Logger LOG = LoggerFactory.getLogger(DBEnums.class);
 
-  public static final String USER_CATEGORY = "user_category";
+  public static final String USER_CATEGORY_TYPE = "user_category_type";
 
   public static final String USER_IDENTITY_LOGIN_TYPE = "user_identity_login_type";
 
   public static final String USER_IDENTITY_PROVISION_TYPE = "user_identity_provision_type";
 
-  public static final String USER_IDENTITY_STATUS = "user_identity_status";
+  public static final String USER_IDENTITY_STATUS_TYPE = "user_identity_status_type";
 
   public static PGobject userCategory(String value) {
-    return setValue(USER_CATEGORY, value);
+    return setValue(USER_CATEGORY_TYPE, value);
   }
 
   public static PGobject loginType(String value) {
@@ -31,7 +31,7 @@ public final class DBEnums {
   }
 
   public static PGobject userIdentityStatus(String value) {
-    return setValue(USER_IDENTITY_STATUS, value);
+    return setValue(USER_IDENTITY_STATUS_TYPE, value);
   }
 
   private static PGobject setValue(String type, String value) {

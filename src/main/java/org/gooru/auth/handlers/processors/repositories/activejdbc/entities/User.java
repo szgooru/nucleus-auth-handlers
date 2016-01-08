@@ -6,7 +6,7 @@ import org.javalite.activejdbc.Model;
 import org.javalite.activejdbc.annotations.IdName;
 import org.javalite.activejdbc.annotations.Table;
 
-@Table("user_demograph")
+@Table("user_demographic")
 @IdName("id")
 public class User extends Model {
 
@@ -143,5 +143,4 @@ public class User extends Model {
   public void setCourse(JsonArray course) {
     set("course", course);
   }
-
 }

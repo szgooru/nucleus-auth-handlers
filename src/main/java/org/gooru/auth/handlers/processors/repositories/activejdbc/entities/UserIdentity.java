@@ -7,7 +7,7 @@ import org.javalite.activejdbc.annotations.IdName;
 import org.javalite.activejdbc.annotations.Table;
 
 @Table("user_identity")
-@IdName("identity_id")
+@IdName("id")
 public class UserIdentity extends Model {
 
   public String getUsername() {
