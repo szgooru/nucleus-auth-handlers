@@ -1,5 +1,7 @@
 package org.gooru.auth.handlers.processors.repositories.activejdbc;
 
+import java.util.UUID;
+
 import org.gooru.auth.handlers.processors.repositories.SchoolRepo;
 import org.gooru.auth.handlers.processors.repositories.activejdbc.entities.School;
 import org.javalite.activejdbc.Base;
@@ -20,6 +22,16 @@ public class AJSchoolRepo extends AJAbstractRepo implements SchoolRepo {
     Base.close();
     return school;
   }
+
+  @Override
+  public School createSchool(String name) {
+    School school = new School();
+    school.setId(UUID.randomUUID().toString());
+    school.setName(name);
+    school.setCode(UUID.randomUUID().toString());
+    return createSchool(school);
+  }
+
   @Override
   public School getSchoolById(String id) {
     return query(GET_SCHOOL_BY_ID, id);
@@ -29,7 +41,7 @@ public class AJSchoolRepo extends AJAbstractRepo implements SchoolRepo {
   public School getSchoolByName(String name) {
     return query(GET_SCHOOL_BY_NAME, name);
   }
-  
+
   private School query(String whereClause, Object... params) {
     Base.open(dataSource());
     LazyList<School> results = School.where(whereClause, params);
@@ -37,6 +49,5 @@ public class AJSchoolRepo extends AJAbstractRepo implements SchoolRepo {
     Base.close();
     return school;
   }
-
 
 }

@@ -4,6 +4,7 @@ import io.vertx.core.MultiMap;
 import io.vertx.core.json.JsonObject;
 
 import org.gooru.auth.handlers.constants.CommandConstants;
+import org.gooru.auth.handlers.constants.MessageConstants;
 import org.gooru.auth.handlers.constants.ParameterConstants;
 import org.gooru.auth.handlers.processors.exceptions.InvalidRequestException;
 import org.gooru.auth.handlers.processors.service.user.UserService;
@@ -25,20 +26,29 @@ public final class UserCommandExecutor implements CommandExecutor {
     JsonObject result = null;
     switch (command) {
     case CommandConstants.CREATE_USER:
-      result = getUserService().createUser(body, userContext.getString(ParameterConstants.PARAM_CLIENT_ID));
+      result =
+              getUserService().createUser(body, userContext.getString(ParameterConstants.PARAM_CLIENT_ID),
+                      userContext.getJsonObject(ParameterConstants.PARAM_CDN_URLS),
+                      userContext.getInteger(ParameterConstants.PARAM_ACCESS_TOKEN_VALIDITY));
       break;
     case CommandConstants.UPDATE_USER:
-      String updateuserId = params.getString(ParameterConstants.PARAM_USER_ID);
+      String updateuserId = params.getString(MessageConstants.MSG_USER_ID);
       if (updateuserId.equalsIgnoreCase(ParameterConstants.PARAM_ME)) {
         updateuserId = userContext.getString(ParameterConstants.PARAM_USER_ID);
       }
       result = getUserService().updateUser(updateuserId, body);
       break;
     case CommandConstants.GET_USER:
-      String userId = params.getString(ParameterConstants.PARAM_USER_ID);
+      String userId = params.getString(MessageConstants.MSG_USER_ID);
       if (userId.equalsIgnoreCase(ParameterConstants.PARAM_ME)) {
         userId = userContext.getString(ParameterConstants.PARAM_USER_ID);
       }
+      result = getUserService().getUser(userId);
+      break;
+    case CommandConstants.GET_USER_FIND:
+      String username = params.getString(ParameterConstants.PARAM_USER_USERNAME);
+      String emailId = params.getString(ParameterConstants.PARAM_USER_EMAIL_ID);
+      
       result = getUserService().getUser(userId);
       break;
     default:

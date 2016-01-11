@@ -6,7 +6,6 @@ import io.vertx.core.json.JsonObject;
 
 import org.gooru.auth.handlers.constants.MessageConstants;
 import org.gooru.auth.handlers.processors.exceptions.InvalidRequestException;
-import org.gooru.auth.handlers.processors.exceptions.InvalidUserException;
 import org.gooru.auth.handlers.processors.transformers.ResponseTransformerBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,13 +41,11 @@ public class MessageProcessor implements Processor {
     } catch (InvalidRequestException e) {
       LOG.warn("Caught Invalid Request exception while processing", e);
       return new ResponseTransformerBuilder().build(e).transform();
-    } catch (InvalidUserException e) {
-      LOG.warn("Caught Invalid User while processing", e);
-      return new ResponseTransformerBuilder().build(e).transform();
     } catch (Throwable throwable) {
       LOG.warn("Caught unexpected exception here", throwable);
       return new ResponseTransformerBuilder().build(throwable).transform();
     }
+
   }
 
 }

@@ -14,4 +14,6 @@ public interface SchoolDistrictRepo {
   SchoolDistrict getSchoolDistrictById(String id);
   
   SchoolDistrict getSchoolDistrictByName(String name);
+  
+  SchoolDistrict createSchoolDistrict(String name);
 }

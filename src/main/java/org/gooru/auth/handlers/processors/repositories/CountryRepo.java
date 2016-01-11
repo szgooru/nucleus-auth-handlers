@@ -9,10 +9,11 @@ public interface CountryRepo {
     return new AJCountryRepo();
   }
 
-  Country getCountry(String id);
+  Country getCountry(Long id);
 
   Country getCountryByName(String name);
 
   Country createCountry(Country country);
 
+  Country createCountry(String name);
 }

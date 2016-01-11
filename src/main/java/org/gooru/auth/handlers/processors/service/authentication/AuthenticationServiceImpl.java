@@ -6,7 +6,7 @@ import io.vertx.core.json.JsonObject;
 import org.gooru.auth.handlers.constants.HttpConstants;
 import org.gooru.auth.handlers.constants.MessageConstants;
 import org.gooru.auth.handlers.constants.ParameterConstants;
-import org.gooru.auth.handlers.constants.ServerMessageConstants;
+import org.gooru.auth.handlers.constants.MessageCodeConstants;
 import org.gooru.auth.handlers.constants.HelperConstants.GrantType;
 import org.gooru.auth.handlers.infra.RedisClient;
 import org.gooru.auth.handlers.processors.repositories.AuthClientRepo;
@@ -20,7 +20,7 @@ import org.gooru.auth.handlers.utils.ServerValidatorUtility;
 
 import redis.clients.jedis.Jedis;
 
-public class AuthenticationServiceImpl implements AuthenticationService {
+public class AuthenticationServiceImpl extends ServerValidatorUtility implements AuthenticationService {
 
   private AuthClientRepo authClientRepo;
 
@@ -39,7 +39,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
   @Override
   public JsonObject createAnonymousAccessToken(String clientId, String clientKey, String grantType, String requestDomain) {
-    ServerValidatorUtility.reject(!(GrantType.ANONYMOUS.getType().equalsIgnoreCase(grantType)), ServerMessageConstants.AU0003,
+    ServerValidatorUtility.reject(!(GrantType.ANONYMOUS.getType().equalsIgnoreCase(grantType)), MessageCodeConstants.AU0003,
             HttpConstants.HttpStatus.UNAUTHORIZED.getCode());
     final AuthClient authClient = validateAuthClient(clientId, InternalHelper.encryptClientKey(clientKey), grantType);
     verifyClientkeyDomains(requestDomain, authClient.getRefererDomains());
@@ -57,9 +57,9 @@ public class AuthenticationServiceImpl implements AuthenticationService {
   @Override
   public JsonObject
           createBasicAuthAccessToken(String clientId, String clientKey, String grantType, String requestDomain, String basicAuthCredentials) {
-    ServerValidatorUtility.reject(!(GrantType.CREDENTIAL.getType().equalsIgnoreCase(grantType)), ServerMessageConstants.AU0003,
+    reject(!(GrantType.CREDENTIAL.getType().equalsIgnoreCase(grantType)), MessageCodeConstants.AU0003,
             HttpConstants.HttpStatus.UNAUTHORIZED.getCode());
-    ServerValidatorUtility.rejectIfNullOrEmpty(basicAuthCredentials, ServerMessageConstants.AU0006, HttpConstants.HttpStatus.UNAUTHORIZED.getCode());
+    rejectIfNullOrEmpty(basicAuthCredentials, MessageCodeConstants.AU0006, HttpConstants.HttpStatus.UNAUTHORIZED.getCode());
     final AuthClient authClient = validateAuthClient(clientId, InternalHelper.encryptClientKey(clientKey), grantType);
     verifyClientkeyDomains(requestDomain, authClient.getRefererDomains());
     final String credentials[] = InternalHelper.getUsernameAndPassword(basicAuthCredentials);
@@ -71,11 +71,12 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     } else {
       userIdentity = getUserIdentityRepo().getUserIdentityByUsernameAndPassword(username, password);
     }
-    ServerValidatorUtility.rejectIfNull(userIdentity, ServerMessageConstants.AU0008, HttpConstants.HttpStatus.UNAUTHORIZED.getCode());
-    ServerValidatorUtility.reject(userIdentity.getStatus().equalsIgnoreCase(ParameterConstants.PARAM_STATUS_DEACTIVTED),
-            ServerMessageConstants.AU0009, HttpConstants.HttpStatus.UNAUTHORIZED.getCode());
+    rejectIfNull(userIdentity, MessageCodeConstants.AU0008, HttpConstants.HttpStatus.UNAUTHORIZED.getCode());
+    reject(userIdentity.getStatus().equalsIgnoreCase(ParameterConstants.PARAM_STATUS_DEACTIVTED), MessageCodeConstants.AU0009,
+            HttpConstants.HttpStatus.UNAUTHORIZED.getCode());
     final JsonObject accessToken = new JsonObject();
     accessToken.put(ParameterConstants.PARAM_USER_ID, userIdentity.getUserId());
+    accessToken.put(ParameterConstants.PARAM_USER_USERNAME, userIdentity.getUsername());
     accessToken.put(ParameterConstants.PARAM_CLIENT_ID, authClient.getClientId());
     accessToken.put(ParameterConstants.PARAM_PROVIDED_AT, System.currentTimeMillis());
     final String token = InternalHelper.generateToken(userIdentity.getUserId());
@@ -100,12 +101,12 @@ public class AuthenticationServiceImpl implements AuthenticationService {
   }
 
   private AuthClient validateAuthClient(String clientId, String clientKey, String grantType) {
-    ServerValidatorUtility.rejectIfNullOrEmpty(clientId, ServerMessageConstants.AU0001, HttpConstants.HttpStatus.UNAUTHORIZED.getCode());
-    ServerValidatorUtility.rejectIfNullOrEmpty(clientKey, ServerMessageConstants.AU0002, HttpConstants.HttpStatus.UNAUTHORIZED.getCode());
+    rejectIfNullOrEmpty(clientId, MessageCodeConstants.AU0001, HttpConstants.HttpStatus.UNAUTHORIZED.getCode());
+    rejectIfNullOrEmpty(clientKey, MessageCodeConstants.AU0002, HttpConstants.HttpStatus.UNAUTHORIZED.getCode());
     AuthClient authClient = getAuthClientRepo().getAuthClient(clientId, clientKey);
-    ServerValidatorUtility.rejectIfNull(authClient, ServerMessageConstants.AU0004, HttpConstants.HttpStatus.UNAUTHORIZED.getCode());
-    ServerValidatorUtility.reject((authClient.getGrantTypes() == null || !authClient.getGrantTypes().contains(grantType)),
-            ServerMessageConstants.AU0005, HttpConstants.HttpStatus.FORBIDDEN.getCode());
+    rejectIfNull(authClient, MessageCodeConstants.AU0004, HttpConstants.HttpStatus.UNAUTHORIZED.getCode());
+    reject((authClient.getGrantTypes() == null || !authClient.getGrantTypes().contains(grantType)), MessageCodeConstants.AU0005,
+            HttpConstants.HttpStatus.FORBIDDEN.getCode());
     return authClient;
   }
 
@@ -118,7 +119,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
           break;
         }
       }
-      ServerValidatorUtility.reject(!isValidReferrer, ServerMessageConstants.AU0009, HttpConstants.HttpStatus.FORBIDDEN.getCode());
+      ServerValidatorUtility.reject(!isValidReferrer, MessageCodeConstants.AU0009, HttpConstants.HttpStatus.FORBIDDEN.getCode());
     }
   }
 

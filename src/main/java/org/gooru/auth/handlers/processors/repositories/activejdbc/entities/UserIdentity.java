@@ -1,5 +1,7 @@
 package org.gooru.auth.handlers.processors.repositories.activejdbc.entities;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import org.javalite.activejdbc.Model;
@@ -89,5 +91,4 @@ public class UserIdentity extends Model {
   public void setEmailId(String emailId) {
     set("email_id", emailId);
   }
-
 }

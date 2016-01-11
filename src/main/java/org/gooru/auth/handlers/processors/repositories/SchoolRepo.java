@@ -9,6 +9,8 @@ public interface SchoolRepo {
     return new AJSchoolRepo();
   }
 
+  School createSchool(String name);
+  
   School createSchool(School school);
 
   School getSchoolById(String id);

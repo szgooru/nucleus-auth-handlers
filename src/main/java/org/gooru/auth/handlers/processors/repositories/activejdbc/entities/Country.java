@@ -8,6 +8,10 @@ import org.javalite.activejdbc.annotations.Table;
 @IdName("id")
 public class Country extends Model {
 
+  public Long getId() {
+    return getLongId();
+  }
+
   public String getName() {
     return getString("name");
   }

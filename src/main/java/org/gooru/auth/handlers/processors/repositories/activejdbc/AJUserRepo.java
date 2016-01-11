@@ -7,7 +7,7 @@ import org.javalite.activejdbc.LazyList;
 
 public class AJUserRepo extends AJAbstractRepo implements UserRepo {
 
-  private static final String GET_USER = "user_id = ? and status != 'deleted'";
+  private static final String GET_USER = "id = ?";
 
   @Override
   public User getUser(String userId) {

@@ -8,7 +8,7 @@ public interface UserService {
     return new UserServiceImpl();
   }
 
-  JsonObject createUser(JsonObject userJson, String clientId);
+  JsonObject createUser(JsonObject userJson, String clientId, JsonObject cdnUrls , Integer expireAtInSeconds);
 
   JsonObject updateUser(String userId, JsonObject user);
 

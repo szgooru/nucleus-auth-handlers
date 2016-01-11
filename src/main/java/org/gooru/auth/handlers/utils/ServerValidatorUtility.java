@@ -105,13 +105,10 @@ public class ServerValidatorUtility {
     return rawData;
   }
 
-  public static void rejectError(Errors errors, int errorCode, String message) {
+  public static void rejectError(Errors errors, int errorCode) {
     if (errors != null && errors.size() > 0) {
-      org.gooru.auth.handlers.processors.error.Error error = new org.gooru.auth.handlers.processors.error.Error();
-      error.setMessage(message);
-      error.setErrors(errors);
       if (errorCode == BAD_REQUEST.getCode()) {
-        throw new BadRequestException(error.toString());
+        throw new BadRequestException(errors.toString());
       }
     }
   }

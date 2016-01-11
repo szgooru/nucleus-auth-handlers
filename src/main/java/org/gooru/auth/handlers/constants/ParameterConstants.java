@@ -31,8 +31,15 @@ public class ParameterConstants {
   public static final String PARAM_USER_STATE_ID = "state_id";
   public static final String PARAM_USER_PASSWORD = "password";
   public static final String PARAM_GRADE = "grade";
+  public static final String PARAM_COURSE = "course";
+  public static final String PARAM_USER_SCHOOL = "school";
+  public static final String PARAM_USER_SCHOOL_DISTRICT = "school_district";
+  public static final String PARAM_USER_COUNTRY = "country";
+  public static final String PARAM_USER_STATE = "state";
+  
   
   // Helper 
+  public static final String EMAIL_ADDRESS = "email address";
   public static final String PARAM_ME = "me";
   public static final String PARAM_QUERY = "query";
   

@@ -8,9 +8,8 @@ import java.text.SimpleDateFormat;
 import java.util.Base64;
 import java.util.Date;
 
-import org.gooru.auth.handlers.constants.ServerMessageConstants;
+import org.gooru.auth.handlers.constants.MessageCodeConstants;
 import org.gooru.auth.handlers.processors.exceptions.InvalidRequestException;
-import org.gooru.auth.handlers.processors.exceptions.InvalidUserException;
 
 public class InternalHelper {
 
@@ -49,19 +48,19 @@ public class InternalHelper {
     String credential = new String(credentialsDecoded, 0, credentialsDecoded.length);
     String[] credentials = credential.split(":");
     if (credentials.length != 2) {
-      throw new InvalidUserException(ServerValidatorUtility.generateErrorMessage(ServerMessageConstants.AU0007));
+      throw new InvalidRequestException(ServerValidatorUtility.generateErrorMessage(MessageCodeConstants.AU0007));
     }
     return credentials;
   }
 
-  public static boolean isValidDate(String inDate) {
+  public static Date isValidDate(String dateAsString) {
     SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy");
     dateFormat.setLenient(false);
+    Date date = null;
     try {
-      dateFormat.parse(inDate.trim());
+      date = dateFormat.parse(dateAsString.trim());
     } catch (ParseException pe) {
-      return false;
     }
-    return true;
+    return date;
   }
 }

@@ -1,5 +1,7 @@
 package org.gooru.auth.handlers.processors.repositories.activejdbc;
 
+import java.util.UUID;
+
 import org.gooru.auth.handlers.processors.repositories.SchoolDistrictRepo;
 import org.gooru.auth.handlers.processors.repositories.activejdbc.entities.SchoolDistrict;
 import org.javalite.activejdbc.Base;
@@ -22,6 +24,15 @@ public class AJSchoolDistrictRepo extends AJAbstractRepo implements SchoolDistri
   }
 
   @Override
+  public SchoolDistrict createSchoolDistrict(String name) {
+    SchoolDistrict schoolDistrict = new SchoolDistrict();
+    schoolDistrict.setId(UUID.randomUUID().toString());
+    schoolDistrict.setName(name);
+    schoolDistrict.setCode(UUID.randomUUID().toString());
+    return schoolDistrict;
+  }
+
+  @Override
   public SchoolDistrict getSchoolDistrictById(String id) {
     return query(GET_SCHOOL_DISTRICT_BY_ID, id);
   }
@@ -30,7 +41,7 @@ public class AJSchoolDistrictRepo extends AJAbstractRepo implements SchoolDistri
   public SchoolDistrict getSchoolDistrictByName(String name) {
     return query(GET_SCHOOL_DISTRICT_BY_NAME, name);
   }
-  
+
   private SchoolDistrict query(String whereClause, Object... params) {
     Base.open(dataSource());
     LazyList<SchoolDistrict> results = SchoolDistrict.where(whereClause, params);
@@ -38,7 +49,4 @@ public class AJSchoolDistrictRepo extends AJAbstractRepo implements SchoolDistri
     Base.close();
     return schoolDistrict;
   }
-
-  
-  
 }

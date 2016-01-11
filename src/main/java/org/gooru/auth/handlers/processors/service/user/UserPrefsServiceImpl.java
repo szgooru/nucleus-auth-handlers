@@ -14,7 +14,7 @@ public class UserPrefsServiceImpl implements UserPrefsService {
   }
 
   @Override
-  public JsonObject updateUserPreference(JsonObject UserPreference) {
+  public JsonObject updateUserPreference(String userId, JsonObject UserPreference) {
     return null;
   }
 

@@ -4,10 +4,6 @@ import io.vertx.core.json.JsonObject;
 
 public class Error extends JsonObject {
 
-  public String getMessage() {
-    return this.getString("message");
-  }
-
   public void setMessage(String message) {
     this.put("message", message);
   }

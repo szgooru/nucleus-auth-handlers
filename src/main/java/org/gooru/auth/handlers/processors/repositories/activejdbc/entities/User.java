@@ -1,6 +1,9 @@
 package org.gooru.auth.handlers.processors.repositories.activejdbc.entities;
 
 import io.vertx.core.json.JsonArray;
+import io.vertx.core.json.JsonObject;
+
+import java.util.Date;
 
 import org.javalite.activejdbc.Model;
 import org.javalite.activejdbc.annotations.IdName;
@@ -19,7 +22,7 @@ public class User extends Model {
   }
 
   public void setFirstname(String firstname) {
-    set("firstname", firstname);
+    setString("firstname", firstname);
   }
 
   public String getLastname() {
@@ -27,7 +30,7 @@ public class User extends Model {
   }
 
   public void setLastname(String lastname) {
-    set("lastname", lastname);
+    setString("lastname", lastname);
   }
 
   public String getGender() {
@@ -35,7 +38,7 @@ public class User extends Model {
   }
 
   public void setGender(String gender) {
-    set("gender", gender);
+    set("gender", DBEnums.userGenderType(gender));
   }
 
   public String getUserCategory() {
@@ -43,15 +46,15 @@ public class User extends Model {
   }
 
   public void setUserCategory(String userCategory) {
-    set("user_category", DBEnums.userCategory(userCategory));
+    set("user_category", DBEnums.userCategoryType(userCategory));
   }
 
-  public String getBirthDate() {
-    return getString("birth_date");
+  public Date getBirthDate() {
+    return getDate("birth_date");
   }
 
-  public void setBirthDate(String birthDate) {
-    set("birth_date", birthDate);
+  public void setBirthDate(Date birthDate) {
+    setDate("birth_date", birthDate);
   }
 
   public String getModifiedBy() {
@@ -59,7 +62,7 @@ public class User extends Model {
   }
 
   public void setModifiedBy(String modifiedBy) {
-    set("modified_by", modifiedBy);
+    setString("modified_by", modifiedBy);
   }
 
   public String getParentUserId() {
@@ -67,7 +70,7 @@ public class User extends Model {
   }
 
   public void setParentUserId(String parentUserId) {
-    set("parent_user_id", parentUserId);
+    setString("parent_user_id", parentUserId);
   }
 
   public JsonArray getGrade() {
@@ -88,7 +91,7 @@ public class User extends Model {
   }
 
   public void setAboutMe(String aboutMe) {
-    set("about_me", aboutMe);
+    setString("about_me", aboutMe);
   }
 
   public String getSchoolId() {
@@ -96,7 +99,7 @@ public class User extends Model {
   }
 
   public void setSchoolId(String schoolId) {
-    set("school_id", schoolId);
+    setString("school_id", schoolId);
   }
 
   public String getSchoolDistrictId() {
@@ -104,7 +107,7 @@ public class User extends Model {
   }
 
   public void setSchoolDistrictId(String schoolDistrictId) {
-    set("school_district_id", schoolDistrictId);
+    setString("school_district_id", schoolDistrictId);
   }
 
   public String getEmailId() {
@@ -128,19 +131,19 @@ public class User extends Model {
   }
 
   public void setStateId(Long stateId) {
-    set("state_id", stateId);
+    setLong("state_id", stateId);
   }
 
-  public JsonArray getCourse() {
+  public JsonObject getCourse() {
     String json = getString("course");
-    JsonArray course = null;
+    JsonObject course = null;
     if (json != null) {
-      course = new JsonArray(json);
+      course = new JsonObject(json);
     }
     return course;
   }
 
-  public void setCourse(JsonArray course) {
+  public void setCourse(JsonObject course) {
     set("course", course);
   }
 }

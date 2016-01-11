@@ -1,5 +1,7 @@
 package org.gooru.auth.handlers.processors.repositories.activejdbc;
 
+import java.util.UUID;
+
 import org.gooru.auth.handlers.processors.repositories.CountryRepo;
 import org.gooru.auth.handlers.processors.repositories.activejdbc.entities.Country;
 import org.javalite.activejdbc.Base;
@@ -12,7 +14,7 @@ public class AJCountryRepo extends AJAbstractRepo implements CountryRepo {
   private static final String GET_COUNTRY_BY_ID = "id = ?";
 
   @Override
-  public Country getCountry(String id) {
+  public Country getCountry(Long id) {
     return query(GET_COUNTRY_BY_NAME, id);
   }
 
@@ -28,6 +30,14 @@ public class AJCountryRepo extends AJAbstractRepo implements CountryRepo {
     Base.commitTransaction();
     Base.close();
     return country;
+  }
+
+  @Override
+  public Country createCountry(String name) {
+    Country country = new Country();
+    country.setName(name);
+    country.setCode(UUID.randomUUID().toString());
+    return createCountry(country);
   }
 
   private Country query(String whereClause, Object... params) {

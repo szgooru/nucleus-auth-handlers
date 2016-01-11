@@ -18,8 +18,14 @@ public final class DBEnums {
 
   public static final String USER_IDENTITY_STATUS_TYPE = "user_identity_status_type";
 
-  public static PGobject userCategory(String value) {
+  public static final String USER_GENDER_TYPE = "user_gender_type";
+
+  public static PGobject userCategoryType(String value) {
     return setValue(USER_CATEGORY_TYPE, value);
+  }
+
+  public static PGobject userGenderType(String value) {
+    return setValue(USER_GENDER_TYPE, value);
   }
 
   public static PGobject loginType(String value) {

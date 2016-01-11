@@ -2,16 +2,12 @@ package org.gooru.auth.handlers.processors.exceptions;
 
 public class InvalidRequestException extends RuntimeException {
 
-  private static final long serialVersionUID = 4276973780093751708L;
+  private static final long serialVersionUID = 6889759867639683831L;
 
-  public InvalidRequestException() {
+  public InvalidRequestException() { 
     super();
   }
-
-  public InvalidRequestException(String message, Throwable cause) {
-    super(message, cause);
-  }
-
+  
   public InvalidRequestException(String message) {
     super(message);
   }
@@ -20,4 +16,7 @@ public class InvalidRequestException extends RuntimeException {
     super(cause);
   }
 
+  public InvalidRequestException(String message, Throwable cause) {
+    super(message, cause);
+  }
 }

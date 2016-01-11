@@ -8,4 +8,24 @@ import org.javalite.activejdbc.annotations.Table;
 @IdName("id")
 public class SchoolDistrict extends Model {
 
+  public String getId() {
+    return getString("id");
+  }
+
+  public String getName() {
+    return getString("name");
+  }
+
+  public void setName(String name) {
+    set("name", name);
+  }
+
+  public String getCode() {
+    return getString("code");
+  }
+
+  public void setCode(String code) {
+    set("code", code);
+  }
+
 }

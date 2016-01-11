@@ -4,6 +4,8 @@ import io.vertx.core.MultiMap;
 import io.vertx.core.json.JsonObject;
 
 import org.gooru.auth.handlers.constants.CommandConstants;
+import org.gooru.auth.handlers.constants.MessageConstants;
+import org.gooru.auth.handlers.constants.ParameterConstants;
 import org.gooru.auth.handlers.processors.exceptions.InvalidRequestException;
 import org.gooru.auth.handlers.processors.service.user.UserPrefsService;
 import org.slf4j.Logger;
@@ -16,6 +18,7 @@ public final class UserPrefsCommandExecutor implements CommandExecutor {
   private UserPrefsService userPrefsService;
 
   public UserPrefsCommandExecutor() {
+    setUserPrefsService(UserPrefsService.instance());
   }
 
   @Override
@@ -23,10 +26,18 @@ public final class UserPrefsCommandExecutor implements CommandExecutor {
     JsonObject result = null;
     switch (command) {
     case CommandConstants.UPDATE_USER_PREFERENCE:
-      result = getUserPrefsService().updateUserPreference(null);
+      String userUpdateId = params.getString(MessageConstants.MSG_USER_ID);
+      if (userUpdateId.equalsIgnoreCase(ParameterConstants.PARAM_ME)) {
+        userUpdateId = userContext.getString(ParameterConstants.PARAM_USER_ID);
+      }
+      result = getUserPrefsService().updateUserPreference(userUpdateId, body);
       break;
     case CommandConstants.GET_USER_PREFERENCE:
-      result = getUserPrefsService().getUserPreference(null);
+      String userId = params.getString(MessageConstants.MSG_USER_ID);
+      if (userId.equalsIgnoreCase(ParameterConstants.PARAM_ME)) {
+        userId = userContext.getString(ParameterConstants.PARAM_USER_ID);
+      }
+      result = getUserPrefsService().getUserPreference(userId);
       break;
     default:
       LOG.error("Invalid command type passed in, not able to handle");

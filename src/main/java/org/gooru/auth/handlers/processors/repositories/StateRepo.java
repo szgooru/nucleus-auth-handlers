@@ -11,7 +11,9 @@ public interface StateRepo {
 
   State createState(State state);
 
-  State getStateById(String countryId, String id);
+  State createState(String name);
+  
+  State getStateById(Long id);
 
-  State getStateByName(String countryId, String name);
+  State getStateByName(String name);
 }

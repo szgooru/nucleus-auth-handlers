@@ -1,7 +1,8 @@
 package org.gooru.auth.handlers.constants;
 
-public class ServerMessageConstants {
+public class MessageCodeConstants {
 
+  // validation error message code
   public final static String AU0001 = "AU0001";
   public final static String AU0002 = "AU0002";
   public final static String AU0003 = "AU0003";
@@ -28,6 +29,15 @@ public class ServerMessageConstants {
   public final static String AU0024 = "AU0024";
   public final static String AU0025 = "AU0025";
   public final static String AU0026 = "AU0026";
+  public final static String AU0027 = "AU0027";
+  
+  
+  // Error code constant
+  public final static String AUE400 = "AUE400";
+  public final static String AUE401 = "AUE401";
+  public final static String AUE403 = "AUE403";
+  public final static String AUE404 = "AUE404";
+  public final static String AUE500 = "AUE500";
   
   
 }
