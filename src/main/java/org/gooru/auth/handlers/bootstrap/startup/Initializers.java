@@ -32,7 +32,7 @@ public class Initializers implements Iterable<Initializer> {
   public Initializers() {
     initializers = new ArrayList<Initializer>();
     initializers.add(DataSourceRegistry.getInstance());
-    initializers.add(RedisClient.getInstance());
+    initializers.add(RedisClient.instance());
     internalIterator = initializers.iterator();
   }
 

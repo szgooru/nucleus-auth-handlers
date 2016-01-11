@@ -9,21 +9,27 @@ import org.gooru.auth.handlers.constants.ConfigConstants;
 
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
+import redis.clients.jedis.JedisPoolConfig;
 
 public final class RedisClient implements Initializer, Finalizer {
 
   private JedisPool pool = null;
 
   private static RedisClient redisClient = null;
-  
 
   @Override
   public void initializeComponent(Vertx vertx, JsonObject config) {
     JsonObject redisConfig = config.getJsonObject(ConfigConstants.REDIS);
-    pool = new JedisPool(redisConfig.getString(ConfigConstants.HOST), redisConfig.getInteger(ConfigConstants.PORT));
+    JedisPoolConfig jedisPoolConfig = new JedisPoolConfig();
+    jedisPoolConfig.setMaxTotal(1000);
+    jedisPoolConfig.setMaxIdle(10);
+    jedisPoolConfig.setMinIdle(1);
+    jedisPoolConfig.setMaxWaitMillis(30000);
+    jedisPoolConfig.setTestOnBorrow(true);
+    pool = new JedisPool(jedisPoolConfig, redisConfig.getString(ConfigConstants.HOST), redisConfig.getInteger(ConfigConstants.PORT));
   }
 
-  public static RedisClient getInstance() {
+  public static RedisClient instance() {
     if (redisClient == null) {
       synchronized (RedisClient.class) {
         redisClient = new RedisClient();
@@ -31,11 +37,66 @@ public final class RedisClient implements Initializer, Finalizer {
     }
     return redisClient;
   }
-  
-  public Jedis getJedis() { 
-    return pool.getResource();  
+
+  public JsonObject get(String key) {
+    JsonObject result = null;
+    Jedis jedis = null;
+    try {
+      jedis = getJedis();
+      String json = jedis.get(key);
+      if (json != null) {
+        result = new JsonObject(json);
+      }
+    } finally {
+      if (jedis != null) {
+        jedis.close();
+      }
+    }
+    return result;
   }
-  
+
+  public void del(String key) {
+    Jedis jedis = null;
+    try {
+      jedis = getJedis();
+      jedis.del(key);
+    } finally {
+      if (jedis != null) {
+        jedis.close();
+      }
+    }
+  }
+
+  public void expire(String key, int seconds) {
+    Jedis jedis = null;
+    try {
+      jedis = getJedis();
+      jedis.expire(key, seconds);
+    } finally {
+      if (jedis != null) {
+        jedis.close();
+      }
+    }
+  }
+
+  public void set(String key, String value) {
+    Jedis jedis = null;
+    try {
+      jedis = getJedis();
+      jedis.set(key, value);
+
+    } finally {
+      if (jedis != null) {
+        jedis.close();
+      }
+    }
+  }
+
+  public Jedis getJedis() {
+
+    return pool.getResource();
+  }
+
   @Override
   public void finalizeComponent() {
     if (pool != null) {

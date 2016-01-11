@@ -28,8 +28,6 @@ import org.gooru.auth.handlers.processors.service.Validator;
 import org.gooru.auth.handlers.utils.InternalHelper;
 import org.gooru.auth.handlers.utils.ServerValidatorUtility;
 
-import redis.clients.jedis.Jedis;
-
 public class UserServiceImpl extends ServerValidatorUtility implements UserService {
 
   private UserIdentityRepo userIdentityRepo;
@@ -44,7 +42,7 @@ public class UserServiceImpl extends ServerValidatorUtility implements UserServi
 
   private SchoolDistrictRepo schoolDistrictRepo;
 
-  private Jedis jedis;
+  private RedisClient redisClient;
 
   public UserServiceImpl() {
     setUserIdentityRepo(UserIdentityRepo.getInstance());
@@ -53,7 +51,7 @@ public class UserServiceImpl extends ServerValidatorUtility implements UserServi
     setStateRepo(StateRepo.instance());
     setSchoolRepo(SchoolRepo.instance());
     setSchoolDistrictRepo(SchoolDistrictRepo.instance());
-    setJedis(RedisClient.getInstance().getJedis());
+    setRedisClient(RedisClient.instance());
   }
 
   @Override
@@ -310,8 +308,8 @@ public class UserServiceImpl extends ServerValidatorUtility implements UserServi
   private void saveAccessToken(String token, JsonObject accessToken, Integer expireAtInSeconds) {
     JsonObject data = new JsonObject(accessToken.toString());
     data.put(ParameterConstants.PARAM_ACCESS_TOKEN_VALIDITY, expireAtInSeconds);
-    getJedis().set(token, data.toString());
-    getJedis().expire(token, expireAtInSeconds);
+    getRedisClient().set(token, data.toString());
+    getRedisClient().expire(token, expireAtInSeconds);
   }
 
   public UserIdentityRepo getUserIdentityRepo() {
@@ -362,11 +360,11 @@ public class UserServiceImpl extends ServerValidatorUtility implements UserServi
     this.schoolDistrictRepo = schoolDistrictRepo;
   }
 
-  public Jedis getJedis() {
-    return jedis;
+  public RedisClient getRedisClient() {
+    return redisClient;
   }
 
-  public void setJedis(Jedis jedis) {
-    this.jedis = jedis;
+  public void setRedisClient(RedisClient redisClient) {
+    this.redisClient = redisClient;
   }
 }

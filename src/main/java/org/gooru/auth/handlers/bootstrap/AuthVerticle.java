@@ -45,15 +45,13 @@ public class AuthVerticle extends AbstractVerticle {
   }
 
   private JsonObject getAccessToken(String token) {
-    String json = RedisClient.getInstance().getJedis().get(token);
-    JsonObject accessToken = null;
-    if (json != null) {
-      accessToken = new JsonObject(json);
+
+    JsonObject accessToken = RedisClient.instance().get(token);
+    if (accessToken != null) {
       int expireAtInSeconds = accessToken.getInteger(ParameterConstants.PARAM_ACCESS_TOKEN_VALIDITY);
-      RedisClient.getInstance().getJedis().expire(token, expireAtInSeconds);
-
+      RedisClient.instance().expire(token, expireAtInSeconds);
     }
-
+    System.out.println(accessToken);
     return accessToken;
   }
 }

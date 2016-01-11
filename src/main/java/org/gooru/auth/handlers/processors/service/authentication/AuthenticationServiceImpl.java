@@ -3,11 +3,11 @@ package org.gooru.auth.handlers.processors.service.authentication;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
+import org.gooru.auth.handlers.constants.HelperConstants.GrantType;
 import org.gooru.auth.handlers.constants.HttpConstants;
+import org.gooru.auth.handlers.constants.MessageCodeConstants;
 import org.gooru.auth.handlers.constants.MessageConstants;
 import org.gooru.auth.handlers.constants.ParameterConstants;
-import org.gooru.auth.handlers.constants.MessageCodeConstants;
-import org.gooru.auth.handlers.constants.HelperConstants.GrantType;
 import org.gooru.auth.handlers.infra.RedisClient;
 import org.gooru.auth.handlers.processors.repositories.AuthClientRepo;
 import org.gooru.auth.handlers.processors.repositories.UserIdentityRepo;
@@ -18,8 +18,6 @@ import org.gooru.auth.handlers.processors.repositories.activejdbc.entities.UserP
 import org.gooru.auth.handlers.utils.InternalHelper;
 import org.gooru.auth.handlers.utils.ServerValidatorUtility;
 
-import redis.clients.jedis.Jedis;
-
 public class AuthenticationServiceImpl extends ServerValidatorUtility implements AuthenticationService {
 
   private AuthClientRepo authClientRepo;
@@ -28,13 +26,13 @@ public class AuthenticationServiceImpl extends ServerValidatorUtility implements
 
   private UserPreferenceRepo userPreferenceRepo;
 
-  private Jedis jedis;
+  private RedisClient redisClient;
 
   public AuthenticationServiceImpl() {
     setAuthClientRepo(AuthClientRepo.getInstance());
     setUserIdentityRepo(UserIdentityRepo.getInstance());
     setUserPreferenceRepo(UserPreferenceRepo.getInstance());
-    setJedis(RedisClient.getInstance().getJedis());
+    setRedisClient(RedisClient.instance());
   }
 
   @Override
@@ -96,7 +94,7 @@ public class AuthenticationServiceImpl extends ServerValidatorUtility implements
 
   @Override
   public boolean deleteAccessToken(String token) {
-    getJedis().del(token);
+    getRedisClient().del(token);
     return true;
   }
 
@@ -126,8 +124,8 @@ public class AuthenticationServiceImpl extends ServerValidatorUtility implements
   private void saveAccessToken(String token, JsonObject accessToken, Integer expireAtInSeconds) {
     JsonObject data = new JsonObject(accessToken.toString());
     data.put(ParameterConstants.PARAM_ACCESS_TOKEN_VALIDITY, expireAtInSeconds);
-    getJedis().set(token, data.toString());
-    getJedis().expire(token, expireAtInSeconds);
+    getRedisClient().set(token, data.toString());
+    getRedisClient().expire(token, expireAtInSeconds);
   }
 
   public AuthClientRepo getAuthClientRepo() {
@@ -154,11 +152,12 @@ public class AuthenticationServiceImpl extends ServerValidatorUtility implements
     this.userPreferenceRepo = userPreferenceRepo;
   }
 
-  public Jedis getJedis() {
-    return jedis;
+  public RedisClient getRedisClient() {
+    return redisClient;
   }
 
-  public void setJedis(Jedis jedis) {
-    this.jedis = jedis;
+  public void setRedisClient(RedisClient redisClient) {
+    this.redisClient = redisClient;
   }
+
 }

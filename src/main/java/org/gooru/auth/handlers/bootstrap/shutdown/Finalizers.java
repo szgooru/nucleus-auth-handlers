@@ -33,7 +33,7 @@ public class Finalizers implements Iterable<Finalizer> {
   public Finalizers() {
     finalizers = new ArrayList<Finalizer>();
     finalizers.add(DataSourceRegistry.getInstance());
-    finalizers.add(RedisClient.getInstance());
+    finalizers.add(RedisClient.instance());
     internalIterator = finalizers.iterator();
   }
 
