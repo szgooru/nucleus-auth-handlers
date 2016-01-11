@@ -47,9 +47,8 @@ public final class UserCommandExecutor implements CommandExecutor {
       break;
     case CommandConstants.GET_USER_FIND:
       String username = params.getString(ParameterConstants.PARAM_USER_USERNAME);
-      String emailId = params.getString(ParameterConstants.PARAM_USER_EMAIL_ID);
-      
-      result = getUserService().getUser(userId);
+      String email = params.getString(ParameterConstants.PARAM_USER_EMAIL);
+      result = getUserService().findUser(username, email);
       break;
     default:
       LOG.error("Invalid command type passed in, not able to handle");

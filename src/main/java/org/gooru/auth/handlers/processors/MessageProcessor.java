@@ -1,10 +1,11 @@
-package org.gooru.auth.handlers.processors.command.executor;
+package org.gooru.auth.handlers.processors;
 
 import io.vertx.core.MultiMap;
 import io.vertx.core.eventbus.Message;
 import io.vertx.core.json.JsonObject;
 
 import org.gooru.auth.handlers.constants.MessageConstants;
+import org.gooru.auth.handlers.processors.command.executor.CommandExecutor;
 import org.gooru.auth.handlers.processors.exceptions.InvalidRequestException;
 import org.gooru.auth.handlers.processors.transformers.ResponseTransformerBuilder;
 import org.slf4j.Logger;

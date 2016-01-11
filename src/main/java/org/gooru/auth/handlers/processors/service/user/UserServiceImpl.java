@@ -43,7 +43,7 @@ public class UserServiceImpl extends ServerValidatorUtility implements UserServi
   private SchoolRepo schoolRepo;
 
   private SchoolDistrictRepo schoolDistrictRepo;
-  
+
   private Jedis jedis;
 
   public UserServiceImpl() {
@@ -57,7 +57,7 @@ public class UserServiceImpl extends ServerValidatorUtility implements UserServi
   }
 
   @Override
-  public JsonObject createUser(JsonObject userJson, String clientId, JsonObject cdnUrls , Integer expireAtInSeconds) {
+  public JsonObject createUser(JsonObject userJson, String clientId, JsonObject cdnUrls, Integer expireAtInSeconds) {
     Validator<User> userValidator = createUserValidator(userJson);
     rejectError(userValidator.getErrors(), HttpConstants.HttpStatus.BAD_REQUEST.getCode());
     getUserRepo().create(userValidator.getModel());
@@ -74,8 +74,6 @@ public class UserServiceImpl extends ServerValidatorUtility implements UserServi
     accessToken.put(ParameterConstants.PARAM_CDN_URLS, cdnUrls);
     return accessToken;
   }
-  
-  
 
   @Override
   public JsonObject updateUser(String userId, JsonObject userJson) {
@@ -296,7 +294,19 @@ public class UserServiceImpl extends ServerValidatorUtility implements UserServi
     return new Validator<User>(user, errors);
 
   }
-  
+
+  @Override
+  public JsonObject findUser(String username, String email) {
+    UserIdentity userIdentity = null;
+    if (username != null) {
+      userIdentity = getUserIdentityRepo().getUserIdentityByUsername(username);
+    } else if (email != null) {
+      userIdentity = getUserIdentityRepo().getUserIdentityByEmailId(email);
+    }
+    JsonObject result = userIdentity != null ? new JsonObject(userIdentity.toJson(false, "user_id", "username", "email_id")) : new JsonObject();
+    return result;
+  }
+
   private void saveAccessToken(String token, JsonObject accessToken, Integer expireAtInSeconds) {
     JsonObject data = new JsonObject(accessToken.toString());
     data.put(ParameterConstants.PARAM_ACCESS_TOKEN_VALIDITY, expireAtInSeconds);

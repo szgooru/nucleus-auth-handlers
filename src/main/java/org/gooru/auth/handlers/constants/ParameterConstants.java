@@ -27,6 +27,7 @@ public class ParameterConstants {
   public static final String PARAM_USER_SCHOOL_ID = "school_id";
   public static final String PARAM_USER_SCHOOL_DISTRICT_ID = "school_district_id";
   public static final String PARAM_USER_EMAIL_ID = "email_id";
+  public static final String PARAM_USER_EMAIL = "email";
   public static final String PARAM_USER_COUNTRY_ID = "country_id";
   public static final String PARAM_USER_STATE_ID = "state_id";
   public static final String PARAM_USER_PASSWORD = "password";

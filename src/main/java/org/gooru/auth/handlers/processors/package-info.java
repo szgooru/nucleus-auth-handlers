@@ -1,4 +1,4 @@
-package org.gooru.auth.handlers.processors.command.executor;
+package org.gooru.auth.handlers.processors;
 
 /**
  * This package contains machinery to use the processing of Message coming on Message Bus from other handlers and carving out message

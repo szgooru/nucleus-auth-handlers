@@ -1,4 +1,6 @@
-package org.gooru.auth.handlers.processors.command.executor;
+package org.gooru.auth.handlers.processors;
+
+import org.gooru.auth.handlers.processors.command.executor.CommandFactory;
 
 import io.vertx.core.eventbus.Message;
 

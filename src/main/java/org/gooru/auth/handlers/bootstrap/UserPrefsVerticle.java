@@ -8,7 +8,7 @@ import io.vertx.core.json.JsonObject;
 
 import org.gooru.auth.handlers.constants.MessageConstants;
 import org.gooru.auth.handlers.constants.MessagebusEndpoints;
-import org.gooru.auth.handlers.processors.command.executor.ProcessorBuilder;
+import org.gooru.auth.handlers.processors.ProcessorBuilder;
 import org.gooru.auth.handlers.processors.command.executor.UserPrefsCommandExecutor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -13,4 +13,6 @@ public interface UserService {
   JsonObject updateUser(String userId, JsonObject user);
 
   JsonObject getUser(String userId);
+  
+  JsonObject findUser(String  username, String email);
 }
