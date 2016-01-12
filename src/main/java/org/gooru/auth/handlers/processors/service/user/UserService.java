@@ -8,11 +8,23 @@ public interface UserService {
     return new UserServiceImpl();
   }
 
-  JsonObject createUser(JsonObject userJson, String clientId, JsonObject cdnUrls , Integer expireAtInSeconds);
+  JsonObject createUser(JsonObject userJson, String clientId, JsonObject cdnUrls, Integer expireAtInSeconds);
 
   JsonObject updateUser(String userId, JsonObject user);
 
   JsonObject getUser(String userId);
+
+  JsonObject findUser(String username, String email);
+
+  JsonObject resetAuthenticateUserPassword(String userId, String oldPassword, String newPassword);
+
+  JsonObject resetUnAuthenticateUserPassword(String token, String password);
   
-  JsonObject findUser(String  username, String email);
+  JsonObject resetPassword(String emailId);
+  
+  JsonObject resendConfirmationEmail(String emailId);
+  
+  JsonObject confirmUserEmail(String userId, String token);
+  
+  JsonObject updateUserEmail(String emailId);
 }

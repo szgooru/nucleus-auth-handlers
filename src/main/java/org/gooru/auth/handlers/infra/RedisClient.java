@@ -38,7 +38,7 @@ public final class RedisClient implements Initializer, Finalizer {
     return redisClient;
   }
 
-  public JsonObject get(String key) {
+  public JsonObject getJsonObject(final String key) {
     JsonObject result = null;
     Jedis jedis = null;
     try {
@@ -53,6 +53,20 @@ public final class RedisClient implements Initializer, Finalizer {
       }
     }
     return result;
+  }
+
+  public String get(final String key) {
+    String value = null;
+    Jedis jedis = null;
+    try {
+      jedis = getJedis();
+      value = jedis.get(key);
+    } finally {
+      if (jedis != null) {
+        jedis.close();
+      }
+    }
+    return value;
   }
 
   public void del(String key) {
@@ -79,12 +93,12 @@ public final class RedisClient implements Initializer, Finalizer {
     }
   }
 
-  public void set(String key, String value) {
+  public void set(String key, String value, int expireInSeconds) {
     Jedis jedis = null;
     try {
       jedis = getJedis();
       jedis.set(key, value);
-
+      jedis.expire(key, expireInSeconds);
     } finally {
       if (jedis != null) {
         jedis.close();

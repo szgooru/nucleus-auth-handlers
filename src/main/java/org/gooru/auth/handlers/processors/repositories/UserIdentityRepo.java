@@ -7,16 +7,20 @@ public interface UserIdentityRepo {
   static UserIdentityRepo getInstance() {
     return new AJUserIdentityRepo();
   }
-  UserIdentity getUserIdentityByUsernameAndPassword(String username, String password);
+  UserIdentity getUserIdentityByUsernameAndPassword(final String username, final String password);
   
-  UserIdentity getUserIdentityByEmailIdAndPassword(String emailId, String password);
+  UserIdentity getUserIdentityByEmailIdAndPassword(final String emailId, final String password);
   
-  UserIdentity getUserIdentityByEmailId(String emailId);
+  UserIdentity getUserIdentityByEmailId(final String emailId);
   
-  UserIdentity getUserIdentityByReferenceId(String referenceId);
+  UserIdentity getUserIdentityByReferenceId(final String referenceId);
   
-  UserIdentity getUserIdentityByUsername(String username);
+  UserIdentity getUserIdentityByUsername(final String username);
   
-  UserIdentity saveOrUpdate(UserIdentity userIdentity);
+  UserIdentity saveOrUpdate(final UserIdentity userIdentity);
   
+  UserIdentity getUserIdentityByIdAndPassword(final String userId, final String password);
+  
+  UserIdentity getUserIdentityById(final String userId);
+    
 }

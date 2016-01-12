@@ -12,6 +12,7 @@ import org.gooru.auth.handlers.constants.MessageCodeConstants;
 import org.gooru.auth.handlers.constants.ParameterConstants;
 import org.gooru.auth.handlers.infra.RedisClient;
 import org.gooru.auth.handlers.processors.error.Errors;
+import org.gooru.auth.handlers.processors.exceptions.InvalidRequestException;
 import org.gooru.auth.handlers.processors.repositories.CountryRepo;
 import org.gooru.auth.handlers.processors.repositories.SchoolDistrictRepo;
 import org.gooru.auth.handlers.processors.repositories.SchoolRepo;
@@ -44,6 +45,8 @@ public class UserServiceImpl extends ServerValidatorUtility implements UserServi
 
   private RedisClient redisClient;
 
+  private static final int EXPIRE_IN_SECONDS = 86400;
+
   public UserServiceImpl() {
     setUserIdentityRepo(UserIdentityRepo.getInstance());
     setUserRepo(UserRepo.instance());
@@ -55,7 +58,7 @@ public class UserServiceImpl extends ServerValidatorUtility implements UserServi
   }
 
   @Override
-  public JsonObject createUser(JsonObject userJson, String clientId, JsonObject cdnUrls, Integer expireAtInSeconds) {
+  public JsonObject createUser(final JsonObject userJson, final String clientId, final JsonObject cdnUrls, final Integer expireAtInSeconds) {
     Validator<User> userValidator = createUserValidator(userJson);
     rejectError(userValidator.getErrors(), HttpConstants.HttpStatus.BAD_REQUEST.getCode());
     getUserRepo().create(userValidator.getModel());
@@ -74,21 +77,57 @@ public class UserServiceImpl extends ServerValidatorUtility implements UserServi
   }
 
   @Override
-  public JsonObject updateUser(String userId, JsonObject userJson) {
+  public JsonObject updateUser(final String userId, final JsonObject userJson) {
     Validator<User> userValidator = updateUserValidator(userId, userJson);
     rejectError(userValidator.getErrors(), HttpConstants.HttpStatus.BAD_REQUEST.getCode());
-    User user = getUserRepo().update(userValidator.getModel());
+    final User user = getUserRepo().update(userValidator.getModel());
+    final String username = userJson.getString(ParameterConstants.PARAM_USER_USERNAME);
+    if (username != null) {
+      final UserIdentity userIdentity = getUserIdentityRepo().getUserIdentityById(userId);
+      userIdentity.setUsername(username);
+      getUserIdentityRepo().saveOrUpdate(userIdentity);
+    }
     return new JsonObject(user.toMap());
   }
 
   @Override
-  public JsonObject getUser(String userId) {
+  public JsonObject getUser(final String userId) {
     final User user = getUserRepo().getUser(userId);
     rejectIfNull(user, MessageCodeConstants.AU0026, 404, ParameterConstants.PARAM_USER);
     return new JsonObject(user.toMap());
   }
 
-  private Validator<User> createUserValidator(JsonObject userJson) {
+  @Override
+  public JsonObject resetAuthenticateUserPassword(final String userId, final String oldPassword, final String newPassword) {
+    final UserIdentity userIdentity = getUserIdentityRepo().getUserIdentityByIdAndPassword(userId, InternalHelper.encryptPassword(oldPassword));
+    rejectIfNull(userIdentity, MessageCodeConstants.AU0026, HttpConstants.HttpStatus.NOT_FOUND.getCode(), ParameterConstants.PARAM_USER);
+    userIdentity.setPassword(InternalHelper.encryptPassword(newPassword));
+    getUserIdentityRepo().saveOrUpdate(userIdentity);
+    return new JsonObject();
+  }
+
+  @Override
+  public JsonObject resetPassword(final String emailId) {
+    final UserIdentity userIdentity = getUserIdentityRepo().getUserIdentityByEmailId(emailId);
+    rejectIfNull(userIdentity, MessageCodeConstants.AU0026, HttpConstants.HttpStatus.NOT_FOUND.getCode(), ParameterConstants.PARAM_USER);
+    final String token = InternalHelper.generateToken(InternalHelper.RESET_PASSWORD_TOKEN);
+    getRedisClient().set(token, userIdentity.getEmailId(), EXPIRE_IN_SECONDS);
+    // TO-DO send mail notification
+    return new JsonObject();
+  }
+
+  @Override
+  public JsonObject resetUnAuthenticateUserPassword(String token, String password) {
+    String emailId = getRedisClient().get(token);
+    rejectIfNull(emailId, MessageCodeConstants.AU0028, HttpConstants.HttpStatus.UNAUTHORIZED.getCode());
+    UserIdentity userIdentity = getUserIdentityRepo().getUserIdentityByEmailId(emailId);
+    userIdentity.setPassword(InternalHelper.encryptPassword(password));
+    getUserIdentityRepo().saveOrUpdate(userIdentity);
+    getRedisClient().del(token);
+    return new JsonObject();
+  }
+
+  private Validator<User> createUserValidator(final JsonObject userJson) {
     final String firstname = userJson.getString(ParameterConstants.PARAM_USER_FIRSTNAME);
     final String lastname = userJson.getString(ParameterConstants.PARAM_USER_LASTNAME);
     final String username = userJson.getString(ParameterConstants.PARAM_USER_USERNAME);
@@ -97,8 +136,8 @@ public class UserServiceImpl extends ServerValidatorUtility implements UserServi
     final String userCategory = userJson.getString(ParameterConstants.PARAM_USER_CATEGORY);
     final String gender = userJson.getString(ParameterConstants.PARAM_USER_GENDER);
 
-    Errors errors = new Errors();
-    User user = new User();
+    final Errors errors = new Errors();
+    final User user = new User();
     addValidatorIfNullOrEmptyError(errors, ParameterConstants.PARAM_USER_FIRSTNAME, firstname, MessageCodeConstants.AU0011);
     addValidatorIfNullOrEmptyError(errors, ParameterConstants.PARAM_USER_LASTNAME, lastname, MessageCodeConstants.AU0012);
     addValidatorIfNullOrEmptyError(errors, ParameterConstants.PARAM_USER_USERNAME, username, MessageCodeConstants.AU0013);
@@ -171,7 +210,7 @@ public class UserServiceImpl extends ServerValidatorUtility implements UserServi
   private Validator<User> updateUserValidator(final String userId, final JsonObject userJson) {
     final User user = getUserRepo().getUser(userId);
     rejectIfNull(user, MessageCodeConstants.AU0026, HttpConstants.HttpStatus.NOT_FOUND.getCode(), ParameterConstants.PARAM_USER);
-    Errors errors = new Errors();
+    final Errors errors = new Errors();
     final String firstname = userJson.getString(ParameterConstants.PARAM_USER_FIRSTNAME);
     final String lastname = userJson.getString(ParameterConstants.PARAM_USER_LASTNAME);
     final String gender = userJson.getString(ParameterConstants.PARAM_USER_GENDER);
@@ -180,7 +219,6 @@ public class UserServiceImpl extends ServerValidatorUtility implements UserServi
     final JsonArray grade = userJson.getJsonArray(ParameterConstants.PARAM_GRADE);
     final JsonObject course = userJson.getJsonObject(ParameterConstants.PARAM_COURSE);
     final String username = userJson.getString(ParameterConstants.PARAM_USER_USERNAME);
-    final String emailId = userJson.getString(ParameterConstants.PARAM_USER_EMAIL_ID);
     final String schoolId = userJson.getString(ParameterConstants.PARAM_USER_SCHOOL_ID);
     final String schoolDistrictId = userJson.getString(ParameterConstants.PARAM_USER_SCHOOL_DISTRICT_ID);
     final String schoolText = userJson.getString(ParameterConstants.PARAM_USER_SCHOOL);
@@ -215,11 +253,6 @@ public class UserServiceImpl extends ServerValidatorUtility implements UserServi
               ParameterConstants.PARAM_USER_USERNAME);
     }
 
-    if (emailId != null) {
-      UserIdentity userIdentityEmail = getUserIdentityRepo().getUserIdentityByEmailId(emailId);
-      addValidator(errors, !(userIdentityEmail == null), ParameterConstants.PARAM_USER_EMAIL_ID, MessageCodeConstants.AU0023, emailId,
-              ParameterConstants.EMAIL_ADDRESS);
-    }
     if (schoolId != null) {
       School school = getSchoolRepo().getSchoolById(schoolId);
       addValidator(errors, !(school == null), ParameterConstants.PARAM_USER_SCHOOL_ID, MessageCodeConstants.AU0027,
@@ -228,21 +261,20 @@ public class UserServiceImpl extends ServerValidatorUtility implements UserServi
     }
     if (schoolDistrictId != null) {
       SchoolDistrict schoolDistrict = getSchoolDistrictRepo().getSchoolDistrictById(schoolDistrictId);
-      addValidator(errors, !(schoolDistrict == null), ParameterConstants.PARAM_USER_SCHOOL_DISTRICT_ID, MessageCodeConstants.AU0027, emailId,
+      addValidator(errors, !(schoolDistrict == null), ParameterConstants.PARAM_USER_SCHOOL_DISTRICT_ID, MessageCodeConstants.AU0027,
               ParameterConstants.PARAM_USER_SCHOOL_DISTRICT);
       user.setSchoolDistrictId(schoolDistrictId);
     }
 
     if (stateId != null) {
       State state = getStateRepo().getStateById(stateId);
-      addValidator(errors, !(state == null), ParameterConstants.PARAM_USER_STATE_ID, MessageCodeConstants.AU0027, emailId,
-              ParameterConstants.PARAM_USER_STATE);
+      addValidator(errors, !(state == null), ParameterConstants.PARAM_USER_STATE_ID, MessageCodeConstants.AU0027, ParameterConstants.PARAM_USER_STATE);
       user.setStateId(stateId);
     }
 
     if (countryId != null) {
       Country country = getCountryRepo().getCountry(countryId);
-      addValidator(errors, !(country == null), ParameterConstants.PARAM_USER_COUNTRY_ID, MessageCodeConstants.AU0027, emailId,
+      addValidator(errors, !(country == null), ParameterConstants.PARAM_USER_COUNTRY_ID, MessageCodeConstants.AU0027,
               ParameterConstants.PARAM_USER_COUNTRY);
       user.setCountryId(countryId);
     }
@@ -294,22 +326,61 @@ public class UserServiceImpl extends ServerValidatorUtility implements UserServi
   }
 
   @Override
-  public JsonObject findUser(String username, String email) {
+  public JsonObject findUser(final String username, final String email) {
     UserIdentity userIdentity = null;
     if (username != null) {
       userIdentity = getUserIdentityRepo().getUserIdentityByUsername(username);
     } else if (email != null) {
       userIdentity = getUserIdentityRepo().getUserIdentityByEmailId(email);
+    } else {
+      throw new InvalidRequestException("Invalid param type passed");
     }
+
     JsonObject result = userIdentity != null ? new JsonObject(userIdentity.toJson(false, "user_id", "username", "email_id")) : new JsonObject();
     return result;
   }
 
-  private void saveAccessToken(String token, JsonObject accessToken, Integer expireAtInSeconds) {
+  @Override
+  public JsonObject resendConfirmationEmail(String emailId) {
+    // TO-DO resend email notification
+    final UserIdentity userIdentity = getUserIdentityRepo().getUserIdentityByEmailId(emailId);
+    rejectIfNull(userIdentity, MessageCodeConstants.AU0026, HttpConstants.HttpStatus.NOT_FOUND.getCode(), ParameterConstants.PARAM_USER);
+    final String token = InternalHelper.generateToken(InternalHelper.EMAIL_CONFIRM_TOKEN);
+    getRedisClient().set(token, userIdentity.getEmailId(), EXPIRE_IN_SECONDS);
+    return new JsonObject();
+  }
+
+  @Override
+  public JsonObject confirmUserEmail(String userId, String token) {
+    final String emailId = getRedisClient().get(token);
+    rejectIfNull(emailId, MessageCodeConstants.AU0028, HttpConstants.HttpStatus.UNAUTHORIZED.getCode());
+    final UserIdentity userIdentity = getUserIdentityRepo().getUserIdentityById(userId);
+    rejectIfNull(userIdentity, MessageCodeConstants.AU0026, HttpConstants.HttpStatus.NOT_FOUND.getCode(), ParameterConstants.PARAM_USER);
+    if (!userIdentity.getEmailId().equalsIgnoreCase(emailId)) {       
+      userIdentity.setEmailId(emailId);
+    }
+    userIdentity.setetEmailConfirmStatus(true);
+    getUserIdentityRepo().saveOrUpdate(userIdentity);
+    getRedisClient().del(token);
+    return new JsonObject();
+  }
+
+  @Override
+  public JsonObject updateUserEmail(String emailId) {
+    if (emailId != null) {
+      UserIdentity userIdentityEmail = getUserIdentityRepo().getUserIdentityByEmailId(emailId);
+      rejectIfNull(userIdentityEmail, MessageCodeConstants.AU0026, HttpConstants.HttpStatus.NOT_FOUND.getCode(), ParameterConstants.PARAM_USER);
+      final String token = InternalHelper.generateToken(InternalHelper.EMAIL_CONFIRM_TOKEN);
+      getRedisClient().set(token, emailId, EXPIRE_IN_SECONDS);
+      // send email notification
+    }
+    return new JsonObject();
+  }
+
+  private void saveAccessToken(final String token, final JsonObject accessToken, final Integer expireAtInSeconds) {
     JsonObject data = new JsonObject(accessToken.toString());
     data.put(ParameterConstants.PARAM_ACCESS_TOKEN_VALIDITY, expireAtInSeconds);
-    getRedisClient().set(token, data.toString());
-    getRedisClient().expire(token, expireAtInSeconds);
+    getRedisClient().set(token, data.toString(), expireAtInSeconds);
   }
 
   public UserIdentityRepo getUserIdentityRepo() {
@@ -367,4 +438,5 @@ public class UserServiceImpl extends ServerValidatorUtility implements UserServi
   public void setRedisClient(RedisClient redisClient) {
     this.redisClient = redisClient;
   }
+
 }

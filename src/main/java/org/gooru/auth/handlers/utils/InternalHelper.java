@@ -14,11 +14,17 @@ import org.gooru.auth.handlers.processors.exceptions.InvalidRequestException;
 public class InternalHelper {
 
   private static String CLIENT_KEY_HASH = "$GooruCLIENTKeyHash$";
+  
+  private static final String COLON = ":";
+  
+  public static final String RESET_PASSWORD_TOKEN = "RESET_PASSWORD_TOKEN";
+  
+  public static final String EMAIL_CONFIRM_TOKEN = "EMAIL_CONFIRM_TOKEN";
 
   public static String generateToken(String name) {
-    StringBuilder sourceInfo = new StringBuilder();
-    sourceInfo.append(name).append(new Date().toString()).append(System.currentTimeMillis());
-    String token = Base64.getEncoder().encodeToString(sourceInfo.toString().getBytes());
+    final StringBuilder sourceInfo = new StringBuilder();
+    sourceInfo.append(name).append(COLON).append(new Date().toString()).append(COLON).append(System.currentTimeMillis());
+    final String token = Base64.getEncoder().encodeToString(sourceInfo.toString().getBytes());
     return token;
   }
 
@@ -27,9 +33,11 @@ public class InternalHelper {
   }
 
   public static String encryptClientKey(final String key) {
-    String text = CLIENT_KEY_HASH + key;
-    return encrypt(text);
+    final StringBuilder text = new StringBuilder(CLIENT_KEY_HASH);
+    text.append(key);
+    return encrypt(text.toString());
   }
+  
 
   public static String encrypt(final String text) {
     MessageDigest messageDigest = null;
@@ -45,8 +53,8 @@ public class InternalHelper {
 
   public static String[] getUsernameAndPassword(String basicAuthCredentials) {
     byte credentialsDecoded[] = Base64.getDecoder().decode(basicAuthCredentials);
-    String credential = new String(credentialsDecoded, 0, credentialsDecoded.length);
-    String[] credentials = credential.split(":");
+    final String credential = new String(credentialsDecoded, 0, credentialsDecoded.length);
+    final String[] credentials = credential.split(":");
     if (credentials.length != 2) {
       throw new InvalidRequestException(ServerValidatorUtility.generateErrorMessage(MessageCodeConstants.AU0007));
     }
@@ -63,4 +71,5 @@ public class InternalHelper {
     }
     return date;
   }
+  
 }

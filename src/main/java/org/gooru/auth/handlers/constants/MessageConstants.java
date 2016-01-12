@@ -22,6 +22,7 @@ public class MessageConstants {
   public static final String MSG_HTTP_PARAM = "http.params";
   public static final String MSG_USER_CONTEXT_HOLDER = "user.context.holder";
   public static final String MSG_HEADER_REQUEST_DOMAIN = "http.request.domain";
+  public static final String MSG_USER_AUTHENTICATE_MODE = "anthenticated.mode";
   
 //Containers for different responses
  public static final String RESP_CONTAINER_MBUS = "mb.container";

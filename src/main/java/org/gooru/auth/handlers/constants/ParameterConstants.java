@@ -37,6 +37,9 @@ public class ParameterConstants {
   public static final String PARAM_USER_SCHOOL_DISTRICT = "school_district";
   public static final String PARAM_USER_COUNTRY = "country";
   public static final String PARAM_USER_STATE = "state";
+  public static final String PARAM_USER_TOKEN = "token";
+  public static final String PARAM_USER_NEW_PASSWORD = "new_password";
+  public static final String PARAM_USER_OLD_PASSWORD = "old_password";
   
   
   // Helper 

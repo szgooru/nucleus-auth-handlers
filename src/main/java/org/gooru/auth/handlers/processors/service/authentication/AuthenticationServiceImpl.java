@@ -124,8 +124,7 @@ public class AuthenticationServiceImpl extends ServerValidatorUtility implements
   private void saveAccessToken(String token, JsonObject accessToken, Integer expireAtInSeconds) {
     JsonObject data = new JsonObject(accessToken.toString());
     data.put(ParameterConstants.PARAM_ACCESS_TOKEN_VALIDITY, expireAtInSeconds);
-    getRedisClient().set(token, data.toString());
-    getRedisClient().expire(token, expireAtInSeconds);
+    getRedisClient().set(token, data.toString(), expireAtInSeconds);
   }
 
   public AuthClientRepo getAuthClientRepo() {
