@@ -8,8 +8,8 @@ public interface UserService {
     return new UserServiceImpl();
   }
 
-  JsonObject createUser(JsonObject userJson, String clientId, JsonObject cdnUrls, Integer expireAtInSeconds);
-
+  JsonObject createUserAccount(JsonObject userJson, String clientId, int expireAtInSeconds);
+  
   JsonObject updateUser(String userId, JsonObject user);
 
   JsonObject getUser(String userId);
@@ -27,4 +27,5 @@ public interface UserService {
   JsonObject confirmUserEmail(String userId, String token);
   
   JsonObject updateUserEmail(String emailId);
+
 }

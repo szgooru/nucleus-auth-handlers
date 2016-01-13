@@ -40,6 +40,7 @@ public class ParameterConstants {
   public static final String PARAM_USER_TOKEN = "token";
   public static final String PARAM_USER_NEW_PASSWORD = "new_password";
   public static final String PARAM_USER_OLD_PASSWORD = "old_password";
+  public static final String PARAM_USER_PARENT_EMAIL_ID = "parent_email_id";
   
   
   // Helper 

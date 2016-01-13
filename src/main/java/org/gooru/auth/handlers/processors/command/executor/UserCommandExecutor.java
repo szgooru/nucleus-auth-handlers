@@ -28,9 +28,8 @@ public final class UserCommandExecutor implements CommandExecutor {
     switch (command) {
     case CommandConstants.CREATE_USER:
       final String clientId = userContext.getString(ParameterConstants.PARAM_CLIENT_ID);
-      final JsonObject cdnUrls = userContext.getJsonObject(ParameterConstants.PARAM_CDN_URLS);
       int accessTokenValidity = userContext.getInteger(ParameterConstants.PARAM_ACCESS_TOKEN_VALIDITY);
-      result = getUserService().createUser(body, clientId, cdnUrls, accessTokenValidity);
+      result = getUserService().createUserAccount(body, clientId, accessTokenValidity);
       break;
     case CommandConstants.UPDATE_USER:
       String updateuserId = params.getString(MessageConstants.MSG_USER_ID);

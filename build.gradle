@@ -1,22 +1,24 @@
 import org.javalite.instrumentation.Instrumentation
 buildscript {
-    repositories { jcenter() }
-    dependencies {
-        classpath "com.github.jengelman.gradle.plugins:shadow:1.2.2"
-        classpath group: 'org.javalite', name: 'activejdbc', version: '1.4.11'
-        classpath group: 'org.javalite', name: 'activejdbc-instrumentation', version: '1.4.11'
-    }
+  repositories {
+    jcenter()
+  }
+  dependencies {
+    classpath "com.github.jengelman.gradle.plugins:shadow:1.2.2"
+    classpath group: 'org.javalite', name: 'activejdbc', version: '1.4.11'
+    classpath group: 'org.javalite', name: 'activejdbc-instrumentation', version: '1.4.11'
+  }
 }
 
 plugins {
-    id 'java' // or 'groovy' Must be explicitly applied
-    id 'com.github.johnrengelman.shadow' version "1.2.2"
+  id 'java' // or 'groovy' Must be explicitly applied
+  id 'com.github.johnrengelman.shadow' version "1.2.2"
 }
 
 defaultTasks 'shadowJar'
 
 if (!JavaVersion.current().java8Compatible) {
-    throw new IllegalStateException('''Nucleus:
+  throw new IllegalStateException('''Nucleus:
                                       |  This needs Java 8,
                                       |  You are using something else,
                                       |  Refresh. Try again.'''.stripMargin())
@@ -25,13 +27,13 @@ if (!JavaVersion.current().java8Compatible) {
 // Define a version registry so that we can avoid hard coding of the version numbers
 // Note that this applies only to dependencies and not to the plugins and build
 ext {
-    vertxVersion = '3.2.0'
-    slf4jVersion ='1.7.12'
-    junitVersion = '4.12'
-    logbackVersion = '1.0.13'
-    hikariCPVersion = '2.4.3'
-    postgresVersion = '9.4-1206-jdbc42'
-    redisVersion = '2.8.0'
+  vertxVersion = '3.2.0'
+  slf4jVersion ='1.7.12'
+  junitVersion = '4.12'
+  logbackVersion = '1.0.13'
+  hikariCPVersion = '2.4.3'
+  postgresVersion = '9.4-1206-jdbc42'
+  redisVersion = '2.8.0'
 }
 
 version = "0.1-snapshot"
@@ -39,29 +41,29 @@ sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
 repositories {
-    mavenCentral()
-    maven {
-        url = 'http://oss.sonatype.org/content/repositories/snapshots/'
-    }
+  mavenCentral()
+  maven {
+    url = 'http://oss.sonatype.org/content/repositories/snapshots/'
+  }
 }
 
 dependencies {
-    // Vertx specific dependencies
-    compile "io.vertx:vertx-core:${vertxVersion}"
-    compile "io.vertx:vertx-hazelcast:${vertxVersion}"
-    compile "io.vertx:vertx-dropwizard-metrics:${vertxVersion}"
-    compile "redis.clients:jedis:${redisVersion}"
-    
-    
-    // active jdbc
-    compile 'org.javalite:activejdbc:1.4.11'
-    compile 'org.javalite:activejdbc-instrumentation:1.4.11'
-    
-    
-    // Other dependencies
-    compile "ch.qos.logback:logback-classic:${logbackVersion}"
-    compile "com.zaxxer:HikariCP:${hikariCPVersion}"
-    compile "org.postgresql:postgresql:${postgresVersion}"
+  // Vertx specific dependencies
+  compile "io.vertx:vertx-core:${vertxVersion}"
+  compile "io.vertx:vertx-hazelcast:${vertxVersion}"
+  compile "io.vertx:vertx-dropwizard-metrics:${vertxVersion}"
+  compile "redis.clients:jedis:${redisVersion}"
+
+
+  // active jdbc
+  compile 'org.javalite:activejdbc:1.4.11'
+  compile 'org.javalite:activejdbc-instrumentation:1.4.11'
+
+
+  // Other dependencies
+  compile "ch.qos.logback:logback-classic:${logbackVersion}"
+  compile "com.zaxxer:HikariCP:${hikariCPVersion}"
+  compile "org.postgresql:postgresql:${postgresVersion}"
 
 
     // Test dependencies

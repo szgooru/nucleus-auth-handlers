@@ -33,6 +33,8 @@ public class MessageCodeConstants {
   public final static String AU0028 = "AU0028";
   public final static String AU0029 = "AU0029";
   public final static String AU0030 = "AU0030";
+  public final static String AU0031 = "AU0031";
+  public final static String AU0032 = "AU0032";
   
   
   

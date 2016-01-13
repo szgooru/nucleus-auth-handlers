@@ -6,6 +6,7 @@ import java.security.NoSuchAlgorithmException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Base64;
+import java.util.Calendar;
 import java.util.Date;
 
 import org.gooru.auth.handlers.constants.MessageCodeConstants;
@@ -14,11 +15,11 @@ import org.gooru.auth.handlers.processors.exceptions.InvalidRequestException;
 public class InternalHelper {
 
   private static String CLIENT_KEY_HASH = "$GooruCLIENTKeyHash$";
-  
+
   private static final String COLON = ":";
-  
+
   public static final String RESET_PASSWORD_TOKEN = "RESET_PASSWORD_TOKEN";
-  
+
   public static final String EMAIL_CONFIRM_TOKEN = "EMAIL_CONFIRM_TOKEN";
 
   public static String generateToken(String name) {
@@ -37,7 +38,6 @@ public class InternalHelper {
     text.append(key);
     return encrypt(text.toString());
   }
-  
 
   public static String encrypt(final String text) {
     MessageDigest messageDigest = null;
@@ -71,5 +71,28 @@ public class InternalHelper {
     }
     return date;
   }
-  
+
+  public static int getAge(Date date) {
+    Calendar now = Calendar.getInstance();
+    Calendar dob = Calendar.getInstance();
+    dob.setTime(date);
+    if (dob.after(now)) {
+      throw new IllegalArgumentException("Can't be born in the future");
+    }
+    int year1 = now.get(Calendar.YEAR);
+    int year2 = dob.get(Calendar.YEAR);
+    int age = year1 - year2;
+    int month1 = now.get(Calendar.MONTH);
+    int month2 = dob.get(Calendar.MONTH);
+    if (month2 > month1) {
+      age--;
+    } else if (month1 == month2) {
+      int day1 = now.get(Calendar.DAY_OF_MONTH);
+      int day2 = dob.get(Calendar.DAY_OF_MONTH);
+      if (day2 > day1) {
+        age--;
+      }
+    }
+    return age;
+  }
 }
