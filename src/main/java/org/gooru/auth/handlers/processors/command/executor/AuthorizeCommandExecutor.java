@@ -4,6 +4,7 @@ import io.vertx.core.MultiMap;
 import io.vertx.core.json.JsonObject;
 
 import org.gooru.auth.handlers.constants.CommandConstants;
+import org.gooru.auth.handlers.constants.MessageConstants;
 import org.gooru.auth.handlers.constants.ParameterConstants;
 import org.gooru.auth.handlers.processors.exceptions.InvalidRequestException;
 import org.gooru.auth.handlers.processors.service.authorize.AuthorizeService;
@@ -24,12 +25,13 @@ public final class AuthorizeCommandExecutor implements CommandExecutor {
   public JsonObject exec(String command, JsonObject userContext, MultiMap headers, JsonObject params, JsonObject body) {
     JsonObject result = null;
     switch (command) {
-    case CommandConstants.CREATE_ACCESS_TOKEN:
+    case CommandConstants.AUTHORIZE:
       String clientId = body.getString(ParameterConstants.PARAM_CLIENT_ID);
       String clientKey = body.getString(ParameterConstants.PARAM_CLIENT_KEY);
       String grantType = body.getString(ParameterConstants.PARAM_GRANT_TYPE);
       String returnUrl = body.getString(ParameterConstants.PARAM_RETURN_URL);
-      result = getAuthorizeService().authorize(clientId, clientKey, grantType, returnUrl);
+      String requestDomain = headers.get(MessageConstants.MSG_HEADER_REQUEST_DOMAIN);
+      result = getAuthorizeService().authorize(body, clientId, clientKey, grantType, requestDomain, returnUrl);
       break;
     default:
       LOG.error("Invalid command type passed in, not able to handle");

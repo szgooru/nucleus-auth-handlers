@@ -48,7 +48,7 @@ public class UserServiceImpl extends ServerValidatorUtility implements UserServi
   private static final int EXPIRE_IN_SECONDS = 86400;
 
   public UserServiceImpl() {
-    setUserIdentityRepo(UserIdentityRepo.getInstance());
+    setUserIdentityRepo(UserIdentityRepo.instance());
     setUserRepo(UserRepo.instance());
     setCountryRepo(CountryRepo.instance());
     setStateRepo(StateRepo.instance());
@@ -86,7 +86,7 @@ public class UserServiceImpl extends ServerValidatorUtility implements UserServi
     userValidator.getModel().setBirthDate(dob);
     rejectError(userValidator.getErrors(), HttpConstants.HttpStatus.BAD_REQUEST.getCode());
     getUserRepo().create(userValidator.getModel());
-    UserIdentity userIdentity = createUserIdenityValue(userJson, userValidator.getModel(), clientId);
+    UserIdentity userIdentity = createUserIdentityValue(userJson, userValidator.getModel(), clientId);
     getUserIdentityRepo().saveOrUpdate(userIdentity);
     return userIdentity;
   }
@@ -96,7 +96,7 @@ public class UserServiceImpl extends ServerValidatorUtility implements UserServi
     userValidator.getModel().setBirthDate(dob);
     rejectError(userValidator.getErrors(), HttpConstants.HttpStatus.BAD_REQUEST.getCode());
     getUserRepo().create(userValidator.getModel());
-    UserIdentity userIdentity = createUserIdenityValue(userJson, userValidator.getModel(), clientId);
+    UserIdentity userIdentity = createUserIdentityValue(userJson, userValidator.getModel(), clientId);
     getUserIdentityRepo().saveOrUpdate(userIdentity);
     return userIdentity;
   }
@@ -244,7 +244,7 @@ public class UserServiceImpl extends ServerValidatorUtility implements UserServi
     return new Validator<User>(user, errors);
   }
 
-  private UserIdentity createUserIdenityValue(final JsonObject userJson, final User user, final String clientId) {
+  private UserIdentity createUserIdentityValue(final JsonObject userJson, final User user, final String clientId) {
     final UserIdentity userIdentity = new UserIdentity();
     userIdentity.setUsername(userJson.getString(ParameterConstants.PARAM_USER_USERNAME));
     if (user.getEmailId() != null) {

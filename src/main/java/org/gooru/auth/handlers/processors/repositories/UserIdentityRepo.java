@@ -4,7 +4,7 @@ import org.gooru.auth.handlers.processors.repositories.activejdbc.AJUserIdentity
 import org.gooru.auth.handlers.processors.repositories.activejdbc.entities.UserIdentity;
 
 public interface UserIdentityRepo {
-  static UserIdentityRepo getInstance() {
+  static UserIdentityRepo instance() {
     return new AJUserIdentityRepo();
   }
   UserIdentity getUserIdentityByUsernameAndPassword(final String username, final String password);

@@ -5,7 +5,7 @@ import org.gooru.auth.handlers.processors.repositories.activejdbc.entities.AuthC
 
 public interface AuthClientRepo {
 
-  static AuthClientRepo getInstance() {
+  static AuthClientRepo instance() {
     return new AJAuthClientRepo();
   }
 

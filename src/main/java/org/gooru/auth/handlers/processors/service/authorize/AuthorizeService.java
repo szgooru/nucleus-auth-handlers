@@ -7,5 +7,5 @@ public interface AuthorizeService {
     return new AuthorizeServiceImpl();
   }
 
-  JsonObject authorize(String clientId, String clientKey, String grantType, String returnUrl);
+  JsonObject authorize(JsonObject userJson, String clientId, String clientKey, String grantType, String requestDomain, String returnUrl);
 }

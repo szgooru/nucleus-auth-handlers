@@ -35,7 +35,7 @@ public class MessageCodeConstants {
   public final static String AU0030 = "AU0030";
   public final static String AU0031 = "AU0031";
   public final static String AU0032 = "AU0032";
-  
+  public final static String AU0033 = "AU0033";
   
   
   // Error code constant

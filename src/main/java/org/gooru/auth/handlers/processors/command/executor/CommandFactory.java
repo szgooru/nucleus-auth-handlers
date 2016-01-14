@@ -19,7 +19,7 @@ public class CommandFactory {
           cmd = new UserCommandExecutor();
         } else if (classz.equals(UserPrefsCommandExecutor.class)) {
           cmd = new UserPrefsCommandExecutor();
-        } 
+        }
       }
       instances.put(classz, cmd);
     }

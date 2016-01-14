@@ -10,6 +10,8 @@ public class HelperConstants {
 
   public static final Map<String, String> USER_CATEGORY;
 
+  public static final Map<String, String> SSO_CONNECT_GRANT_TYPES;
+
   static {
     Map<String, String> gender = new HashMap<String, String>();
     gender.put("male", "male");
@@ -25,6 +27,14 @@ public class HelperConstants {
     gender.put("parent", "Parent");
     gender.put("other", "Other");
     USER_CATEGORY = Collections.unmodifiableMap(gender);
+  }
+
+  static {
+    Map<String, String> ssoGrantType = new HashMap<String, String>();
+    ssoGrantType.put("google", "grant type used to connect with google authentication");
+    ssoGrantType.put("wsfed", "grant type used to connect with wsfed authentication");
+    ssoGrantType.put("saml", "grant type used to connect with saml authentication");
+    SSO_CONNECT_GRANT_TYPES = Collections.unmodifiableMap(ssoGrantType);
   }
 
   public enum UserIdentityProvisionType {
@@ -70,7 +80,7 @@ public class HelperConstants {
   }
 
   public enum GrantType {
-    ANONYMOUS("anonymous"), CREDENTIAL("credential");
+    ANONYMOUS("anonymous"), CREDENTIAL("credential"), GOOGLE("google"), WSFED("wsfed"), SAML("saml");
 
     public String type;
 

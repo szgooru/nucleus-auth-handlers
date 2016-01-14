@@ -10,7 +10,7 @@ public class UserPrefsServiceImpl implements UserPrefsService {
   private UserPreferenceRepo userPreferenceRepo;
 
   public UserPrefsServiceImpl() {
-    setUserPreferenceRepo(UserPreferenceRepo.getInstance());
+    setUserPreferenceRepo(UserPreferenceRepo.instance());
   }
 
   @Override

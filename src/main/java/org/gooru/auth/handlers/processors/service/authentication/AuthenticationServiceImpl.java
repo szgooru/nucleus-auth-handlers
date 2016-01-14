@@ -29,9 +29,9 @@ public class AuthenticationServiceImpl extends ServerValidatorUtility implements
   private RedisClient redisClient;
 
   public AuthenticationServiceImpl() {
-    setAuthClientRepo(AuthClientRepo.getInstance());
-    setUserIdentityRepo(UserIdentityRepo.getInstance());
-    setUserPreferenceRepo(UserPreferenceRepo.getInstance());
+    setAuthClientRepo(AuthClientRepo.instance());
+    setUserIdentityRepo(UserIdentityRepo.instance());
+    setUserPreferenceRepo(UserPreferenceRepo.instance());
     setRedisClient(RedisClient.instance());
   }
 

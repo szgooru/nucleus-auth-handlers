@@ -5,7 +5,7 @@ import org.gooru.auth.handlers.processors.repositories.activejdbc.entities.UserP
 
 public interface UserPreferenceRepo {
 
-  static UserPreferenceRepo getInstance() {
+  static UserPreferenceRepo instance() {
     return new AJUserPreferenceRepo();
   }
 

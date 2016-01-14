@@ -47,6 +47,7 @@ public class ParameterConstants {
   public static final String EMAIL_ADDRESS = "email address";
   public static final String PARAM_ME = "me";
   public static final String PARAM_QUERY = "query";
+  public static final String PARAM_AUTHORIZE_IDENTITY_ID = "identity_id";
   
   
 }
