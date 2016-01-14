@@ -3,7 +3,6 @@ package org.gooru.auth.handlers.processors.service.authentication;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
-import org.gooru.auth.handlers.constants.HelperConstants.GrantType;
 import org.gooru.auth.handlers.constants.HttpConstants;
 import org.gooru.auth.handlers.constants.MessageCodeConstants;
 import org.gooru.auth.handlers.constants.MessageConstants;
@@ -18,7 +17,7 @@ import org.gooru.auth.handlers.processors.repositories.activejdbc.entities.UserP
 import org.gooru.auth.handlers.utils.InternalHelper;
 import org.gooru.auth.handlers.utils.ServerValidatorUtility;
 
-public class AuthenticationServiceImpl extends ServerValidatorUtility implements AuthenticationService {
+public class AuthenticationGLAVersionServiceImpl extends ServerValidatorUtility implements AuthenticationGLAVersionService {
 
   private AuthClientRepo authClientRepo;
 
@@ -28,7 +27,7 @@ public class AuthenticationServiceImpl extends ServerValidatorUtility implements
 
   private RedisClient redisClient;
 
-  public AuthenticationServiceImpl() {
+  public AuthenticationGLAVersionServiceImpl() {
     setAuthClientRepo(AuthClientRepo.instance());
     setUserIdentityRepo(UserIdentityRepo.instance());
     setUserPreferenceRepo(UserPreferenceRepo.instance());
@@ -36,10 +35,8 @@ public class AuthenticationServiceImpl extends ServerValidatorUtility implements
   }
 
   @Override
-  public JsonObject createAnonymousAccessToken(String clientId, String clientKey, String grantType, String requestDomain) {
-    ServerValidatorUtility.reject(!(GrantType.ANONYMOUS.getType().equalsIgnoreCase(grantType)), MessageCodeConstants.AU0003,
-            HttpConstants.HttpStatus.UNAUTHORIZED.getCode());
-    final AuthClient authClient = validateAuthClient(clientId, InternalHelper.encryptClientKey(clientKey), grantType);
+  public JsonObject createAnonymousAccessToken(String clientKey,  String requestDomain) {
+    final AuthClient authClient = validateAuthClient(InternalHelper.encryptClientKey(clientKey));
     verifyClientkeyDomains(requestDomain, authClient.getRefererDomains());
     final JsonObject accessToken = new JsonObject();
     accessToken.put(ParameterConstants.PARAM_USER_ID, MessageConstants.MSG_USER_ANONYMOUS);
@@ -54,20 +51,16 @@ public class AuthenticationServiceImpl extends ServerValidatorUtility implements
 
   @Override
   public JsonObject
-          createBasicAuthAccessToken(String clientId, String clientKey, String grantType, String requestDomain, String basicAuthCredentials) {
-    reject(!(GrantType.CREDENTIAL.getType().equalsIgnoreCase(grantType)), MessageCodeConstants.AU0003,
-            HttpConstants.HttpStatus.UNAUTHORIZED.getCode());
-    rejectIfNullOrEmpty(basicAuthCredentials, MessageCodeConstants.AU0006, HttpConstants.HttpStatus.UNAUTHORIZED.getCode());
-    final AuthClient authClient = validateAuthClient(clientId, InternalHelper.encryptClientKey(clientKey), grantType);
+          createBasicAuthAccessToken(String clientKey, String requestDomain, String username, String password) {
+    rejectIfNullOrEmpty(username, MessageCodeConstants.AU0036, HttpConstants.HttpStatus.UNAUTHORIZED.getCode());
+    rejectIfNullOrEmpty(password, MessageCodeConstants.AU0037, HttpConstants.HttpStatus.UNAUTHORIZED.getCode());
+    final AuthClient authClient = validateAuthClient(InternalHelper.encryptClientKey(clientKey));
     verifyClientkeyDomains(requestDomain, authClient.getRefererDomains());
-    final String credentials[] = InternalHelper.getUsernameAndPassword(basicAuthCredentials);
-    final String username = credentials[0];
-    final String password = InternalHelper.encryptPassword(credentials[1]);
     UserIdentity userIdentity = null;
     if (username.indexOf("@") > 1) {
-      userIdentity = getUserIdentityRepo().getUserIdentityByEmailIdAndPassword(username, password);
+      userIdentity = getUserIdentityRepo().getUserIdentityByEmailIdAndPassword(username, InternalHelper.encryptPassword(password));
     } else {
-      userIdentity = getUserIdentityRepo().getUserIdentityByUsernameAndPassword(username, password);
+      userIdentity = getUserIdentityRepo().getUserIdentityByUsernameAndPassword(username, InternalHelper.encryptPassword(password));
     }
     rejectIfNull(userIdentity, MessageCodeConstants.AU0008, HttpConstants.HttpStatus.UNAUTHORIZED.getCode());
     reject(userIdentity.getStatus().equalsIgnoreCase(ParameterConstants.PARAM_STATUS_DEACTIVTED), MessageCodeConstants.AU0009,
@@ -92,19 +85,10 @@ public class AuthenticationServiceImpl extends ServerValidatorUtility implements
     return accessToken;
   }
 
-  @Override
-  public boolean deleteAccessToken(String token) {
-    getRedisClient().del(token);
-    return true;
-  }
-
-  private AuthClient validateAuthClient(String clientId, String clientKey, String grantType) {
-    rejectIfNullOrEmpty(clientId, MessageCodeConstants.AU0001, HttpConstants.HttpStatus.UNAUTHORIZED.getCode());
-    rejectIfNullOrEmpty(clientKey, MessageCodeConstants.AU0002, HttpConstants.HttpStatus.UNAUTHORIZED.getCode());
-    AuthClient authClient = getAuthClientRepo().getAuthClient(clientId, clientKey);
-    rejectIfNull(authClient, MessageCodeConstants.AU0004, HttpConstants.HttpStatus.UNAUTHORIZED.getCode());
-    reject((authClient.getGrantTypes() == null || !authClient.getGrantTypes().contains(grantType)), MessageCodeConstants.AU0005,
-            HttpConstants.HttpStatus.FORBIDDEN.getCode());
+  private AuthClient validateAuthClient(String clientKey) {
+    rejectIfNullOrEmpty(clientKey, MessageCodeConstants.AU0034, HttpConstants.HttpStatus.UNAUTHORIZED.getCode());
+    AuthClient authClient = getAuthClientRepo().getAuthClient(clientKey);
+    rejectIfNull(authClient, MessageCodeConstants.AU0035, HttpConstants.HttpStatus.UNAUTHORIZED.getCode());
     return authClient;
   }
 

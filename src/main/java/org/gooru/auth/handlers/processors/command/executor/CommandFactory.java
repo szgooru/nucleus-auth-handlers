@@ -19,6 +19,8 @@ public class CommandFactory {
           cmd = new UserCommandExecutor();
         } else if (classz.equals(UserPrefsCommandExecutor.class)) {
           cmd = new UserPrefsCommandExecutor();
+        } else if (classz.equals(AuthenticatonGLAVersionCommandExecutor.class)) {
+          cmd = new AuthenticatonGLAVersionCommandExecutor();
         }
       }
       instances.put(classz, cmd);
