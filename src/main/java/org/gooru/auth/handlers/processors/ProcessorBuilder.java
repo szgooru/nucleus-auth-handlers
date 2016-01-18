@@ -1,8 +1,8 @@
 package org.gooru.auth.handlers.processors;
 
-import org.gooru.auth.handlers.processors.command.executor.CommandFactory;
-
 import io.vertx.core.eventbus.Message;
+
+import org.gooru.auth.handlers.processors.command.executor.CommandFactory;
 
 public class ProcessorBuilder {
   private Message<Object> message;

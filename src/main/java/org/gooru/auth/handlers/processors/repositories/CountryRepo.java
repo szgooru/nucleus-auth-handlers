@@ -1,7 +1,7 @@
 package org.gooru.auth.handlers.processors.repositories;
 
 import org.gooru.auth.handlers.processors.repositories.activejdbc.AJCountryRepo;
-import org.gooru.auth.handlers.processors.repositories.activejdbc.entities.Country;
+import org.gooru.auth.handlers.processors.repositories.activejdbc.entities.AJEntityCountry;
 
 public interface CountryRepo {
 
@@ -9,11 +9,11 @@ public interface CountryRepo {
     return new AJCountryRepo();
   }
 
-  Country getCountry(Long id);
+  AJEntityCountry getCountry(Long id);
 
-  Country getCountryByName(String name);
+  AJEntityCountry getCountryByName(String name);
 
-  Country createCountry(Country country);
+  AJEntityCountry createCountry(AJEntityCountry country);
 
-  Country createCountry(String name);
+  AJEntityCountry createCountry(String name, String creatorId);
 }

@@ -1,7 +1,7 @@
 package org.gooru.auth.handlers.processors.repositories.activejdbc;
 
 import org.gooru.auth.handlers.processors.repositories.UserIdentityRepo;
-import org.gooru.auth.handlers.processors.repositories.activejdbc.entities.UserIdentity;
+import org.gooru.auth.handlers.processors.repositories.activejdbc.entities.AJEntityUserIdentity;
 import org.javalite.activejdbc.Base;
 import org.javalite.activejdbc.LazyList;
 
@@ -16,42 +16,42 @@ public class AJUserIdentityRepo extends AJAbstractRepo implements UserIdentityRe
   private static final String GET_BY_USER_ID = "user_id = ? and  status != 'deleted'";
 
   @Override
-  public UserIdentity getUserIdentityByUsernameAndPassword(final String username, final String password) {
+  public AJEntityUserIdentity getUserIdentityByUsernameAndPassword(final String username, final String password) {
     return query(GET_BY_USERNAME_PASSWORD, username, password);
   }
 
   @Override
-  public UserIdentity getUserIdentityByEmailIdAndPassword(final String emailId, final String password) {
+  public AJEntityUserIdentity getUserIdentityByEmailIdAndPassword(final String emailId, final String password) {
     return query(GET_BY_EMAIL_PASSWORD, emailId, password);
   }
 
   @Override
-  public UserIdentity getUserIdentityByEmailId(final String emailId) {
+  public AJEntityUserIdentity getUserIdentityByEmailId(final String emailId) {
     return query(GET_BY_EMAIL, emailId);
   }
 
   @Override
-  public UserIdentity getUserIdentityByReferenceId(final String referenceId) {
+  public AJEntityUserIdentity getUserIdentityByReferenceId(final String referenceId) {
     return query(GET_BY_REFERENCE, referenceId);
   }
 
   @Override
-  public UserIdentity getUserIdentityByUsername(final String username) {
+  public AJEntityUserIdentity getUserIdentityByUsername(final String username) {
     return query(GET_BY_USERNAME, username);
   }
   
   @Override
-  public UserIdentity getUserIdentityByIdAndPassword(final String userId, final String password) {
+  public AJEntityUserIdentity getUserIdentityByIdAndPassword(final String userId, final String password) {
     return query(GET_BY_ID_PASSWORD, userId, password);
   }
   
   @Override
-  public UserIdentity getUserIdentityById(String userId) {
+  public AJEntityUserIdentity getUserIdentityById(String userId) {
     return query(GET_BY_USER_ID, userId);
   }
 
   @Override
-  public UserIdentity saveOrUpdate(final UserIdentity userIdentity) {
+  public AJEntityUserIdentity saveOrUpdate(final AJEntityUserIdentity userIdentity) {
     Base.open(dataSource());
     userIdentity.saveIt();
     Base.commitTransaction();
@@ -59,10 +59,10 @@ public class AJUserIdentityRepo extends AJAbstractRepo implements UserIdentityRe
     return userIdentity;
   }
 
-  private UserIdentity query(final String whereClause, final Object... params) {
+  private AJEntityUserIdentity query(final String whereClause, final Object... params) {
     Base.open(dataSource());
-    LazyList<UserIdentity> results = UserIdentity.where(whereClause, params);
-    UserIdentity result = results.size() > 0 ? (UserIdentity) results.get(0) : null;
+    LazyList<AJEntityUserIdentity> results = AJEntityUserIdentity.where(whereClause, params);
+    AJEntityUserIdentity result = results.size() > 0 ? (AJEntityUserIdentity) results.get(0) : null;
     Base.close();
     return result;
   }

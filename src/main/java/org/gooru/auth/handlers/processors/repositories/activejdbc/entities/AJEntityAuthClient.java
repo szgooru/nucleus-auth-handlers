@@ -7,7 +7,7 @@ import org.javalite.activejdbc.Model;
 import org.javalite.activejdbc.annotations.Table;
 
 @Table("auth_client")
-public class AuthClient extends Model {
+public class AJEntityAuthClient extends Model {
 
   public String getClientId() {
     return getString("client_id");

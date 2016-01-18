@@ -1,7 +1,7 @@
 package org.gooru.auth.handlers.processors.repositories.activejdbc;
 
 import org.gooru.auth.handlers.processors.repositories.UserPreferenceRepo;
-import org.gooru.auth.handlers.processors.repositories.activejdbc.entities.UserPreference;
+import org.gooru.auth.handlers.processors.repositories.activejdbc.entities.AJEntityUserPreference;
 import org.javalite.activejdbc.Base;
 import org.javalite.activejdbc.LazyList;
 
@@ -10,12 +10,12 @@ public class AJUserPreferenceRepo extends AJAbstractRepo implements UserPreferen
   public static final String GET_USER_PREFERENCE = "user_id = ?";
 
   @Override
-  public UserPreference getUserPreference(String userId) {
+  public AJEntityUserPreference getUserPreference(String userId) {
     return query(GET_USER_PREFERENCE, userId);
   }
 
   @Override
-  public UserPreference updatePreference(UserPreference userPreference) {
+  public AJEntityUserPreference updatePreference(AJEntityUserPreference userPreference) {
     Base.open(dataSource());
     userPreference.saveIt();
     Base.commitTransaction();
@@ -23,10 +23,10 @@ public class AJUserPreferenceRepo extends AJAbstractRepo implements UserPreferen
     return userPreference;
   }
 
-  private UserPreference query(String whereClause, Object... params) {
+  private AJEntityUserPreference query(String whereClause, Object... params) {
     Base.open(dataSource());
-    LazyList<UserPreference> results = UserPreference.where(whereClause, params);
-    UserPreference userPreference = results.size() > 0 ? results.get(0) : null;
+    LazyList<AJEntityUserPreference> results = AJEntityUserPreference.where(whereClause, params);
+    AJEntityUserPreference userPreference = results.size() > 0 ? results.get(0) : null;
     Base.close();
     return userPreference;
   }

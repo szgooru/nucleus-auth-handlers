@@ -1,7 +1,7 @@
 package org.gooru.auth.handlers.processors.repositories;
 
 import org.gooru.auth.handlers.processors.repositories.activejdbc.AJSchoolRepo;
-import org.gooru.auth.handlers.processors.repositories.activejdbc.entities.School;
+import org.gooru.auth.handlers.processors.repositories.activejdbc.entities.AJEntitySchool;
 
 public interface SchoolRepo {
 
@@ -9,11 +9,11 @@ public interface SchoolRepo {
     return new AJSchoolRepo();
   }
 
-  School createSchool(String name);
+  AJEntitySchool createSchool(String name, String creatorId);
   
-  School createSchool(School school);
+  AJEntitySchool createSchool(AJEntitySchool school);
 
-  School getSchoolById(String id);
+  AJEntitySchool getSchoolById(String id);
 
-  School getSchoolByName(String name);
+  AJEntitySchool getSchoolByName(String name);
 }

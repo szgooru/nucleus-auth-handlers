@@ -1,7 +1,7 @@
 package org.gooru.auth.handlers.processors.repositories.activejdbc;
 
 import org.gooru.auth.handlers.processors.repositories.UserRepo;
-import org.gooru.auth.handlers.processors.repositories.activejdbc.entities.User;
+import org.gooru.auth.handlers.processors.repositories.activejdbc.entities.AJEntityUser;
 import org.javalite.activejdbc.Base;
 import org.javalite.activejdbc.LazyList;
 
@@ -10,12 +10,12 @@ public class AJUserRepo extends AJAbstractRepo implements UserRepo {
   private static final String GET_USER = "id = ?";
 
   @Override
-  public User getUser(String userId) {
+  public AJEntityUser getUser(String userId) {
     return query(GET_USER, userId);
   }
 
   @Override
-  public User create(User user) {
+  public AJEntityUser create(AJEntityUser user) {
     Base.open(dataSource());
     user.setId(user.getId());
     user.toInsert();
@@ -26,18 +26,18 @@ public class AJUserRepo extends AJAbstractRepo implements UserRepo {
   }
 
   @Override
-  public User update(User user) {
+  public AJEntityUser update(AJEntityUser user) {
     Base.open(dataSource());
-    user.toUpdate();
+    user.saveIt();
     Base.commitTransaction();
     Base.close();
-    return null;
+    return user;
   }
 
-  private User query(String whereClause, Object... params) {
+  private AJEntityUser query(String whereClause, Object... params) {
     Base.open(dataSource());
-    LazyList<User> results = User.where(whereClause, params);
-    User result = results.size() > 0 ? (User) results.get(0) : null;
+    LazyList<AJEntityUser> results = AJEntityUser.where(whereClause, params);
+    AJEntityUser result = results.size() > 0 ? (AJEntityUser) results.get(0) : null;
     Base.close();
     return result;
   }

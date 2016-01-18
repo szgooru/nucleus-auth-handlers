@@ -1,16 +1,17 @@
 package org.gooru.auth.handlers.processors.service.authentication;
 
-import io.vertx.core.json.JsonObject;
+import org.gooru.auth.handlers.processors.data.transform.model.AuthClientDTO;
+import org.gooru.auth.handlers.processors.service.MessageResponse;
 
 public interface AuthenticationService {
   static AuthenticationService instance() {
     return new AuthenticationServiceImpl();
   }
 
-  JsonObject createAnonymousAccessToken(String clientId, String clientKey, String grantType, String requestDomain);
+  MessageResponse createAnonymousAccessToken(AuthClientDTO authClientDTO, String requestDomain);
 
-  JsonObject createBasicAuthAccessToken(String clientId, String clientKey, String grantType, String requestDomain, String basicAuthCredentials);
+  MessageResponse createBasicAuthAccessToken(AuthClientDTO authClientDTO, String requestDomain, String basicAuthCredentials);
 
-  boolean deleteAccessToken(String token);
+  MessageResponse deleteAccessToken(String token);
 
 }

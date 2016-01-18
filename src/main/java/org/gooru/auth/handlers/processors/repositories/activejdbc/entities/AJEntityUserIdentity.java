@@ -8,7 +8,7 @@ import org.javalite.activejdbc.annotations.Table;
 
 @Table("user_identity")
 @IdName("id")
-public class UserIdentity extends Model {
+public class AJEntityUserIdentity extends Model {
 
   public String getUsername() {
     return getString("username");

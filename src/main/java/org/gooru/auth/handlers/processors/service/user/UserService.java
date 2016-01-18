@@ -1,6 +1,8 @@
 package org.gooru.auth.handlers.processors.service.user;
 
-import io.vertx.core.json.JsonObject;
+import org.gooru.auth.handlers.processors.UserContext;
+import org.gooru.auth.handlers.processors.data.transform.model.UserDTO;
+import org.gooru.auth.handlers.processors.service.MessageResponse;
 
 public interface UserService {
 
@@ -8,24 +10,24 @@ public interface UserService {
     return new UserServiceImpl();
   }
 
-  JsonObject createUserAccount(JsonObject userJson, String clientId, int expireAtInSeconds);
+  MessageResponse createUserAccount(UserDTO userDTO, UserContext userContext);
   
-  JsonObject updateUser(String userId, JsonObject user);
+  MessageResponse updateUser(String userId, UserDTO userDTO);
 
-  JsonObject getUser(String userId);
+  MessageResponse getUser(String userId);
 
-  JsonObject findUser(String username, String email);
+  MessageResponse findUser(String username, String email);
 
-  JsonObject resetAuthenticateUserPassword(String userId, String oldPassword, String newPassword);
+  MessageResponse resetAuthenticateUserPassword(String userId, String oldPassword, String newPassword);
 
-  JsonObject resetUnAuthenticateUserPassword(String token, String password);
+  MessageResponse resetUnAuthenticateUserPassword(String token, String password);
   
-  JsonObject resetPassword(String emailId);
+  MessageResponse resetPassword(String emailId);
   
-  JsonObject resendConfirmationEmail(String emailId);
+  MessageResponse resendConfirmationEmail(String emailId);
   
-  JsonObject confirmUserEmail(String userId, String token);
+  MessageResponse confirmUserEmail(String userId, String token);
   
-  JsonObject updateUserEmail(String emailId);
+  MessageResponse updateUserEmail(String emailId);
 
 }

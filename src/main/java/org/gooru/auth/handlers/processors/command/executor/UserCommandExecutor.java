@@ -1,12 +1,12 @@
 package org.gooru.auth.handlers.processors.command.executor;
 
-import io.vertx.core.MultiMap;
-import io.vertx.core.json.JsonObject;
-
 import org.gooru.auth.handlers.constants.CommandConstants;
 import org.gooru.auth.handlers.constants.MessageConstants;
 import org.gooru.auth.handlers.constants.ParameterConstants;
+import org.gooru.auth.handlers.processors.MessageContext;
+import org.gooru.auth.handlers.processors.data.transform.model.UserDTO;
 import org.gooru.auth.handlers.processors.exceptions.InvalidRequestException;
+import org.gooru.auth.handlers.processors.service.MessageResponse;
 import org.gooru.auth.handlers.processors.service.user.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,60 +22,57 @@ public final class UserCommandExecutor implements CommandExecutor {
   }
 
   @Override
-  public JsonObject exec(String command, JsonObject userContext, MultiMap headers, JsonObject params, JsonObject body) {
-    JsonObject result = null;
-    final String userContextId = userContext.getString(ParameterConstants.PARAM_USER_ID);
-    switch (command) {
+  public MessageResponse exec(MessageContext messageContext) {
+    MessageResponse result = null;
+    switch (messageContext.command()) {
     case CommandConstants.CREATE_USER:
-      final String clientId = userContext.getString(ParameterConstants.PARAM_CLIENT_ID);
-      int accessTokenValidity = userContext.getInteger(ParameterConstants.PARAM_ACCESS_TOKEN_VALIDITY);
-      result = getUserService().createUserAccount(body, clientId, accessTokenValidity);
+      UserDTO userDTO = new UserDTO(messageContext.requestBody().getMap());
+      result = getUserService().createUserAccount(userDTO, messageContext.user());
       break;
     case CommandConstants.UPDATE_USER:
-      String updateuserId = params.getString(MessageConstants.MSG_USER_ID);
+      String updateuserId = messageContext.requestParams().getString(MessageConstants.MSG_USER_ID);
       if (updateuserId.equalsIgnoreCase(ParameterConstants.PARAM_ME)) {
-        updateuserId = userContext.getString(ParameterConstants.PARAM_USER_ID);
+        updateuserId = messageContext.user().getString(ParameterConstants.PARAM_USER_ID);
       }
-      result = getUserService().updateUser(updateuserId, body);
+      UserDTO updateUserDTO = new UserDTO(messageContext.requestBody().getMap());
+      result = getUserService().updateUser(updateuserId, updateUserDTO);
       break;
     case CommandConstants.GET_USER:
-      String userId = params.getString(MessageConstants.MSG_USER_ID);
+      String userId = messageContext.requestParams().getString(MessageConstants.MSG_USER_ID);
       if (userId.equalsIgnoreCase(ParameterConstants.PARAM_ME)) {
-        userId = userContext.getString(ParameterConstants.PARAM_USER_ID);
+        userId = messageContext.user().getString(ParameterConstants.PARAM_USER_ID);
       }
       result = getUserService().getUser(userId);
       break;
     case CommandConstants.GET_USER_FIND:
-      final String username = params.getString(ParameterConstants.PARAM_USER_USERNAME);
-      final String email = params.getString(ParameterConstants.PARAM_USER_EMAIL);
+      final String username = messageContext.requestParams().getString(ParameterConstants.PARAM_USER_USERNAME);
+      final String email = messageContext.requestParams().getString(ParameterConstants.PARAM_USER_EMAIL);
       result = getUserService().findUser(username, email);
       break;
     case CommandConstants.RESET_PASSWORD:
-      final String emailId = body.getString(ParameterConstants.PARAM_USER_EMAIL_ID);
+      final String emailId = messageContext.requestBody().getString(ParameterConstants.PARAM_USER_EMAIL_ID);
       result = getUserService().resetPassword(emailId);
       break;
     case CommandConstants.UPDATE_PASSWORD:
-      final String userUpdatePasswordId = params.getString(MessageConstants.MSG_USER_ID);
-      final String resetPasswordToken = body.getString(ParameterConstants.PARAM_USER_TOKEN);
-      final String newPassword = body.getString(ParameterConstants.PARAM_USER_NEW_PASSWORD);
-      if (userContextId.equalsIgnoreCase(MessageConstants.MSG_USER_ANONYMOUS)) {
+      final String userUpdatePasswordId = messageContext.requestParams().getString(MessageConstants.MSG_USER_ID);
+      final String resetPasswordToken = messageContext.requestBody().getString(ParameterConstants.PARAM_USER_TOKEN);
+      final String newPassword = messageContext.requestBody().getString(ParameterConstants.PARAM_USER_NEW_PASSWORD);
+      if (messageContext.user().getUserId().equalsIgnoreCase(MessageConstants.MSG_USER_ANONYMOUS)) {
         result = getUserService().resetUnAuthenticateUserPassword(resetPasswordToken, newPassword);
       } else {
-        final String oldPassword = body.getString(ParameterConstants.PARAM_USER_OLD_PASSWORD);
+        final String oldPassword = messageContext.requestBody().getString(ParameterConstants.PARAM_USER_OLD_PASSWORD);
         result = getUserService().resetAuthenticateUserPassword(userUpdatePasswordId, oldPassword, newPassword);
       }
       break;
     case CommandConstants.RESET_EMAIL_ADDRESS:
-      final String updateEmailId = body.getString(ParameterConstants.PARAM_USER_EMAIL_ID);
-      result = getUserService().updateUserEmail(updateEmailId);
+      result = getUserService().updateUserEmail(messageContext.requestBody().getString(ParameterConstants.PARAM_USER_EMAIL_ID));
       break;
     case CommandConstants.RESEND_CONFIRMATION_EMAIL:
-      final String resendEmailId = body.getString(ParameterConstants.PARAM_USER_EMAIL_ID);
-      result = getUserService().resendConfirmationEmail(resendEmailId);
+      result = getUserService().resendConfirmationEmail(messageContext.requestBody().getString(ParameterConstants.PARAM_USER_EMAIL_ID));
       break;
     case CommandConstants.CONFIRMATION_EMAIL:
-      final String confirmEmailToken = body.getString(ParameterConstants.PARAM_USER_TOKEN);
-      result = getUserService().confirmUserEmail(userContextId, confirmEmailToken);
+      String token = messageContext.requestBody().getString(ParameterConstants.PARAM_USER_TOKEN);
+      result = getUserService().confirmUserEmail(messageContext.user().getUserId(), token);
       break;
     default:
       LOG.error("Invalid command type passed in, not able to handle");

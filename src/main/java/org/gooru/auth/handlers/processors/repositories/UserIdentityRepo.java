@@ -1,26 +1,26 @@
 package org.gooru.auth.handlers.processors.repositories;
 
 import org.gooru.auth.handlers.processors.repositories.activejdbc.AJUserIdentityRepo;
-import org.gooru.auth.handlers.processors.repositories.activejdbc.entities.UserIdentity;
+import org.gooru.auth.handlers.processors.repositories.activejdbc.entities.AJEntityUserIdentity;
 
 public interface UserIdentityRepo {
   static UserIdentityRepo instance() {
     return new AJUserIdentityRepo();
   }
-  UserIdentity getUserIdentityByUsernameAndPassword(final String username, final String password);
+  AJEntityUserIdentity getUserIdentityByUsernameAndPassword(final String username, final String password);
   
-  UserIdentity getUserIdentityByEmailIdAndPassword(final String emailId, final String password);
+  AJEntityUserIdentity getUserIdentityByEmailIdAndPassword(final String emailId, final String password);
   
-  UserIdentity getUserIdentityByEmailId(final String emailId);
+  AJEntityUserIdentity getUserIdentityByEmailId(final String emailId);
   
-  UserIdentity getUserIdentityByReferenceId(final String referenceId);
+  AJEntityUserIdentity getUserIdentityByReferenceId(final String referenceId);
   
-  UserIdentity getUserIdentityByUsername(final String username);
+  AJEntityUserIdentity getUserIdentityByUsername(final String username);
   
-  UserIdentity saveOrUpdate(final UserIdentity userIdentity);
+  AJEntityUserIdentity saveOrUpdate(final AJEntityUserIdentity userIdentity);
   
-  UserIdentity getUserIdentityByIdAndPassword(final String userId, final String password);
+  AJEntityUserIdentity getUserIdentityByIdAndPassword(final String userId, final String password);
   
-  UserIdentity getUserIdentityById(final String userId);
+  AJEntityUserIdentity getUserIdentityById(final String userId);
     
 }

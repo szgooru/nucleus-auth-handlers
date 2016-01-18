@@ -10,15 +10,19 @@ import org.gooru.auth.handlers.constants.HelperConstants;
 import org.gooru.auth.handlers.constants.HttpConstants;
 import org.gooru.auth.handlers.constants.MessageCodeConstants;
 import org.gooru.auth.handlers.constants.ParameterConstants;
+import org.gooru.auth.handlers.constants.HttpConstants.HttpStatus;
 import org.gooru.auth.handlers.infra.RedisClient;
+import org.gooru.auth.handlers.processors.data.transform.model.AuthorizeDTO;
+import org.gooru.auth.handlers.processors.data.transform.model.UserDTO;
 import org.gooru.auth.handlers.processors.repositories.AuthClientRepo;
 import org.gooru.auth.handlers.processors.repositories.UserIdentityRepo;
 import org.gooru.auth.handlers.processors.repositories.UserPreferenceRepo;
 import org.gooru.auth.handlers.processors.repositories.UserRepo;
-import org.gooru.auth.handlers.processors.repositories.activejdbc.entities.AuthClient;
-import org.gooru.auth.handlers.processors.repositories.activejdbc.entities.User;
-import org.gooru.auth.handlers.processors.repositories.activejdbc.entities.UserIdentity;
-import org.gooru.auth.handlers.processors.repositories.activejdbc.entities.UserPreference;
+import org.gooru.auth.handlers.processors.repositories.activejdbc.entities.AJEntityAuthClient;
+import org.gooru.auth.handlers.processors.repositories.activejdbc.entities.AJEntityUser;
+import org.gooru.auth.handlers.processors.repositories.activejdbc.entities.AJEntityUserIdentity;
+import org.gooru.auth.handlers.processors.repositories.activejdbc.entities.AJEntityUserPreference;
+import org.gooru.auth.handlers.processors.service.MessageResponse;
 import org.gooru.auth.handlers.utils.InternalHelper;
 import org.gooru.auth.handlers.utils.ServerValidatorUtility;
 
@@ -43,15 +47,16 @@ public class AuthorizeServiceImpl extends ServerValidatorUtility implements Auth
   }
 
   @Override
-  public JsonObject authorize(JsonObject userJson, String clientId, String clientKey, String grantType, String requestDomain, String returnUrl) {
-    reject((HelperConstants.SSO_CONNECT_GRANT_TYPES.get(grantType) == null), MessageCodeConstants.AU0003,
+  public MessageResponse authorize(AuthorizeDTO authorizeDTO, String requestDomain) {
+    reject((HelperConstants.SSO_CONNECT_GRANT_TYPES.get(authorizeDTO.getGrantType()) == null), MessageCodeConstants.AU0003,
             HttpConstants.HttpStatus.UNAUTHORIZED.getCode());
-    final AuthClient authClient = validateAuthClient(clientId, InternalHelper.encryptClientKey(clientKey), grantType);
+    final AJEntityAuthClient authClient =
+            validateAuthClient(authorizeDTO.getClientId(), InternalHelper.encryptClientKey(authorizeDTO.getClientKey()), authorizeDTO.getGrantType());
     verifyClientkeyDomains(requestDomain, authClient.getRefererDomains());
-    String identityId = userJson.getString(ParameterConstants.PARAM_AUTHORIZE_IDENTITY_ID);
+    String identityId = authorizeDTO.getUser().getIdentityId();
     rejectIfNullOrEmpty(identityId, MessageCodeConstants.AU0033, 400);
     boolean isEmailIdentity = false;
-    UserIdentity userIdentity = null;
+    AJEntityUserIdentity userIdentity = null;
     if (identityId.indexOf("@") > 1) {
       isEmailIdentity = true;
       userIdentity = getUserIdentityRepo().getUserIdentityByEmailId(identityId);
@@ -59,7 +64,7 @@ public class AuthorizeServiceImpl extends ServerValidatorUtility implements Auth
       userIdentity = getUserIdentityRepo().getUserIdentityByReferenceId(identityId);
     }
     if (userIdentity == null) {
-      userIdentity = createUserWithIdentity(userJson, grantType, clientId, isEmailIdentity);
+      userIdentity = createUserWithIdentity(authorizeDTO.getUser(), authorizeDTO.getGrantType(), authorizeDTO.getClientId(), isEmailIdentity);
     }
 
     final JsonObject accessToken = new JsonObject();
@@ -68,7 +73,7 @@ public class AuthorizeServiceImpl extends ServerValidatorUtility implements Auth
     accessToken.put(ParameterConstants.PARAM_CLIENT_ID, authClient.getClientId());
     accessToken.put(ParameterConstants.PARAM_PROVIDED_AT, System.currentTimeMillis());
     final String token = InternalHelper.generateToken(userIdentity.getUserId());
-    final UserPreference userPreference = getUserPreferenceRepo().getUserPreference(userIdentity.getUserId());
+    final AJEntityUserPreference userPreference = getUserPreferenceRepo().getUserPreference(userIdentity.getUserId());
     if (userPreference != null) {
       JsonObject prefs = new JsonObject();
       if (userPreference.getStandardPreference() != null) {
@@ -79,48 +84,47 @@ public class AuthorizeServiceImpl extends ServerValidatorUtility implements Auth
     saveAccessToken(token, accessToken, authClient.getAccessTokenValidity());
     accessToken.put(ParameterConstants.PARAM_ACCESS_TOKEN, token);
     accessToken.put(ParameterConstants.PARAM_CDN_URLS, authClient.getCdnUrls());
-    return accessToken;
+    return new MessageResponse.Builder().setResponseBody(accessToken).setContentTypeJson().setStatusHttpCode(HttpStatus.ACCEPTED).build();
   }
 
-  private UserIdentity createUserWithIdentity(JsonObject userJson, String grantType, String clientId, boolean isEmailIdentity) {
-    final String firstname = userJson.getString(ParameterConstants.PARAM_USER_FIRSTNAME);
-    final String lastname = userJson.getString(ParameterConstants.PARAM_USER_LASTNAME);
-    String username = userJson.getString(ParameterConstants.PARAM_USER_USERNAME);
-    String identityId = userJson.getString(ParameterConstants.PARAM_AUTHORIZE_IDENTITY_ID);
-    final User user = new User();
-    user.setFirstname(firstname);
-    if (lastname != null) {
-      user.setLastname(lastname);
+  private AJEntityUserIdentity createUserWithIdentity(UserDTO userDTO, String grantType, String clientId, boolean isEmailIdentity) {
+    final AJEntityUser user = new AJEntityUser();
+    user.setFirstname(userDTO.getFirstname());
+    if (userDTO.getLastname() != null) {
+      user.setLastname(userDTO.getLastname());
     }
-    if (username == null) {
-      username = firstname.replaceAll("\\s+", "");
-      if (lastname != null && lastname.length() > 0) {
-        username = username + lastname;
-      }
-      UserIdentity userIdentity = getUserIdentityRepo().getUserIdentityByUsername(username);
-      if (userIdentity != null) {
-        final Random randomNumber = new Random();
-        username = username + randomNumber.nextInt(1000);
-      }
-    }
+
     user.setId(UUID.randomUUID().toString());
     user.setModifiedBy(user.getId());
     getUserRepo().create(user);
-    UserIdentity userIdentity = createUserIdentityValue(grantType, user, clientId);
+    final AJEntityUserIdentity userIdentity = createUserIdentityValue(grantType, user, clientId);
     if (isEmailIdentity) {
-      userIdentity.setEmailId(identityId);
+      userIdentity.setEmailId(userDTO.getIdentityId());
     } else {
-      userIdentity.setReferenceId(identityId);
+      userIdentity.setReferenceId(userDTO.getIdentityId());
     }
-    userIdentity.setUsername(username);
+    if (userDTO.getUsername() == null) {
+      StringBuilder username = new StringBuilder(userDTO.getFirstname().replaceAll("\\s+", ""));
+      if (userDTO.getLastname() != null && userDTO.getLastname().length() > 0 && username.length() < 14) {
+        username.append(userDTO.getLastname().substring(0, 5));
+      }
+      AJEntityUserIdentity identityUsername = getUserIdentityRepo().getUserIdentityByUsername(username.toString());
+      if (identityUsername != null) {
+        final Random randomNumber = new Random();
+        username.append(randomNumber.nextInt(1000));
+      }
+      userIdentity.setUsername(username.toString());
+    } else {
+      userIdentity.setUsername(userDTO.getUsername());
+    }
     getUserIdentityRepo().saveOrUpdate(userIdentity);
     return userIdentity;
   }
 
-  private AuthClient validateAuthClient(String clientId, String clientKey, String grantType) {
+  private AJEntityAuthClient validateAuthClient(String clientId, String clientKey, String grantType) {
     rejectIfNullOrEmpty(clientId, MessageCodeConstants.AU0001, HttpConstants.HttpStatus.UNAUTHORIZED.getCode());
     rejectIfNullOrEmpty(clientKey, MessageCodeConstants.AU0002, HttpConstants.HttpStatus.UNAUTHORIZED.getCode());
-    AuthClient authClient = getAuthClientRepo().getAuthClient(clientId, clientKey);
+    AJEntityAuthClient authClient = getAuthClientRepo().getAuthClient(clientId, clientKey);
     rejectIfNull(authClient, MessageCodeConstants.AU0004, HttpConstants.HttpStatus.UNAUTHORIZED.getCode());
     reject((authClient.getGrantTypes() == null || !authClient.getGrantTypes().contains(grantType)), MessageCodeConstants.AU0005,
             HttpConstants.HttpStatus.FORBIDDEN.getCode());
@@ -146,8 +150,8 @@ public class AuthorizeServiceImpl extends ServerValidatorUtility implements Auth
     getRedisClient().set(token, data.toString(), expireAtInSeconds);
   }
 
-  private UserIdentity createUserIdentityValue(final String userIdentityAuthorizeType, final User user, final String clientId) {
-    final UserIdentity userIdentity = new UserIdentity();
+  private AJEntityUserIdentity createUserIdentityValue(final String userIdentityAuthorizeType, final AJEntityUser user, final String clientId) {
+    final AJEntityUserIdentity userIdentity = new AJEntityUserIdentity();
     userIdentity.setUserId(user.getId());
     userIdentity.setLoginType(userIdentityAuthorizeType);
     userIdentity.setProvisionType(userIdentityAuthorizeType);

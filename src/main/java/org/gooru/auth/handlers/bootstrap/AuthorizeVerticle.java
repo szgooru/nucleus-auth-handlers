@@ -10,6 +10,7 @@ import org.gooru.auth.handlers.constants.MessageConstants;
 import org.gooru.auth.handlers.constants.MessagebusEndpoints;
 import org.gooru.auth.handlers.processors.ProcessorBuilder;
 import org.gooru.auth.handlers.processors.command.executor.AuthorizeCommandExecutor;
+import org.gooru.auth.handlers.processors.service.MessageResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,22 +23,19 @@ public class AuthorizeVerticle extends AbstractVerticle {
 
     eb.consumer(MessagebusEndpoints.MBEP_AUTHORIZE, message -> {
       LOG.debug("Received message: " + message.body());
-        vertx.executeBlocking(future -> {
-          JsonObject result = new ProcessorBuilder(AuthorizeCommandExecutor.class, message).build().process();
-          future.complete(result);
-        }, res -> {
-          LOG.debug("Worker thread done. Taking processing forward.");
-          JsonObject result = (JsonObject) res.result();
-          LOG.debug("Got result object, will reply to message");
-          DeliveryOptions options = new DeliveryOptions().addHeader(MessageConstants.MSG_OP_STATUS, result.getString(MessageConstants.MSG_OP_STATUS));
-          message.reply(result.getJsonObject(MessageConstants.RESP_CONTAINER_MBUS), options);
-          LOG.debug("Sent reply to message. Will process event data now.");
-          JsonObject eventData = result.getJsonObject(MessageConstants.RESP_CONTAINER_EVENT);
-          if (eventData != null) {
-            eb.publish(MessagebusEndpoints.MBEP_EVENT, eventData);
-          }
-        });
+      vertx.executeBlocking(future -> {
+        MessageResponse result = new ProcessorBuilder(AuthorizeCommandExecutor.class, message).build().process();
+        future.complete(result);
+      }, res -> {
+        MessageResponse result = (MessageResponse) res.result();
+        message.reply(result.reply(), result.deliveryOptions());
 
+        JsonObject eventData = result.event();
+        if (eventData != null) {
+          eb.publish(MessagebusEndpoints.MBEP_EVENT, eventData);
+        }
+
+      });
     }).completionHandler(result -> {
       if (result.succeeded()) {
         LOG.info("Authorize end point ready to listen");
@@ -47,6 +45,5 @@ public class AuthorizeVerticle extends AbstractVerticle {
       }
     });
   }
-
 
 }

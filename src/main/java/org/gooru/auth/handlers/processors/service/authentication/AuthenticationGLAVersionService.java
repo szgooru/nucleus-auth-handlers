@@ -1,15 +1,15 @@
 package org.gooru.auth.handlers.processors.service.authentication;
 
-import io.vertx.core.json.JsonObject;
+import org.gooru.auth.handlers.processors.service.MessageResponse;
 
 public interface AuthenticationGLAVersionService {
   static AuthenticationGLAVersionService instance() {
     return new AuthenticationGLAVersionServiceImpl();
   }
 
-  JsonObject createAnonymousAccessToken(String clientKey, String requestDomain);
+  MessageResponse createAnonymousAccessToken(String clientKey, String requestDomain);
 
-  JsonObject createBasicAuthAccessToken(String clientKey, String requestDomain, String username, String password);
+  MessageResponse createBasicAuthAccessToken(String clientKey, String requestDomain, String username, String password);
 
 
 }

@@ -1,6 +1,5 @@
 package org.gooru.auth.handlers.processors.service.user;
 
-import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
 import java.util.Date;
@@ -11,20 +10,24 @@ import org.gooru.auth.handlers.constants.HttpConstants;
 import org.gooru.auth.handlers.constants.MessageCodeConstants;
 import org.gooru.auth.handlers.constants.ParameterConstants;
 import org.gooru.auth.handlers.infra.RedisClient;
+import org.gooru.auth.handlers.processors.UserContext;
+import org.gooru.auth.handlers.processors.data.transform.model.UserDTO;
 import org.gooru.auth.handlers.processors.error.Errors;
-import org.gooru.auth.handlers.processors.exceptions.InvalidRequestException;
+import org.gooru.auth.handlers.processors.exceptions.BadRequestException;
 import org.gooru.auth.handlers.processors.repositories.CountryRepo;
 import org.gooru.auth.handlers.processors.repositories.SchoolDistrictRepo;
 import org.gooru.auth.handlers.processors.repositories.SchoolRepo;
 import org.gooru.auth.handlers.processors.repositories.StateRepo;
 import org.gooru.auth.handlers.processors.repositories.UserIdentityRepo;
 import org.gooru.auth.handlers.processors.repositories.UserRepo;
-import org.gooru.auth.handlers.processors.repositories.activejdbc.entities.Country;
-import org.gooru.auth.handlers.processors.repositories.activejdbc.entities.School;
-import org.gooru.auth.handlers.processors.repositories.activejdbc.entities.SchoolDistrict;
-import org.gooru.auth.handlers.processors.repositories.activejdbc.entities.State;
-import org.gooru.auth.handlers.processors.repositories.activejdbc.entities.User;
-import org.gooru.auth.handlers.processors.repositories.activejdbc.entities.UserIdentity;
+import org.gooru.auth.handlers.processors.repositories.activejdbc.entities.AJEntityCountry;
+import org.gooru.auth.handlers.processors.repositories.activejdbc.entities.AJEntitySchool;
+import org.gooru.auth.handlers.processors.repositories.activejdbc.entities.AJEntitySchoolDistrict;
+import org.gooru.auth.handlers.processors.repositories.activejdbc.entities.AJEntityState;
+import org.gooru.auth.handlers.processors.repositories.activejdbc.entities.AJEntityUser;
+import org.gooru.auth.handlers.processors.repositories.activejdbc.entities.AJEntityUserIdentity;
+import org.gooru.auth.handlers.processors.service.AJResponseJsonTransformer;
+import org.gooru.auth.handlers.processors.service.MessageResponse;
 import org.gooru.auth.handlers.processors.service.Validator;
 import org.gooru.auth.handlers.utils.InternalHelper;
 import org.gooru.auth.handlers.utils.ServerValidatorUtility;
@@ -58,355 +61,118 @@ public class UserServiceImpl extends ServerValidatorUtility implements UserServi
   }
 
   @Override
-  public JsonObject createUserAccount(JsonObject userJson, String clientId, int expireAtInSeconds) {
-    final String birthDate = userJson.getString(ParameterConstants.PARAM_USER_BIRTH_DATE);
-    rejectIfNullOrEmpty(birthDate, MessageCodeConstants.AU0015, 400, ParameterConstants.PARAM_USER_BIRTH_DATE);
-    Date dob = InternalHelper.isValidDate(birthDate);
+  public MessageResponse createUserAccount(UserDTO userDTO, UserContext userContext) {
+    rejectIfNullOrEmpty(userDTO.getBirthDate(), MessageCodeConstants.AU0015, 400, ParameterConstants.PARAM_USER_BIRTH_DATE);
+    Date dob = InternalHelper.isValidDate(userDTO.getBirthDate());
     rejectIfNull(dob, MessageCodeConstants.AU0022, 400, ParameterConstants.PARAM_USER_BIRTH_DATE);
     int age = InternalHelper.getAge(dob);
-    UserIdentity userIdentity = null;
+    AJEntityUserIdentity userIdentity = null;
     if (age < 13) {
-      userIdentity = createChildUser(userJson, clientId, dob);
+      userIdentity = createChildUser(userDTO, userContext.getClientId(), dob);
     } else {
-      userIdentity = createUser(userJson, clientId, dob);
+      userIdentity = createUser(userDTO, userContext.getClientId(), dob);
     }
     final JsonObject accessToken = new JsonObject();
     accessToken.put(ParameterConstants.PARAM_USER_ID, userIdentity.getUserId());
     accessToken.put(ParameterConstants.PARAM_USER_USERNAME, userIdentity.getUsername());
-    accessToken.put(ParameterConstants.PARAM_CLIENT_ID, clientId);
+    accessToken.put(ParameterConstants.PARAM_CLIENT_ID, userContext.getClientId());
     accessToken.put(ParameterConstants.PARAM_PROVIDED_AT, System.currentTimeMillis());
     final String token = InternalHelper.generateToken(userIdentity.getUserId());
-    saveAccessToken(token, accessToken, expireAtInSeconds);
+    saveAccessToken(token, accessToken, userContext.getAccessTokenValidity());
     accessToken.put(ParameterConstants.PARAM_ACCESS_TOKEN, token);
-    return accessToken;
-  }
-
-  private UserIdentity createUser(final JsonObject userJson, final String clientId, final Date dob) {
-    Validator<User> userValidator = createUserValidator(userJson);
-    userValidator.getModel().setBirthDate(dob);
-    rejectError(userValidator.getErrors(), HttpConstants.HttpStatus.BAD_REQUEST.getCode());
-    getUserRepo().create(userValidator.getModel());
-    UserIdentity userIdentity = createUserIdentityValue(userJson, userValidator.getModel(), clientId);
-    getUserIdentityRepo().saveOrUpdate(userIdentity);
-    return userIdentity;
-  }
-
-  private UserIdentity createChildUser(final JsonObject userJson, final String clientId, final Date dob) {
-    Validator<User> userValidator = createChildUserValidator(userJson);
-    userValidator.getModel().setBirthDate(dob);
-    rejectError(userValidator.getErrors(), HttpConstants.HttpStatus.BAD_REQUEST.getCode());
-    getUserRepo().create(userValidator.getModel());
-    UserIdentity userIdentity = createUserIdentityValue(userJson, userValidator.getModel(), clientId);
-    getUserIdentityRepo().saveOrUpdate(userIdentity);
-    return userIdentity;
+    StringBuilder uri = new StringBuilder(HelperConstants.USER_ENTITY_URI).append(userIdentity.getUserId());
+    return new MessageResponse.Builder().setResponseBody(accessToken).setHeader(HelperConstants.LOCATION, uri.toString()).setContentTypeJson()
+            .setStatusCreated().successful().build();
   }
 
   @Override
-  public JsonObject updateUser(final String userId, final JsonObject userJson) {
-    Validator<User> userValidator = updateUserValidator(userId, userJson);
+  public MessageResponse updateUser(final String userId, final UserDTO userDTO) {
+    Validator<AJEntityUser> userValidator = updateUserValidator(userId, userDTO);
     rejectError(userValidator.getErrors(), HttpConstants.HttpStatus.BAD_REQUEST.getCode());
-    final User user = getUserRepo().update(userValidator.getModel());
-    final String username = userJson.getString(ParameterConstants.PARAM_USER_USERNAME);
-    if (username != null) {
-      final UserIdentity userIdentity = getUserIdentityRepo().getUserIdentityById(userId);
-      userIdentity.setUsername(username);
+    AJEntityUser user = userValidator.getModel();
+    getUserRepo().update(user);
+    if (userDTO.getUsername() != null) {
+      final AJEntityUserIdentity userIdentity = getUserIdentityRepo().getUserIdentityById(userId);
+      userIdentity.setUsername(userDTO.getUsername());
       getUserIdentityRepo().saveOrUpdate(userIdentity);
     }
-    return new JsonObject(user.toMap());
+    return new MessageResponse.Builder().setContentTypeJson().setStatusNoOutput().successful().build();
   }
 
   @Override
-  public JsonObject getUser(final String userId) {
-    final User user = getUserRepo().getUser(userId);
-    rejectIfNull(user, MessageCodeConstants.AU0026, 404, ParameterConstants.PARAM_USER);
-    return new JsonObject(user.toMap());
-  }
-
-  @Override
-  public JsonObject resetAuthenticateUserPassword(final String userId, final String oldPassword, final String newPassword) {
-    final UserIdentity userIdentity = getUserIdentityRepo().getUserIdentityByIdAndPassword(userId, InternalHelper.encryptPassword(oldPassword));
-    rejectIfNull(userIdentity, MessageCodeConstants.AU0026, HttpConstants.HttpStatus.NOT_FOUND.getCode(), ParameterConstants.PARAM_USER);
-    userIdentity.setPassword(InternalHelper.encryptPassword(newPassword));
-    getUserIdentityRepo().saveOrUpdate(userIdentity);
-    return new JsonObject();
-  }
-
-  @Override
-  public JsonObject resetPassword(final String emailId) {
-    final UserIdentity userIdentity = getUserIdentityRepo().getUserIdentityByEmailId(emailId);
-    rejectIfNull(userIdentity, MessageCodeConstants.AU0026, HttpConstants.HttpStatus.NOT_FOUND.getCode(), ParameterConstants.PARAM_USER);
-    final String token = InternalHelper.generateToken(InternalHelper.RESET_PASSWORD_TOKEN);
-    getRedisClient().set(token, userIdentity.getEmailId(), EXPIRE_IN_SECONDS);
-    // TO-DO send mail notification
-    return new JsonObject();
-  }
-
-  @Override
-  public JsonObject resetUnAuthenticateUserPassword(final String token, final String password) {
-    String emailId = getRedisClient().get(token);
-    rejectIfNull(emailId, MessageCodeConstants.AU0028, HttpConstants.HttpStatus.UNAUTHORIZED.getCode());
-    UserIdentity userIdentity = getUserIdentityRepo().getUserIdentityByEmailId(emailId);
-    userIdentity.setPassword(InternalHelper.encryptPassword(password));
-    getUserIdentityRepo().saveOrUpdate(userIdentity);
-    getRedisClient().del(token);
-    return new JsonObject();
-  }
-
-  private Validator<User> createChildUserValidator(JsonObject userJson) {
-    final String username = userJson.getString(ParameterConstants.PARAM_USER_USERNAME);
-    final String userCategory = userJson.getString(ParameterConstants.PARAM_USER_CATEGORY);
-    final String parentUserEmailId = userJson.getString(ParameterConstants.PARAM_USER_PARENT_EMAIL_ID);
-    final Errors errors = new Errors();
-    addValidatorIfNullOrEmptyError(errors, ParameterConstants.PARAM_USER_PARENT_EMAIL_ID, parentUserEmailId, MessageCodeConstants.AU0031);
-    addValidatorIfNullOrEmptyError(errors, ParameterConstants.PARAM_USER_USERNAME, username, MessageCodeConstants.AU0013);
-    addValidatorIfNullOrEmptyError(errors, ParameterConstants.PARAM_USER_CATEGORY, userCategory, MessageCodeConstants.AU0016);
-    String password = userJson.getString(ParameterConstants.PARAM_USER_PASSWORD);
-    addValidatorIfNullOrEmptyError(errors, ParameterConstants.PARAM_USER_PASSWORD, password, MessageCodeConstants.AU0016);
-    addValidator(errors, !(username != null && username.matches("[a-zA-Z0-9]+")), ParameterConstants.PARAM_USER_USERNAME, MessageCodeConstants.AU0017);
-    addValidator(errors, (username != null && (username.length() < 4 || username.length() > 20)), ParameterConstants.PARAM_USER_USERNAME,
-            MessageCodeConstants.AU0018, ParameterConstants.PARAM_USER_USERNAME, "4", "20");
-    addValidator(errors, (password != null && (password.length() < 5 || password.length() > 14)), ParameterConstants.PARAM_USER_PASSWORD,
-            MessageCodeConstants.AU0018, ParameterConstants.PARAM_USER_PASSWORD, "5", "14");
-    final User user = new User();
-    user.setId(UUID.randomUUID().toString());
-    user.setUserCategory(userCategory);
-    user.setModifiedBy(user.getId());
-    if (parentUserEmailId != null) {
-      UserIdentity userIdentity = getUserIdentityRepo().getUserIdentityByEmailId(parentUserEmailId);
-      addValidator(errors, (userIdentity == null), ParameterConstants.PARAM_USER_PARENT_EMAIL_ID, MessageCodeConstants.AU0032);
-      user.setParentUserId(userIdentity.getUserId());
-    }
-    if (username != null) {
-      UserIdentity userIdentityUsername = getUserIdentityRepo().getUserIdentityByUsername(username);
-      addValidator(errors, !(userIdentityUsername == null), ParameterConstants.PARAM_USER_USERNAME, MessageCodeConstants.AU0023, username,
-              ParameterConstants.PARAM_USER_USERNAME);
-    }
-    return new Validator<User>(user, errors);
-  }
-  
-  private Validator<User> createUserValidator(final JsonObject userJson) {
-    final String firstname = userJson.getString(ParameterConstants.PARAM_USER_FIRSTNAME);
-    final String lastname = userJson.getString(ParameterConstants.PARAM_USER_LASTNAME);
-    final String username = userJson.getString(ParameterConstants.PARAM_USER_USERNAME);
-    final String emailId = userJson.getString(ParameterConstants.PARAM_USER_EMAIL_ID);
-    final String userCategory = userJson.getString(ParameterConstants.PARAM_USER_CATEGORY);
-    final String gender = userJson.getString(ParameterConstants.PARAM_USER_GENDER);
-
-    final Errors errors = new Errors();
-    final User user = new User();
-    addValidatorIfNullOrEmptyError(errors, ParameterConstants.PARAM_USER_FIRSTNAME, firstname, MessageCodeConstants.AU0011);
-    addValidatorIfNullOrEmptyError(errors, ParameterConstants.PARAM_USER_LASTNAME, lastname, MessageCodeConstants.AU0012);
-    addValidatorIfNullOrEmptyError(errors, ParameterConstants.PARAM_USER_USERNAME, username, MessageCodeConstants.AU0013);
-    addValidatorIfNullOrEmptyError(errors, ParameterConstants.PARAM_USER_EMAIL_ID, emailId, MessageCodeConstants.AU0014);
-    addValidatorIfNullOrEmptyError(errors, ParameterConstants.PARAM_USER_CATEGORY, userCategory, MessageCodeConstants.AU0016);
-    String password = userJson.getString(ParameterConstants.PARAM_USER_PASSWORD);
-    addValidatorIfNullOrEmptyError(errors, ParameterConstants.PARAM_USER_PASSWORD, password, MessageCodeConstants.AU0016);
-    addValidator(errors, !(username != null && username.matches("[a-zA-Z0-9]+")), ParameterConstants.PARAM_USER_USERNAME, MessageCodeConstants.AU0017);
-    addValidator(errors, (username != null && (username.length() < 4 || username.length() > 20)), ParameterConstants.PARAM_USER_USERNAME,
-            MessageCodeConstants.AU0018, ParameterConstants.PARAM_USER_USERNAME, "4", "20");
-    addValidator(errors, (password != null && (password.length() < 5 || password.length() > 14)), ParameterConstants.PARAM_USER_PASSWORD,
-            MessageCodeConstants.AU0018, ParameterConstants.PARAM_USER_PASSWORD, "5", "14");
-
-    addValidator(errors, !(emailId != null && emailId.indexOf("@") > 1), ParameterConstants.PARAM_USER_EMAIL_ID, MessageCodeConstants.AU0020);
-    addValidator(errors, !(firstname != null && firstname.matches("[a-zA-Z0-9 ]+")), ParameterConstants.PARAM_USER_FIRSTNAME,
-            MessageCodeConstants.AU0021);
-    addValidator(errors, !(lastname != null && lastname.matches("[a-zA-Z0-9 ]+")), ParameterConstants.PARAM_USER_LASTNAME,
-            MessageCodeConstants.AU0021);
-    if (username != null) {
-      UserIdentity userIdentityUsername = getUserIdentityRepo().getUserIdentityByUsername(username);
-      addValidator(errors, !(userIdentityUsername == null), ParameterConstants.PARAM_USER_USERNAME, MessageCodeConstants.AU0023, username,
-              ParameterConstants.PARAM_USER_USERNAME);
-    }
-    if (emailId != null) {
-      UserIdentity userIdentityEmail = getUserIdentityRepo().getUserIdentityByEmailId(emailId);
-      addValidator(errors, !(userIdentityEmail == null), ParameterConstants.PARAM_USER_EMAIL_ID, MessageCodeConstants.AU0023, emailId,
-              ParameterConstants.EMAIL_ADDRESS);
-    }
-    addValidator(errors, (userCategory != null && HelperConstants.USER_CATEGORY.get(userCategory) == null), ParameterConstants.PARAM_USER_CATEGORY,
-            MessageCodeConstants.AU0025);
-
-    user.setId(UUID.randomUUID().toString());
-    user.setFirstname(firstname);
-    user.setLastname(lastname);
-    user.setUserCategory(userCategory);
-    user.setEmailId(emailId);
-    user.setModifiedBy(user.getId());
-
-    JsonArray grade = userJson.getJsonArray(ParameterConstants.PARAM_GRADE);
-    if (grade != null) {
-      user.setGrade(grade);
-    }
-    if (gender != null) {
-      addValidator(errors, (HelperConstants.USER_GENDER.get(gender) == null), ParameterConstants.PARAM_USER_GENDER, MessageCodeConstants.AU0024);
-      user.setGender(gender);
-    }
-
-    return new Validator<User>(user, errors);
-  }
-
-  private UserIdentity createUserIdentityValue(final JsonObject userJson, final User user, final String clientId) {
-    final UserIdentity userIdentity = new UserIdentity();
-    userIdentity.setUsername(userJson.getString(ParameterConstants.PARAM_USER_USERNAME));
-    if (user.getEmailId() != null) {
-      userIdentity.setEmailId(user.getEmailId());
-    }
-    userIdentity.setUserId(user.getId());
-    userIdentity.setLoginType(HelperConstants.UserIdentityLoginType.CREDENTIAL.getType());
-    userIdentity.setProvisionType(HelperConstants.UserIdentityProvisionType.REGISTERED.getType());
-    userIdentity.setPassword(InternalHelper.encryptPassword(userJson.getString(ParameterConstants.PARAM_USER_PASSWORD)));
-    userIdentity.setClientId(clientId);
-    userIdentity.setStatus(HelperConstants.UserIdentityStatus.ACTIVE.getStatus());
-    return userIdentity;
-  }
-
-  private Validator<User> updateUserValidator(final String userId, final JsonObject userJson) {
-    final User user = getUserRepo().getUser(userId);
+  public MessageResponse getUser(final String userId) {
+    final AJEntityUser user = getUserRepo().getUser(userId);
     rejectIfNull(user, MessageCodeConstants.AU0026, HttpConstants.HttpStatus.NOT_FOUND.getCode(), ParameterConstants.PARAM_USER);
-    final Errors errors = new Errors();
-    final String firstname = userJson.getString(ParameterConstants.PARAM_USER_FIRSTNAME);
-    final String lastname = userJson.getString(ParameterConstants.PARAM_USER_LASTNAME);
-    final String gender = userJson.getString(ParameterConstants.PARAM_USER_GENDER);
-    final String userCategory = userJson.getString(ParameterConstants.PARAM_USER_CATEGORY);
-    final String aboutMe = userJson.getString(ParameterConstants.PARAM_USER_ABOUT_ME);
-    final JsonArray grade = userJson.getJsonArray(ParameterConstants.PARAM_GRADE);
-    final JsonObject course = userJson.getJsonObject(ParameterConstants.PARAM_COURSE);
-    final String username = userJson.getString(ParameterConstants.PARAM_USER_USERNAME);
-    final String schoolId = userJson.getString(ParameterConstants.PARAM_USER_SCHOOL_ID);
-    final String schoolDistrictId = userJson.getString(ParameterConstants.PARAM_USER_SCHOOL_DISTRICT_ID);
-    final String schoolText = userJson.getString(ParameterConstants.PARAM_USER_SCHOOL);
-    final String schoolDistrictText = userJson.getString(ParameterConstants.PARAM_USER_SCHOOL_DISTRICT);
-    final Long stateId = userJson.getLong(ParameterConstants.PARAM_USER_STATE_ID);
-    final Long countryId = userJson.getLong(ParameterConstants.PARAM_USER_COUNTRY_ID);
-    final String stateText = userJson.getString(ParameterConstants.PARAM_USER_STATE);
-    final String countryText = userJson.getString(ParameterConstants.PARAM_USER_COUNTRY);
-
-    if (firstname != null) {
-      addValidator(errors, !(firstname.matches("[a-zA-Z0-9 ]+")), ParameterConstants.PARAM_USER_FIRSTNAME, MessageCodeConstants.AU0021);
-
-    }
-    if (lastname != null) {
-      addValidator(errors, !(lastname.matches("[a-zA-Z0-9 ]+")), ParameterConstants.PARAM_USER_LASTNAME, MessageCodeConstants.AU0021);
-
-    }
-    if (gender != null) {
-      addValidator(errors, (HelperConstants.USER_GENDER.get(gender) == null), ParameterConstants.PARAM_USER_GENDER, MessageCodeConstants.AU0024);
-      user.setGender(gender);
-    }
-    if (userCategory != null) {
-      addValidator(errors, (HelperConstants.USER_CATEGORY.get(userCategory) == null), ParameterConstants.PARAM_USER_CATEGORY,
-              MessageCodeConstants.AU0025);
-    }
-    if (username != null) {
-      addValidator(errors, !(username.matches("[a-zA-Z0-9]+")), ParameterConstants.PARAM_USER_USERNAME, MessageCodeConstants.AU0017);
-      addValidator(errors, ((username.length() < 4 || username.length() > 20)), ParameterConstants.PARAM_USER_USERNAME, MessageCodeConstants.AU0018,
-              ParameterConstants.PARAM_USER_USERNAME, "4", "20");
-      UserIdentity userIdentityUsername = getUserIdentityRepo().getUserIdentityByUsername(username);
-      addValidator(errors, !(userIdentityUsername == null), ParameterConstants.PARAM_USER_USERNAME, MessageCodeConstants.AU0023, username,
-              ParameterConstants.PARAM_USER_USERNAME);
-    }
-
-    if (schoolId != null) {
-      School school = getSchoolRepo().getSchoolById(schoolId);
-      addValidator(errors, !(school == null), ParameterConstants.PARAM_USER_SCHOOL_ID, MessageCodeConstants.AU0027,
-              ParameterConstants.PARAM_USER_SCHOOL);
-      user.setSchoolId(schoolId);
-    }
-    if (schoolDistrictId != null) {
-      SchoolDistrict schoolDistrict = getSchoolDistrictRepo().getSchoolDistrictById(schoolDistrictId);
-      addValidator(errors, !(schoolDistrict == null), ParameterConstants.PARAM_USER_SCHOOL_DISTRICT_ID, MessageCodeConstants.AU0027,
-              ParameterConstants.PARAM_USER_SCHOOL_DISTRICT);
-      user.setSchoolDistrictId(schoolDistrictId);
-    }
-
-    if (stateId != null) {
-      State state = getStateRepo().getStateById(stateId);
-      addValidator(errors, !(state == null), ParameterConstants.PARAM_USER_STATE_ID, MessageCodeConstants.AU0027, ParameterConstants.PARAM_USER_STATE);
-      user.setStateId(stateId);
-    }
-
-    if (countryId != null) {
-      Country country = getCountryRepo().getCountry(countryId);
-      addValidator(errors, !(country == null), ParameterConstants.PARAM_USER_COUNTRY_ID, MessageCodeConstants.AU0027,
-              ParameterConstants.PARAM_USER_COUNTRY);
-      user.setCountryId(countryId);
-    }
-
-    if (countryText != null) {
-      Country country = getCountryRepo().getCountryByName(countryText);
-      if (country == null) {
-        country = getCountryRepo().createCountry(countryText);
-      }
-      user.setCountryId(country.getId());
-    }
-
-    if (stateText != null) {
-      State state = getStateRepo().getStateByName(countryText);
-      if (state == null) {
-        state = getStateRepo().createState(state);
-      }
-      user.setStateId(state.getId());
-    }
-
-    if (schoolText != null) {
-      School school = getSchoolRepo().getSchoolByName(schoolText);
-      if (school == null) {
-        school = getSchoolRepo().createSchool(school);
-      }
-      user.setSchoolId(school.getId());
-    }
-
-    if (schoolDistrictText != null) {
-      SchoolDistrict schoolDistrict = getSchoolDistrictRepo().getSchoolDistrictByName(schoolDistrictText);
-      if (schoolDistrict == null) {
-        schoolDistrict = getSchoolDistrictRepo().createSchoolDistrict(schoolDistrictText);
-      }
-      user.setSchoolDistrictId(schoolDistrict.getId());
-    }
-
-    if (grade != null) {
-      user.setGrade(grade);
-    }
-
-    if (course != null) {
-      user.setCourse(course);
-    }
-    if (aboutMe != null) {
-      user.setAboutMe(aboutMe);
-    }
-    return new Validator<User>(user, errors);
-
+    final AJEntityUserIdentity userIdentity = getUserIdentityRepo().getUserIdentityById(userId);
+    rejectIfNull(userIdentity, MessageCodeConstants.AU0026, HttpConstants.HttpStatus.NOT_FOUND.getCode(), ParameterConstants.PARAM_USER);
+    reject(userIdentity.getStatus().equalsIgnoreCase(ParameterConstants.PARAM_STATUS_DEACTIVTED), MessageCodeConstants.AU0009,
+            HttpConstants.HttpStatus.FORBIDDEN.getCode());
+    JsonObject result = AJResponseJsonTransformer.transform(user.toJson(false), HelperConstants.USERS_JSON_FIELDS, true);
+    result.put(ParameterConstants.PARAM_USER_USERNAME, userIdentity.getUsername());
+    return new MessageResponse.Builder().setResponseBody(result).setContentTypeJson().setStatusOkay().successful().build();
   }
 
   @Override
-  public JsonObject findUser(final String username, final String email) {
-    UserIdentity userIdentity = null;
+  public MessageResponse findUser(final String username, final String email) {
+    AJEntityUserIdentity userIdentity = null;
     if (username != null) {
       userIdentity = getUserIdentityRepo().getUserIdentityByUsername(username);
     } else if (email != null) {
       userIdentity = getUserIdentityRepo().getUserIdentityByEmailId(email);
     } else {
-      throw new InvalidRequestException("Invalid param type passed");
+      throw new BadRequestException("Invalid param type passed");
     }
 
     JsonObject result = userIdentity != null ? new JsonObject(userIdentity.toJson(false, "user_id", "username", "email_id")) : new JsonObject();
-    return result;
+    return new MessageResponse.Builder().setResponseBody(result).setContentTypeJson().setStatusOkay().successful().build();
   }
 
   @Override
-  public JsonObject resendConfirmationEmail(String emailId) {
+  public MessageResponse resetPassword(final String emailId) {
+    final AJEntityUserIdentity userIdentity = getUserIdentityRepo().getUserIdentityByEmailId(emailId);
+    rejectIfNull(userIdentity, MessageCodeConstants.AU0026, HttpConstants.HttpStatus.NOT_FOUND.getCode(), ParameterConstants.PARAM_USER);
+    final String token = InternalHelper.generateToken(InternalHelper.RESET_PASSWORD_TOKEN);
+    getRedisClient().set(token, userIdentity.getEmailId(), EXPIRE_IN_SECONDS);
+    // TO-DO send mail notification
+    return new MessageResponse.Builder().setContentTypeJson().setStatusOkay().successful().build();
+  }
+
+  @Override
+  public MessageResponse resetUnAuthenticateUserPassword(final String token, final String password) {
+    String emailId = getRedisClient().get(token);
+    rejectIfNull(emailId, MessageCodeConstants.AU0028, HttpConstants.HttpStatus.UNAUTHORIZED.getCode());
+    AJEntityUserIdentity userIdentity = getUserIdentityRepo().getUserIdentityByEmailId(emailId);
+    userIdentity.setPassword(InternalHelper.encryptPassword(password));
+    getUserIdentityRepo().saveOrUpdate(userIdentity);
+    getRedisClient().del(token);
+    return new MessageResponse.Builder().setContentTypeJson().setStatusNoOutput().successful().build();
+  }
+
+  @Override
+  public MessageResponse resetAuthenticateUserPassword(final String userId, final String oldPassword, final String newPassword) {
+    final AJEntityUserIdentity userIdentity =
+            getUserIdentityRepo().getUserIdentityByIdAndPassword(userId, InternalHelper.encryptPassword(oldPassword));
+    rejectIfNull(userIdentity, MessageCodeConstants.AU0026, HttpConstants.HttpStatus.NOT_FOUND.getCode(), ParameterConstants.PARAM_USER);
+    userIdentity.setPassword(InternalHelper.encryptPassword(newPassword));
+    getUserIdentityRepo().saveOrUpdate(userIdentity);
+    return new MessageResponse.Builder().setContentTypeJson().setStatusNoOutput().successful().build();
+  }
+
+  @Override
+  public MessageResponse resendConfirmationEmail(String emailId) {
     // TO-DO resend email notification
-    final UserIdentity userIdentity = getUserIdentityRepo().getUserIdentityByEmailId(emailId);
+    final AJEntityUserIdentity userIdentity = getUserIdentityRepo().getUserIdentityByEmailId(emailId);
     rejectIfNull(userIdentity, MessageCodeConstants.AU0026, HttpConstants.HttpStatus.NOT_FOUND.getCode(), ParameterConstants.PARAM_USER);
     final String token = InternalHelper.generateToken(InternalHelper.EMAIL_CONFIRM_TOKEN);
     getRedisClient().set(token, userIdentity.getEmailId(), EXPIRE_IN_SECONDS);
-    return new JsonObject();
+    return new MessageResponse.Builder().setContentTypeJson().setStatusOkay().successful().build();
   }
 
   @Override
-  public JsonObject confirmUserEmail(String userId, String token) {
+  public MessageResponse confirmUserEmail(String userId, String token) {
     final String emailId = getRedisClient().get(token);
     rejectIfNull(emailId, MessageCodeConstants.AU0028, HttpConstants.HttpStatus.UNAUTHORIZED.getCode());
-    final UserIdentity userIdentity = getUserIdentityRepo().getUserIdentityById(userId);
+    final AJEntityUserIdentity userIdentity = getUserIdentityRepo().getUserIdentityById(userId);
     rejectIfNull(userIdentity, MessageCodeConstants.AU0026, HttpConstants.HttpStatus.NOT_FOUND.getCode(), ParameterConstants.PARAM_USER);
     if (!userIdentity.getEmailId().equalsIgnoreCase(emailId)) {
       userIdentity.setEmailId(emailId);
@@ -414,19 +180,267 @@ public class UserServiceImpl extends ServerValidatorUtility implements UserServi
     userIdentity.setetEmailConfirmStatus(true);
     getUserIdentityRepo().saveOrUpdate(userIdentity);
     getRedisClient().del(token);
-    return new JsonObject();
+    return new MessageResponse.Builder().setContentTypeJson().setStatusOkay().successful().build();
   }
 
   @Override
-  public JsonObject updateUserEmail(String emailId) {
+  public MessageResponse updateUserEmail(String emailId) {
     if (emailId != null) {
-      UserIdentity userIdentityEmail = getUserIdentityRepo().getUserIdentityByEmailId(emailId);
+      AJEntityUserIdentity userIdentityEmail = getUserIdentityRepo().getUserIdentityByEmailId(emailId);
       rejectIfNull(userIdentityEmail, MessageCodeConstants.AU0026, HttpConstants.HttpStatus.NOT_FOUND.getCode(), ParameterConstants.PARAM_USER);
       final String token = InternalHelper.generateToken(InternalHelper.EMAIL_CONFIRM_TOKEN);
       getRedisClient().set(token, emailId, EXPIRE_IN_SECONDS);
       // send email notification
     }
-    return new JsonObject();
+    return new MessageResponse.Builder().setContentTypeJson().setStatusNoOutput().successful().build();
+  }
+
+  private AJEntityUserIdentity createUser(final UserDTO userDTO, final String clientId, final Date dob) {
+    Validator<AJEntityUser> userValidator = createUserValidator(userDTO);
+    userValidator.getModel().setBirthDate(dob);
+    rejectError(userValidator.getErrors(), HttpConstants.HttpStatus.BAD_REQUEST.getCode());
+    getUserRepo().create(userValidator.getModel());
+    AJEntityUserIdentity userIdentity = createUserIdentityValue(userDTO, userValidator.getModel(), clientId);
+    getUserIdentityRepo().saveOrUpdate(userIdentity);
+    return userIdentity;
+  }
+
+  private AJEntityUserIdentity createChildUser(final UserDTO userDTO, final String clientId, final Date dob) {
+    Validator<AJEntityUser> userValidator = createChildUserValidator(userDTO);
+    userValidator.getModel().setBirthDate(dob);
+    rejectError(userValidator.getErrors(), HttpConstants.HttpStatus.BAD_REQUEST.getCode());
+    getUserRepo().create(userValidator.getModel());
+    AJEntityUserIdentity userIdentity = createUserIdentityValue(userDTO, userValidator.getModel(), clientId);
+    getUserIdentityRepo().saveOrUpdate(userIdentity);
+    return userIdentity;
+  }
+
+  private Validator<AJEntityUser> createChildUserValidator(UserDTO userDTO) {
+    final String username = userDTO.getUsername();
+    final String userCategory = userDTO.getUserCategory();
+    final String parentUserEmailId = userDTO.getParentEmailId();
+    final Errors errors = new Errors();
+    addValidatorIfNullOrEmptyError(errors, ParameterConstants.PARAM_USER_PARENT_EMAIL_ID, parentUserEmailId, MessageCodeConstants.AU0031);
+    addValidatorIfNullOrEmptyError(errors, ParameterConstants.PARAM_USER_USERNAME, username, MessageCodeConstants.AU0013);
+    addValidatorIfNullOrEmptyError(errors, ParameterConstants.PARAM_USER_CATEGORY, userCategory, MessageCodeConstants.AU0016);
+    String password = userDTO.getPassword();
+    addValidatorIfNullOrEmptyError(errors, ParameterConstants.PARAM_USER_PASSWORD, password, MessageCodeConstants.AU0016);
+    if (username != null) {
+      addValidator(errors, !(username.matches("[a-zA-Z0-9]+")), ParameterConstants.PARAM_USER_USERNAME, MessageCodeConstants.AU0017);
+      addValidator(errors, ((username.length() < 4 || username.length() > 20)), ParameterConstants.PARAM_USER_USERNAME, MessageCodeConstants.AU0018,
+              ParameterConstants.PARAM_USER_USERNAME, "4", "20");
+      AJEntityUserIdentity userIdentityUsername = getUserIdentityRepo().getUserIdentityByUsername(username);
+      addValidator(errors, !(userIdentityUsername == null), ParameterConstants.PARAM_USER_USERNAME, MessageCodeConstants.AU0023, username,
+              ParameterConstants.PARAM_USER_USERNAME);
+    }
+    if (password != null) {
+      addValidator(errors, ((password.length() < 5 || password.length() > 14)), ParameterConstants.PARAM_USER_PASSWORD, MessageCodeConstants.AU0018,
+              ParameterConstants.PARAM_USER_PASSWORD, "5", "14");
+
+    }
+    final AJEntityUser user = new AJEntityUser();
+    user.setId(UUID.randomUUID().toString());
+    user.setUserCategory(userCategory);
+    user.setModifiedBy(user.getId());
+    if (parentUserEmailId != null) {
+      AJEntityUserIdentity userIdentity = getUserIdentityRepo().getUserIdentityByEmailId(parentUserEmailId);
+      addValidator(errors, (userIdentity == null), ParameterConstants.PARAM_USER_PARENT_EMAIL_ID, MessageCodeConstants.AU0032);
+      user.setParentUserId(userIdentity.getUserId());
+    }
+
+    return new Validator<AJEntityUser>(user, errors);
+  }
+
+  private Validator<AJEntityUser> createUserValidator(final UserDTO userDTO) {
+    final Errors errors = new Errors();
+    final AJEntityUser user = new AJEntityUser();
+    final String firstname = userDTO.getFirstname();
+    addValidatorIfNullOrEmptyError(errors, ParameterConstants.PARAM_USER_FIRSTNAME, firstname, MessageCodeConstants.AU0011);
+    if (firstname != null) {
+      addValidator(errors, !(firstname.matches("[a-zA-Z0-9 ]+")), ParameterConstants.PARAM_USER_FIRSTNAME, MessageCodeConstants.AU0021);
+    }
+    final String lastname = userDTO.getLastname();
+    addValidatorIfNullOrEmptyError(errors, ParameterConstants.PARAM_USER_LASTNAME, lastname, MessageCodeConstants.AU0012);
+    if (lastname != null) {
+      addValidator(errors, !(lastname.matches("[a-zA-Z0-9 ]+")), ParameterConstants.PARAM_USER_LASTNAME, MessageCodeConstants.AU0021);
+    }
+    final String username = userDTO.getUsername();
+    addValidatorIfNullOrEmptyError(errors, ParameterConstants.PARAM_USER_USERNAME, username, MessageCodeConstants.AU0013);
+    if (username != null) {
+      addValidator(errors, !(username.matches("[a-zA-Z0-9]+")), ParameterConstants.PARAM_USER_USERNAME, MessageCodeConstants.AU0017);
+      addValidator(errors, ((username.length() < 4 || username.length() > 20)), ParameterConstants.PARAM_USER_USERNAME, MessageCodeConstants.AU0018,
+              ParameterConstants.PARAM_USER_USERNAME, "4", "20");
+      AJEntityUserIdentity userIdentityUsername = getUserIdentityRepo().getUserIdentityByUsername(username);
+      addValidator(errors, !(userIdentityUsername == null), ParameterConstants.PARAM_USER_USERNAME, MessageCodeConstants.AU0023, username,
+              ParameterConstants.PARAM_USER_USERNAME);
+    }
+    final String emailId = userDTO.getEmailId();
+    addValidatorIfNullOrEmptyError(errors, ParameterConstants.PARAM_USER_EMAIL_ID, userDTO.getEmailId(), MessageCodeConstants.AU0014);
+    if (emailId != null) {
+      addValidator(errors, !(emailId.indexOf("@") > 1), ParameterConstants.PARAM_USER_EMAIL_ID, MessageCodeConstants.AU0020);
+      AJEntityUserIdentity userIdentityEmail = getUserIdentityRepo().getUserIdentityByEmailId(emailId);
+      addValidator(errors, !(userIdentityEmail == null), ParameterConstants.PARAM_USER_EMAIL_ID, MessageCodeConstants.AU0023, emailId,
+              ParameterConstants.EMAIL_ADDRESS);
+    }
+    final String userCategory = userDTO.getUserCategory();
+    addValidatorIfNullOrEmptyError(errors, ParameterConstants.PARAM_USER_CATEGORY, userDTO.getUserCategory(), MessageCodeConstants.AU0016);
+    if (userCategory != null) {
+      addValidator(errors, (HelperConstants.USER_CATEGORY.get(userCategory) == null), ParameterConstants.PARAM_USER_CATEGORY,
+              MessageCodeConstants.AU0025);
+
+    }
+    final String password = userDTO.getPassword();
+    addValidatorIfNullOrEmptyError(errors, ParameterConstants.PARAM_USER_PASSWORD, password, MessageCodeConstants.AU0016);
+    if (password != null) {
+      addValidator(errors, ((password.length() < 5 || password.length() > 14)), ParameterConstants.PARAM_USER_PASSWORD, MessageCodeConstants.AU0018,
+              ParameterConstants.PARAM_USER_PASSWORD, "5", "14");
+
+    }
+
+    user.setId(UUID.randomUUID().toString());
+    user.setFirstname(firstname);
+    user.setLastname(lastname);
+    user.setUserCategory(userCategory);
+    user.setEmailId(emailId);
+    user.setModifiedBy(user.getId());
+    if (userDTO.getGrade() != null) {
+      user.setGrade(userDTO.getGrade());
+    }
+    if (user.getGender() != null) {
+      addValidator(errors, (HelperConstants.USER_GENDER.get(user.getGender()) == null), ParameterConstants.PARAM_USER_GENDER,
+              MessageCodeConstants.AU0024);
+      user.setGender(user.getGender());
+    }
+
+    return new Validator<AJEntityUser>(user, errors);
+  }
+
+  private AJEntityUserIdentity createUserIdentityValue(final UserDTO userDTO, final AJEntityUser user, final String clientId) {
+    final AJEntityUserIdentity userIdentity = new AJEntityUserIdentity();
+    userIdentity.setUsername(userDTO.getUsername());
+    if (user.getEmailId() != null) {
+      userIdentity.setEmailId(user.getEmailId());
+    }
+    userIdentity.setUserId(user.getId());
+    userIdentity.setLoginType(HelperConstants.UserIdentityLoginType.CREDENTIAL.getType());
+    userIdentity.setProvisionType(HelperConstants.UserIdentityProvisionType.REGISTERED.getType());
+    userIdentity.setPassword(InternalHelper.encryptPassword(userDTO.getPassword()));
+    userIdentity.setClientId(clientId);
+    userIdentity.setStatus(HelperConstants.UserIdentityStatus.ACTIVE.getStatus());
+    return userIdentity;
+  }
+
+  private Validator<AJEntityUser> updateUserValidator(final String userId, final UserDTO userDTO) {
+    final AJEntityUser user = getUserRepo().getUser(userId);
+    rejectIfNull(user, MessageCodeConstants.AU0026, HttpConstants.HttpStatus.NOT_FOUND.getCode(), ParameterConstants.PARAM_USER);
+    final AJEntityUserIdentity userIdentity = getUserIdentityRepo().getUserIdentityById(userId);
+    rejectIfNull(userIdentity, MessageCodeConstants.AU0026, HttpConstants.HttpStatus.NOT_FOUND.getCode(), ParameterConstants.PARAM_USER);
+    reject(userIdentity.getStatus().equalsIgnoreCase(ParameterConstants.PARAM_STATUS_DEACTIVTED), MessageCodeConstants.AU0009,
+            HttpConstants.HttpStatus.FORBIDDEN.getCode());
+    final Errors errors = new Errors();
+    final String username = userDTO.getUsername();
+
+    if (userDTO.getFirstname() != null) {
+      addValidator(errors, !(userDTO.getFirstname().matches("[a-zA-Z0-9 ]+")), ParameterConstants.PARAM_USER_FIRSTNAME, MessageCodeConstants.AU0021);
+      user.setFirstname(userDTO.getFirstname());
+    }
+    if (userDTO.getLastname() != null) {
+      addValidator(errors, !(userDTO.getLastname().matches("[a-zA-Z0-9 ]+")), ParameterConstants.PARAM_USER_LASTNAME, MessageCodeConstants.AU0021);
+      user.setLastname(userDTO.getLastname());
+
+    }
+    if (userDTO.getGender() != null) {
+      addValidator(errors, (HelperConstants.USER_GENDER.get(userDTO.getGender()) == null), ParameterConstants.PARAM_USER_GENDER,
+              MessageCodeConstants.AU0024);
+      user.setGender(userDTO.getGender());
+    }
+    if (userDTO.getUserCategory() != null) {
+      addValidator(errors, (HelperConstants.USER_CATEGORY.get(userDTO.getUserCategory()) == null), ParameterConstants.PARAM_USER_CATEGORY,
+              MessageCodeConstants.AU0025);
+      user.setUserCategory(userDTO.getUserCategory());
+    }
+    if (username != null) {
+      addValidator(errors, !(username.matches("[a-zA-Z0-9]+")), ParameterConstants.PARAM_USER_USERNAME, MessageCodeConstants.AU0017);
+      addValidator(errors, ((username.length() < 4 || username.length() > 20)), ParameterConstants.PARAM_USER_USERNAME, MessageCodeConstants.AU0018,
+              ParameterConstants.PARAM_USER_USERNAME, "4", "20");
+      AJEntityUserIdentity userIdentityUsername = getUserIdentityRepo().getUserIdentityByUsername(username);
+      addValidator(errors, !(userIdentityUsername == null), ParameterConstants.PARAM_USER_USERNAME, MessageCodeConstants.AU0023, username,
+              ParameterConstants.PARAM_USER_USERNAME);
+    }
+
+    if (userDTO.getSchoolId() != null) {
+      AJEntitySchool school = getSchoolRepo().getSchoolById(userDTO.getSchoolId());
+      addValidator(errors, (school == null), ParameterConstants.PARAM_USER_SCHOOL_ID, MessageCodeConstants.AU0027,
+              ParameterConstants.PARAM_USER_SCHOOL);
+      user.setSchoolId(userDTO.getSchoolId());
+    }
+    if (userDTO.getSchoolDistrictId() != null) {
+      AJEntitySchoolDistrict schoolDistrict = getSchoolDistrictRepo().getSchoolDistrictById(userDTO.getSchoolDistrictId());
+      addValidator(errors, (schoolDistrict == null), ParameterConstants.PARAM_USER_SCHOOL_DISTRICT_ID, MessageCodeConstants.AU0027,
+              ParameterConstants.PARAM_USER_SCHOOL_DISTRICT);
+      user.setSchoolDistrictId(userDTO.getSchoolDistrictId());
+    }
+
+    if (userDTO.getStateId() != null) {
+      AJEntityState state = getStateRepo().getStateById(userDTO.getStateId());
+      addValidator(errors, (state == null), ParameterConstants.PARAM_USER_STATE_ID, MessageCodeConstants.AU0027, ParameterConstants.PARAM_USER_STATE);
+      user.setStateId(userDTO.getStateId());
+    }
+
+    if (userDTO.getCountryId() != null) {
+      AJEntityCountry country = getCountryRepo().getCountry(userDTO.getCountryId());
+      addValidator(errors, (country == null), ParameterConstants.PARAM_USER_COUNTRY_ID, MessageCodeConstants.AU0027,
+              ParameterConstants.PARAM_USER_COUNTRY);
+      user.setCountryId(userDTO.getCountryId());
+    }
+
+    if (userDTO.getCountry() != null) {
+      AJEntityCountry country = getCountryRepo().getCountryByName(userDTO.getCountry());
+      if (country == null) {
+        country = getCountryRepo().createCountry(userDTO.getCountry(), userId);
+      }
+      user.setCountryId(country.getId());
+    }
+
+    if (userDTO.getState() != null) {
+      AJEntityState state = getStateRepo().getStateByName(userDTO.getState());
+      if (state == null) {
+        state = getStateRepo().createState(userDTO.getState(), userId);
+      }
+      user.setStateId(state.getId());
+    }
+
+    if (userDTO.getSchool() != null) {
+      AJEntitySchool school = getSchoolRepo().getSchoolByName(userDTO.getSchool());
+      if (school == null) {
+        school = getSchoolRepo().createSchool(userDTO.getSchool(), userId);
+      }
+      user.setSchoolId(school.getId());
+    }
+
+    if (userDTO.getSchoolDistrict() != null) {
+      AJEntitySchoolDistrict schoolDistrict = getSchoolDistrictRepo().getSchoolDistrictByName(userDTO.getSchoolDistrict());
+      if (schoolDistrict == null) {
+        schoolDistrict = getSchoolDistrictRepo().createSchoolDistrict(userDTO.getSchoolDistrict(), userId);
+      }
+      user.setSchoolDistrictId(schoolDistrict.getId());
+    }
+
+    if (userDTO.getGrade() != null) {
+      user.setGrade(userDTO.getGrade());
+    }
+
+    if (userDTO.getCourse() != null) {
+      user.setCourse(userDTO.getCourse());
+    }
+    if (userDTO.getAboutMe() != null) {
+      user.setAboutMe(userDTO.getAboutMe());
+    }
+    if (userDTO.getThumbnailPath() != null) {
+      user.setThumbnailPath(userDTO.getThumbnailPath());
+    }
+    return new Validator<AJEntityUser>(user, errors);
+
   }
 
   private void saveAccessToken(final String token, final JsonObject accessToken, final Integer expireAtInSeconds) {

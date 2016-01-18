@@ -1,12 +1,11 @@
 package org.gooru.auth.handlers.processors.command.executor;
 
-import io.vertx.core.MultiMap;
-import io.vertx.core.json.JsonObject;
-
 import org.gooru.auth.handlers.constants.CommandConstants;
 import org.gooru.auth.handlers.constants.MessageConstants;
 import org.gooru.auth.handlers.constants.ParameterConstants;
+import org.gooru.auth.handlers.processors.MessageContext;
 import org.gooru.auth.handlers.processors.exceptions.InvalidRequestException;
+import org.gooru.auth.handlers.processors.service.MessageResponse;
 import org.gooru.auth.handlers.processors.service.authentication.AuthenticationGLAVersionService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,21 +21,21 @@ public final class AuthenticatonGLAVersionCommandExecutor implements CommandExec
   }
 
   @Override
-  public JsonObject exec(String command, JsonObject userContext, MultiMap headers, JsonObject params, JsonObject body) {
-    JsonObject result = null;
-    switch (command) {
+  public MessageResponse exec(MessageContext messageContext) {
+    MessageResponse result = null;
+    switch (messageContext.command()) {
     case CommandConstants.CREATE_ACCESS_TOKEN:
       String password = null;
       String username = null;
-      if (body != null) {
-        password = body.getString(ParameterConstants.PARAM_USER_PASSWORD);
-        username = body.getString(ParameterConstants.PARAM_USER_USERNAME);
+      if (messageContext.requestBody() != null) {
+        password = messageContext.requestBody().getString(ParameterConstants.PARAM_USER_PASSWORD);
+        username = messageContext.requestBody().getString(ParameterConstants.PARAM_USER_USERNAME);
       }
-      String clientKey = headers.get(MessageConstants.MSG_HEADER_API_KEY);
+      String clientKey = messageContext.headers().get(MessageConstants.MSG_HEADER_API_KEY);
       if (clientKey == null) {
-        clientKey = params.getString(ParameterConstants.PARAM_API_KEY);
+        clientKey = messageContext.requestParams().getString(ParameterConstants.PARAM_API_KEY);
       }
-      final String requestDomain = headers.get(MessageConstants.MSG_HEADER_REQUEST_DOMAIN);
+      final String requestDomain = messageContext.headers().get(MessageConstants.MSG_HEADER_REQUEST_DOMAIN);
       if (username != null && password != null) {
         result = getAuthenticationGLAVersionService().createBasicAuthAccessToken(clientKey, requestDomain, username, password);
       } else {

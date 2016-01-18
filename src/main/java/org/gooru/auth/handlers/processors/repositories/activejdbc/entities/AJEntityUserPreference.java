@@ -6,7 +6,7 @@ import org.javalite.activejdbc.Model;
 import org.javalite.activejdbc.annotations.Table;
 
 @Table("user_preference")
-public class UserPreference extends Model {
+public class AJEntityUserPreference extends Model {
 
   public JsonArray getStandardPreference() {
     String json = getString("standard_preference");

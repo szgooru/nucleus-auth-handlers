@@ -2,7 +2,6 @@ package org.gooru.auth.handlers.processors.repositories.activejdbc.entities;
 
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
-
 import java.util.Date;
 
 import org.javalite.activejdbc.Model;
@@ -11,7 +10,7 @@ import org.javalite.activejdbc.annotations.Table;
 
 @Table("user_demographic")
 @IdName("id")
-public class User extends Model {
+public class AJEntityUser extends Model {
 
   public String getId() {
     return getString("id");
@@ -83,7 +82,7 @@ public class User extends Model {
   }
 
   public void setGrade(JsonArray grade) {
-    set("grade", grade);
+    set("grade", DBEnums.jsonArray(grade));
   }
 
   public String getAboutMe() {
@@ -144,6 +143,14 @@ public class User extends Model {
   }
 
   public void setCourse(JsonObject course) {
-    set("course", course);
+    set("course", DBEnums.jsonObject(course));
+  }
+
+  public String getThumbnailPath() {
+    return getString("thumbnail_path");
+  }
+
+  public void setThumbnailPath(String thumbnailPath) {
+    setString("thumbnail_path", thumbnailPath);
   }
 }

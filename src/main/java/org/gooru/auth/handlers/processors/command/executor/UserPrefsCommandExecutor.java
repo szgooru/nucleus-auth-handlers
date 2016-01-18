@@ -1,12 +1,11 @@
 package org.gooru.auth.handlers.processors.command.executor;
 
-import io.vertx.core.MultiMap;
-import io.vertx.core.json.JsonObject;
-
 import org.gooru.auth.handlers.constants.CommandConstants;
 import org.gooru.auth.handlers.constants.MessageConstants;
 import org.gooru.auth.handlers.constants.ParameterConstants;
+import org.gooru.auth.handlers.processors.MessageContext;
 import org.gooru.auth.handlers.processors.exceptions.InvalidRequestException;
+import org.gooru.auth.handlers.processors.service.MessageResponse;
 import org.gooru.auth.handlers.processors.service.user.UserPrefsService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,20 +21,20 @@ public final class UserPrefsCommandExecutor implements CommandExecutor {
   }
 
   @Override
-  public JsonObject exec(String command, JsonObject userContext, MultiMap headers, JsonObject params, JsonObject body) {
-    JsonObject result = null;
-    switch (command) {
+  public MessageResponse exec(MessageContext messageContext) {
+    MessageResponse result = null;
+    switch (messageContext.command()) {
     case CommandConstants.UPDATE_USER_PREFERENCE:
-      String userUpdateId = params.getString(MessageConstants.MSG_USER_ID);
+      String userUpdateId = messageContext.requestParams().getString(MessageConstants.MSG_USER_ID);
       if (userUpdateId.equalsIgnoreCase(ParameterConstants.PARAM_ME)) {
-        userUpdateId = userContext.getString(ParameterConstants.PARAM_USER_ID);
+        userUpdateId = messageContext.user().getUserId();
       }
-      result = getUserPrefsService().updateUserPreference(userUpdateId, body);
+      result = getUserPrefsService().updateUserPreference(userUpdateId, messageContext.requestBody());
       break;
     case CommandConstants.GET_USER_PREFERENCE:
-      String userId = params.getString(MessageConstants.MSG_USER_ID);
+      String userId = messageContext.requestBody().getString(MessageConstants.MSG_USER_ID);
       if (userId.equalsIgnoreCase(ParameterConstants.PARAM_ME)) {
-        userId = userContext.getString(ParameterConstants.PARAM_USER_ID);
+        userId = messageContext.user().getUserId();
       }
       result = getUserPrefsService().getUserPreference(userId);
       break;

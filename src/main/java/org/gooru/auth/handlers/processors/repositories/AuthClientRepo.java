@@ -1,7 +1,7 @@
 package org.gooru.auth.handlers.processors.repositories;
 
 import org.gooru.auth.handlers.processors.repositories.activejdbc.AJAuthClientRepo;
-import org.gooru.auth.handlers.processors.repositories.activejdbc.entities.AuthClient;
+import org.gooru.auth.handlers.processors.repositories.activejdbc.entities.AJEntityAuthClient;
 
 public interface AuthClientRepo {
 
@@ -9,7 +9,7 @@ public interface AuthClientRepo {
     return new AJAuthClientRepo();
   }
 
-  AuthClient getAuthClient(String clientId, String clientKey);
+  AJEntityAuthClient getAuthClient(String clientId, String clientKey);
 
-  AuthClient getAuthClient(String clientKey);
+  AJEntityAuthClient getAuthClient(String clientKey);
 }

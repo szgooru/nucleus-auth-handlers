@@ -1,7 +1,7 @@
 package org.gooru.auth.handlers.processors.repositories;
 
 import org.gooru.auth.handlers.processors.repositories.activejdbc.AJUserPreferenceRepo;
-import org.gooru.auth.handlers.processors.repositories.activejdbc.entities.UserPreference;
+import org.gooru.auth.handlers.processors.repositories.activejdbc.entities.AJEntityUserPreference;
 
 public interface UserPreferenceRepo {
 
@@ -9,7 +9,7 @@ public interface UserPreferenceRepo {
     return new AJUserPreferenceRepo();
   }
 
-  UserPreference getUserPreference(String userId);
+  AJEntityUserPreference getUserPreference(String userId);
   
-  UserPreference updatePreference(UserPreference userPreference);
+  AJEntityUserPreference updatePreference(AJEntityUserPreference userPreference);
 }

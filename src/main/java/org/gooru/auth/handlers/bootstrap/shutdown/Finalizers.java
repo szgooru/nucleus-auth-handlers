@@ -9,8 +9,14 @@ import org.gooru.auth.handlers.infra.RedisClient;
 
 public class Finalizers implements Iterable<Finalizer> {
 
-  private List<Finalizer> finalizers = null;
   private Iterator<Finalizer> internalIterator;
+
+  public Finalizers() {
+    final List<Finalizer> finalizers = new ArrayList<Finalizer>();
+    finalizers.add(DataSourceRegistry.getInstance());
+    finalizers.add(RedisClient.instance());
+    internalIterator = finalizers.iterator();
+  }
 
   @Override
   public Iterator<Finalizer> iterator() {
@@ -28,13 +34,6 @@ public class Finalizers implements Iterable<Finalizer> {
 
     };
     return iterator;
-  }
-
-  public Finalizers() {
-    finalizers = new ArrayList<Finalizer>();
-    finalizers.add(DataSourceRegistry.getInstance());
-    finalizers.add(RedisClient.instance());
-    internalIterator = finalizers.iterator();
   }
 
 }

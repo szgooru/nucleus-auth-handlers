@@ -1,17 +1,16 @@
 package org.gooru.auth.handlers.processors.command.executor;
 
-import io.vertx.core.MultiMap;
-import io.vertx.core.json.JsonObject;
-
 import org.gooru.auth.handlers.constants.CommandConstants;
 import org.gooru.auth.handlers.constants.MessageConstants;
-import org.gooru.auth.handlers.constants.ParameterConstants;
+import org.gooru.auth.handlers.processors.MessageContext;
+import org.gooru.auth.handlers.processors.data.transform.model.AuthClientDTO;
 import org.gooru.auth.handlers.processors.exceptions.InvalidRequestException;
+import org.gooru.auth.handlers.processors.service.MessageResponse;
 import org.gooru.auth.handlers.processors.service.authentication.AuthenticationService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public final class AuthenticatonCommandExecutor implements CommandExecutor  {
+public final class AuthenticatonCommandExecutor implements CommandExecutor {
 
   private static final Logger LOG = LoggerFactory.getLogger(AuthenticatonCommandExecutor.class);
 
@@ -22,23 +21,21 @@ public final class AuthenticatonCommandExecutor implements CommandExecutor  {
   }
 
   @Override
-  public JsonObject exec(String command, JsonObject userContext, MultiMap headers, JsonObject params, JsonObject body) {
-    JsonObject result = null;
-    switch (command) {
+  public MessageResponse exec(MessageContext messageContext) {
+    MessageResponse result = null;
+    switch (messageContext.command()) {
     case CommandConstants.CREATE_ACCESS_TOKEN:
-      String basicAuthCredentials = headers.get(MessageConstants.MSG_HEADER_BASIC_AUTH);
-      String clientId = body.getString(ParameterConstants.PARAM_CLIENT_ID);
-      String clientKey = body.getString(ParameterConstants.PARAM_CLIENT_KEY);
-      String grantType = body.getString(ParameterConstants.PARAM_GRANT_TYPE);
-      String requestDomain = headers.get(MessageConstants.MSG_HEADER_REQUEST_DOMAIN);
+      String basicAuthCredentials = messageContext.headers().get(MessageConstants.MSG_HEADER_BASIC_AUTH);
+      String requestDomain = messageContext.headers().get(MessageConstants.MSG_HEADER_REQUEST_DOMAIN);
+      AuthClientDTO authClientDTO = new AuthClientDTO(messageContext.requestBody().getMap());
       if (basicAuthCredentials == null) {
-        result = getAuthenticationService().createAnonymousAccessToken(clientId, clientKey, grantType, requestDomain);
+        result = getAuthenticationService().createAnonymousAccessToken(authClientDTO, requestDomain);
       } else {
-        result = getAuthenticationService().createBasicAuthAccessToken(clientId, clientKey, grantType, requestDomain, basicAuthCredentials);
+        result = getAuthenticationService().createBasicAuthAccessToken(authClientDTO, requestDomain, basicAuthCredentials);
       }
       break;
     case CommandConstants.DELETE_ACCESS_TOKEN:
-      getAuthenticationService().deleteAccessToken(headers.get(MessageConstants.MSG_HEADER_TOKEN));
+      getAuthenticationService().deleteAccessToken(messageContext.headers().get(MessageConstants.MSG_HEADER_TOKEN));
       break;
     default:
       LOG.error("Invalid command type passed in, not able to handle");

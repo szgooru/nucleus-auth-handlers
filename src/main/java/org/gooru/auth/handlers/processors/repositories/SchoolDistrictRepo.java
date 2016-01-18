@@ -1,7 +1,7 @@
 package org.gooru.auth.handlers.processors.repositories;
 
 import org.gooru.auth.handlers.processors.repositories.activejdbc.AJSchoolDistrictRepo;
-import org.gooru.auth.handlers.processors.repositories.activejdbc.entities.SchoolDistrict;
+import org.gooru.auth.handlers.processors.repositories.activejdbc.entities.AJEntitySchoolDistrict;
 
 public interface SchoolDistrictRepo {
 
@@ -9,11 +9,11 @@ public interface SchoolDistrictRepo {
     return new AJSchoolDistrictRepo();
   }
 
-  SchoolDistrict createSchoolDistrict(SchoolDistrict schoolDistrict);
+  AJEntitySchoolDistrict createSchoolDistrict(AJEntitySchoolDistrict schoolDistrict);
 
-  SchoolDistrict getSchoolDistrictById(String id);
+  AJEntitySchoolDistrict getSchoolDistrictById(String id);
   
-  SchoolDistrict getSchoolDistrictByName(String name);
+  AJEntitySchoolDistrict getSchoolDistrictByName(String name);
   
-  SchoolDistrict createSchoolDistrict(String name);
+  AJEntitySchoolDistrict createSchoolDistrict(String name, String creatorId);
 }

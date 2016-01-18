@@ -1,5 +1,7 @@
 package org.gooru.auth.handlers.processors.service.user;
 
+import org.gooru.auth.handlers.processors.service.MessageResponse;
+
 import io.vertx.core.json.JsonObject;
 
 public interface UserPrefsService {
@@ -7,7 +9,7 @@ public interface UserPrefsService {
     return new UserPrefsServiceImpl();
   }
 
-  JsonObject updateUserPreference(String userId, JsonObject userPrefs);
+  MessageResponse updateUserPreference(String userId, JsonObject userPrefs);
 
-  JsonObject getUserPreference(String userId);
+  MessageResponse getUserPreference(String userId);
 }

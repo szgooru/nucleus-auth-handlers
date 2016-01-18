@@ -2,8 +2,10 @@ package org.gooru.auth.handlers.processors.service.user;
 
 import io.vertx.core.json.JsonObject;
 
+import org.gooru.auth.handlers.constants.HttpConstants.HttpStatus;
 import org.gooru.auth.handlers.processors.repositories.UserPreferenceRepo;
-import org.gooru.auth.handlers.processors.repositories.activejdbc.entities.UserPreference;
+import org.gooru.auth.handlers.processors.repositories.activejdbc.entities.AJEntityUserPreference;
+import org.gooru.auth.handlers.processors.service.MessageResponse;
 
 public class UserPrefsServiceImpl implements UserPrefsService {
 
@@ -14,18 +16,18 @@ public class UserPrefsServiceImpl implements UserPrefsService {
   }
 
   @Override
-  public JsonObject updateUserPreference(String userId, JsonObject UserPreference) {
+  public MessageResponse updateUserPreference(String userId, JsonObject UserPreference) {
     return null;
   }
 
   @Override
-  public JsonObject getUserPreference(String userId) {
-    UserPreference userPreference = getUserPreferenceRepo().getUserPreference(userId);
+  public MessageResponse getUserPreference(String userId) {
+    AJEntityUserPreference userPreference = getUserPreferenceRepo().getUserPreference(userId);
     JsonObject json = null;
     if (userPreference != null) {
       json = new JsonObject(userPreference.toMap());
     }
-    return json;
+    return new MessageResponse.Builder().setResponseBody(json).setContentTypeJson().setStatusHttpCode(HttpStatus.ACCEPTED).build();
   }
 
   public UserPreferenceRepo getUserPreferenceRepo() {

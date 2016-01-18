@@ -1,7 +1,7 @@
 package org.gooru.auth.handlers.processors.repositories;
 
 import org.gooru.auth.handlers.processors.repositories.activejdbc.AJUserRepo;
-import org.gooru.auth.handlers.processors.repositories.activejdbc.entities.User;
+import org.gooru.auth.handlers.processors.repositories.activejdbc.entities.AJEntityUser;
 
 public interface UserRepo {
 
@@ -9,9 +9,9 @@ public interface UserRepo {
     return new AJUserRepo();
   }
 
-  User getUser(String userId);
+  AJEntityUser getUser(String userId);
 
-  User create(User user);
+  AJEntityUser create(AJEntityUser user);
 
-  User update(User user);
+  AJEntityUser update(AJEntityUser user);
 }

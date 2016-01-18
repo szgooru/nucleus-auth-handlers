@@ -3,7 +3,7 @@ package org.gooru.auth.handlers.processors.repositories.activejdbc;
 import java.util.UUID;
 
 import org.gooru.auth.handlers.processors.repositories.CountryRepo;
-import org.gooru.auth.handlers.processors.repositories.activejdbc.entities.Country;
+import org.gooru.auth.handlers.processors.repositories.activejdbc.entities.AJEntityCountry;
 import org.javalite.activejdbc.Base;
 import org.javalite.activejdbc.LazyList;
 
@@ -14,17 +14,17 @@ public class AJCountryRepo extends AJAbstractRepo implements CountryRepo {
   private static final String GET_COUNTRY_BY_ID = "id = ?";
 
   @Override
-  public Country getCountry(Long id) {
-    return query(GET_COUNTRY_BY_NAME, id);
+  public AJEntityCountry getCountry(Long id) {
+    return query(GET_COUNTRY_BY_ID, id);
   }
 
   @Override
-  public Country getCountryByName(String name) {
-    return query(GET_COUNTRY_BY_ID, name);
+  public AJEntityCountry getCountryByName(String name) {
+    return query(GET_COUNTRY_BY_NAME, name);
   }
 
   @Override
-  public Country createCountry(Country country) {
+  public AJEntityCountry createCountry(AJEntityCountry country) {
     Base.open(dataSource());
     country.saveIt();
     Base.commitTransaction();
@@ -33,17 +33,18 @@ public class AJCountryRepo extends AJAbstractRepo implements CountryRepo {
   }
 
   @Override
-  public Country createCountry(String name) {
-    Country country = new Country();
+  public AJEntityCountry createCountry(String name, String creatorId) {
+    AJEntityCountry country = new AJEntityCountry();
     country.setName(name);
     country.setCode(UUID.randomUUID().toString());
+    country.setCreatorId(creatorId);
     return createCountry(country);
   }
 
-  private Country query(String whereClause, Object... params) {
+  private AJEntityCountry query(String whereClause, Object... params) {
     Base.open(dataSource());
-    LazyList<Country> results = Country.where(whereClause, params);
-    Country country = results.size() > 0 ? results.get(0) : null;
+    LazyList<AJEntityCountry> results = AJEntityCountry.where(whereClause, params);
+    AJEntityCountry country = results.size() > 0 ? results.get(0) : null;
     Base.close();
     return country;
   }

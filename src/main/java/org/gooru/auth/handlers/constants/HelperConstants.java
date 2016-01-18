@@ -11,6 +11,12 @@ public class HelperConstants {
   public static final Map<String, String> USER_CATEGORY;
 
   public static final Map<String, String> SSO_CONNECT_GRANT_TYPES;
+  
+  public static final String LOCATION = "Location";
+  
+  public static final String USER_ENTITY_URI = "/users/";
+  
+  public static final String USERS_JSON_FIELDS [] = {"course", "grade"};
 
   static {
     Map<String, String> gender = new HashMap<String, String>();

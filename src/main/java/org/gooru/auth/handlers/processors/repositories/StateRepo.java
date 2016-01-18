@@ -1,7 +1,7 @@
 package org.gooru.auth.handlers.processors.repositories;
 
 import org.gooru.auth.handlers.processors.repositories.activejdbc.AJStateRepo;
-import org.gooru.auth.handlers.processors.repositories.activejdbc.entities.State;
+import org.gooru.auth.handlers.processors.repositories.activejdbc.entities.AJEntityState;
 
 public interface StateRepo {
 
@@ -9,11 +9,11 @@ public interface StateRepo {
     return new AJStateRepo();
   }
 
-  State createState(State state);
+  AJEntityState createState(AJEntityState state);
 
-  State createState(String name);
+  AJEntityState createState(String name, String creatorId);
   
-  State getStateById(Long id);
+  AJEntityState getStateById(Long id);
 
-  State getStateByName(String name);
+  AJEntityState getStateByName(String name);
 }

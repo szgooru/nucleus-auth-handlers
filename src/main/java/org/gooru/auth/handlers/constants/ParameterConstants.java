@@ -42,6 +42,7 @@ public class ParameterConstants {
   public static final String PARAM_USER_NEW_PASSWORD = "new_password";
   public static final String PARAM_USER_OLD_PASSWORD = "old_password";
   public static final String PARAM_USER_PARENT_EMAIL_ID = "parent_email_id";
+  public static final String PARAM_USER_THUMBNAIL_PATH = "thumbnail_path";
   
   
   // Helper 

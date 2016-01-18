@@ -1,7 +1,7 @@
 package org.gooru.auth.handlers.processors;
 
-import io.vertx.core.json.JsonObject;
+import org.gooru.auth.handlers.processors.service.MessageResponse;
 
 public interface Processor {
-  public JsonObject process();
+  public MessageResponse process();
 }

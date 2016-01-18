@@ -4,12 +4,12 @@ import org.javalite.activejdbc.Model;
 import org.javalite.activejdbc.annotations.IdName;
 import org.javalite.activejdbc.annotations.Table;
 
-@Table("school")
+@Table("country")
 @IdName("id")
-public class School extends Model {
+public class AJEntityCountry extends Model {
 
-  public String getId() {
-    return getString("id");
+  public Long getId() {
+    return getLong("id");
   }
 
   public String getName() {
@@ -28,4 +28,11 @@ public class School extends Model {
     set("code", code);
   }
 
+  public String getCreatorId() {
+    return getString("creator_id");
+  }
+
+  public void setCreatorId(String creatorId) {
+    set("creator_id", creatorId);
+  }
 }

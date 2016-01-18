@@ -1,11 +1,12 @@
 package org.gooru.auth.handlers.processors.service.authorize;
 
-import io.vertx.core.json.JsonObject;
+import org.gooru.auth.handlers.processors.data.transform.model.AuthorizeDTO;
+import org.gooru.auth.handlers.processors.service.MessageResponse;
 
 public interface AuthorizeService {
   static AuthorizeService instance() {
     return new AuthorizeServiceImpl();
   }
 
-  JsonObject authorize(JsonObject userJson, String clientId, String clientKey, String grantType, String requestDomain, String returnUrl);
+  MessageResponse authorize(AuthorizeDTO authorizeDTO,  String requestDomain);
 }

@@ -8,8 +8,14 @@ import org.gooru.auth.handlers.infra.DataSourceRegistry;
 import org.gooru.auth.handlers.infra.RedisClient;
 
 public class Initializers implements Iterable<Initializer> {
-  private List<Initializer> initializers = null;
   private Iterator<Initializer> internalIterator;
+
+  public Initializers() {
+    final List<Initializer> initializers = new ArrayList<Initializer>();
+    initializers.add(DataSourceRegistry.getInstance());
+    initializers.add(RedisClient.instance());
+    internalIterator = initializers.iterator();
+  }
 
   @Override
   public Iterator<Initializer> iterator() {
@@ -27,13 +33,6 @@ public class Initializers implements Iterable<Initializer> {
 
     };
     return iterator;
-  }
-
-  public Initializers() {
-    initializers = new ArrayList<Initializer>();
-    initializers.add(DataSourceRegistry.getInstance());
-    initializers.add(RedisClient.instance());
-    internalIterator = initializers.iterator();
   }
 
 }

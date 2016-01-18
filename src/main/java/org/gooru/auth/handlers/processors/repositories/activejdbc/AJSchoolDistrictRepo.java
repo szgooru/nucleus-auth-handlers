@@ -3,7 +3,7 @@ package org.gooru.auth.handlers.processors.repositories.activejdbc;
 import java.util.UUID;
 
 import org.gooru.auth.handlers.processors.repositories.SchoolDistrictRepo;
-import org.gooru.auth.handlers.processors.repositories.activejdbc.entities.SchoolDistrict;
+import org.gooru.auth.handlers.processors.repositories.activejdbc.entities.AJEntitySchoolDistrict;
 import org.javalite.activejdbc.Base;
 import org.javalite.activejdbc.LazyList;
 
@@ -14,7 +14,7 @@ public class AJSchoolDistrictRepo extends AJAbstractRepo implements SchoolDistri
   private static final String GET_SCHOOL_DISTRICT_BY_ID = "id = ?";
 
   @Override
-  public SchoolDistrict createSchoolDistrict(SchoolDistrict schoolDistrict) {
+  public AJEntitySchoolDistrict createSchoolDistrict(AJEntitySchoolDistrict schoolDistrict) {
     Base.open(dataSource());
     schoolDistrict.toInsert();
     schoolDistrict.insert();
@@ -24,28 +24,29 @@ public class AJSchoolDistrictRepo extends AJAbstractRepo implements SchoolDistri
   }
 
   @Override
-  public SchoolDistrict createSchoolDistrict(String name) {
-    SchoolDistrict schoolDistrict = new SchoolDistrict();
+  public AJEntitySchoolDistrict createSchoolDistrict(String name, String creatorId) {
+    AJEntitySchoolDistrict schoolDistrict = new AJEntitySchoolDistrict();
     schoolDistrict.setId(UUID.randomUUID().toString());
     schoolDistrict.setName(name);
     schoolDistrict.setCode(UUID.randomUUID().toString());
-    return schoolDistrict;
+    schoolDistrict.setCreatorId(creatorId);
+    return createSchoolDistrict(schoolDistrict);
   }
 
   @Override
-  public SchoolDistrict getSchoolDistrictById(String id) {
+  public AJEntitySchoolDistrict getSchoolDistrictById(String id) {
     return query(GET_SCHOOL_DISTRICT_BY_ID, id);
   }
 
   @Override
-  public SchoolDistrict getSchoolDistrictByName(String name) {
+  public AJEntitySchoolDistrict getSchoolDistrictByName(String name) {
     return query(GET_SCHOOL_DISTRICT_BY_NAME, name);
   }
 
-  private SchoolDistrict query(String whereClause, Object... params) {
+  private AJEntitySchoolDistrict query(String whereClause, Object... params) {
     Base.open(dataSource());
-    LazyList<SchoolDistrict> results = SchoolDistrict.where(whereClause, params);
-    SchoolDistrict schoolDistrict = results.size() > 0 ? results.get(0) : null;
+    LazyList<AJEntitySchoolDistrict> results = AJEntitySchoolDistrict.where(whereClause, params);
+    AJEntitySchoolDistrict schoolDistrict = results.size() > 0 ? results.get(0) : null;
     Base.close();
     return schoolDistrict;
   }
