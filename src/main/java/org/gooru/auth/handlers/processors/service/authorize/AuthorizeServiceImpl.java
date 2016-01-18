@@ -116,7 +116,7 @@ public class AuthorizeServiceImpl extends ServerValidatorUtility implements Auth
     } else {
       userIdentity.setUsername(userDTO.getUsername());
     }
-    getUserIdentityRepo().saveOrUpdate(userIdentity);
+    getUserIdentityRepo().createOrUpdate(userIdentity);
     return userIdentity;
   }
 

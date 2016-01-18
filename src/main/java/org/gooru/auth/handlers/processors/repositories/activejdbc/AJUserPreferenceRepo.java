@@ -16,21 +16,12 @@ public class AJUserPreferenceRepo extends AJAbstractRepo implements UserPreferen
 
   @Override
   public AJEntityUserPreference createPreference(AJEntityUserPreference userPreference) {
-    Base.open(dataSource());
-    userPreference.toInsert();
-    userPreference.insert();
-    Base.commitTransaction();
-    Base.close();
-    return userPreference;
+    return (AJEntityUserPreference) save(userPreference);
   }
 
   @Override
   public AJEntityUserPreference updatePreference(AJEntityUserPreference userPreference) {
-    Base.open(dataSource());
-    userPreference.saveIt();
-    Base.commitTransaction();
-    Base.close();
-    return userPreference;
+    return (AJEntityUserPreference) saveOrUpdate(userPreference);
   }
 
   private AJEntityUserPreference query(String whereClause, Object... params) {

@@ -15,12 +15,7 @@ public class AJSchoolDistrictRepo extends AJAbstractRepo implements SchoolDistri
 
   @Override
   public AJEntitySchoolDistrict createSchoolDistrict(AJEntitySchoolDistrict schoolDistrict) {
-    Base.open(dataSource());
-    schoolDistrict.toInsert();
-    schoolDistrict.insert();
-    Base.commitTransaction();
-    Base.close();
-    return schoolDistrict;
+    return (AJEntitySchoolDistrict) saveOrUpdate(schoolDistrict);
   }
 
   @Override

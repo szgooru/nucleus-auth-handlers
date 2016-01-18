@@ -15,11 +15,7 @@ public class AJStateRepo extends AJAbstractRepo implements StateRepo {
 
   @Override
   public AJEntityState createState(AJEntityState state) {
-    Base.open(dataSource());
-    state.saveIt();
-    Base.commitTransaction();
-    Base.close();
-    return state;
+    return (AJEntityState) saveOrUpdate(state);
   }
 
   @Override

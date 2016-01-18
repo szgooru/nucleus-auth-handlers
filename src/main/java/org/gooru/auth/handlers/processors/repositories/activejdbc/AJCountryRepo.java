@@ -25,11 +25,7 @@ public class AJCountryRepo extends AJAbstractRepo implements CountryRepo {
 
   @Override
   public AJEntityCountry createCountry(AJEntityCountry country) {
-    Base.open(dataSource());
-    country.saveIt();
-    Base.commitTransaction();
-    Base.close();
-    return country;
+    return (AJEntityCountry) saveOrUpdate(country);
   }
 
   @Override

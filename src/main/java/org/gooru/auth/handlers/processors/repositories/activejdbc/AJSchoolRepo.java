@@ -15,12 +15,7 @@ public class AJSchoolRepo extends AJAbstractRepo implements SchoolRepo {
 
   @Override
   public AJEntitySchool createSchool(AJEntitySchool school) {
-    Base.open(dataSource());
-    school.toInsert();
-    school.insert();
-    Base.commitTransaction();
-    Base.close();
-    return school;
+    return (AJEntitySchool) save(school);
   }
 
   @Override

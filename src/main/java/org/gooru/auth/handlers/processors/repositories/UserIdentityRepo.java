@@ -17,7 +17,7 @@ public interface UserIdentityRepo {
   
   AJEntityUserIdentity getUserIdentityByUsername(final String username);
   
-  AJEntityUserIdentity saveOrUpdate(final AJEntityUserIdentity userIdentity);
+  AJEntityUserIdentity createOrUpdate(final AJEntityUserIdentity userIdentity);
   
   AJEntityUserIdentity getUserIdentityByIdAndPassword(final String userId, final String password);
   

@@ -39,24 +39,20 @@ public class AJUserIdentityRepo extends AJAbstractRepo implements UserIdentityRe
   public AJEntityUserIdentity getUserIdentityByUsername(final String username) {
     return query(GET_BY_USERNAME, username);
   }
-  
+
   @Override
   public AJEntityUserIdentity getUserIdentityByIdAndPassword(final String userId, final String password) {
     return query(GET_BY_ID_PASSWORD, userId, password);
   }
-  
+
   @Override
-  public AJEntityUserIdentity getUserIdentityById(String userId) {
+  public AJEntityUserIdentity getUserIdentityById(final String userId) {
     return query(GET_BY_USER_ID, userId);
   }
 
   @Override
-  public AJEntityUserIdentity saveOrUpdate(final AJEntityUserIdentity userIdentity) {
-    Base.open(dataSource());
-    userIdentity.saveIt();
-    Base.commitTransaction();
-    Base.close();
-    return userIdentity;
+  public AJEntityUserIdentity createOrUpdate(final AJEntityUserIdentity userIdentity) {
+    return (AJEntityUserIdentity) saveOrUpdate(userIdentity);
   }
 
   private AJEntityUserIdentity query(final String whereClause, final Object... params) {

@@ -94,7 +94,7 @@ public class UserServiceImpl extends ServerValidatorUtility implements UserServi
     if (userDTO.getUsername() != null) {
       final AJEntityUserIdentity userIdentity = getUserIdentityRepo().getUserIdentityById(userId);
       userIdentity.setUsername(userDTO.getUsername());
-      getUserIdentityRepo().saveOrUpdate(userIdentity);
+      getUserIdentityRepo().createOrUpdate(userIdentity);
     }
     return new MessageResponse.Builder().setContentTypeJson().setStatusNoOutput().successful().build();
   }
@@ -143,7 +143,7 @@ public class UserServiceImpl extends ServerValidatorUtility implements UserServi
     rejectIfNull(emailId, MessageCodeConstants.AU0028, HttpConstants.HttpStatus.UNAUTHORIZED.getCode());
     AJEntityUserIdentity userIdentity = getUserIdentityRepo().getUserIdentityByEmailId(emailId);
     userIdentity.setPassword(InternalHelper.encryptPassword(password));
-    getUserIdentityRepo().saveOrUpdate(userIdentity);
+    getUserIdentityRepo().createOrUpdate(userIdentity);
     getRedisClient().del(token);
     return new MessageResponse.Builder().setContentTypeJson().setStatusNoOutput().successful().build();
   }
@@ -154,7 +154,7 @@ public class UserServiceImpl extends ServerValidatorUtility implements UserServi
             getUserIdentityRepo().getUserIdentityByIdAndPassword(userId, InternalHelper.encryptPassword(oldPassword));
     rejectIfNull(userIdentity, MessageCodeConstants.AU0026, HttpConstants.HttpStatus.NOT_FOUND.getCode(), ParameterConstants.PARAM_USER);
     userIdentity.setPassword(InternalHelper.encryptPassword(newPassword));
-    getUserIdentityRepo().saveOrUpdate(userIdentity);
+    getUserIdentityRepo().createOrUpdate(userIdentity);
     return new MessageResponse.Builder().setContentTypeJson().setStatusNoOutput().successful().build();
   }
 
@@ -178,7 +178,7 @@ public class UserServiceImpl extends ServerValidatorUtility implements UserServi
       userIdentity.setEmailId(emailId);
     }
     userIdentity.setetEmailConfirmStatus(true);
-    getUserIdentityRepo().saveOrUpdate(userIdentity);
+    getUserIdentityRepo().createOrUpdate(userIdentity);
     getRedisClient().del(token);
     return new MessageResponse.Builder().setContentTypeJson().setStatusOkay().successful().build();
   }
@@ -201,7 +201,7 @@ public class UserServiceImpl extends ServerValidatorUtility implements UserServi
     rejectError(userValidator.getErrors(), HttpConstants.HttpStatus.BAD_REQUEST.getCode());
     getUserRepo().create(userValidator.getModel());
     AJEntityUserIdentity userIdentity = createUserIdentityValue(userDTO, userValidator.getModel(), clientId);
-    getUserIdentityRepo().saveOrUpdate(userIdentity);
+    getUserIdentityRepo().createOrUpdate(userIdentity);
     return userIdentity;
   }
 
@@ -211,7 +211,7 @@ public class UserServiceImpl extends ServerValidatorUtility implements UserServi
     rejectError(userValidator.getErrors(), HttpConstants.HttpStatus.BAD_REQUEST.getCode());
     getUserRepo().create(userValidator.getModel());
     AJEntityUserIdentity userIdentity = createUserIdentityValue(userDTO, userValidator.getModel(), clientId);
-    getUserIdentityRepo().saveOrUpdate(userIdentity);
+    getUserIdentityRepo().createOrUpdate(userIdentity);
     return userIdentity;
   }
 

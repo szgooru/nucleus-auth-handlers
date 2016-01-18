@@ -2,6 +2,7 @@ package org.gooru.auth.handlers.processors.repositories.activejdbc.entities;
 
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+
 import java.util.Date;
 
 import org.javalite.activejdbc.Model;
