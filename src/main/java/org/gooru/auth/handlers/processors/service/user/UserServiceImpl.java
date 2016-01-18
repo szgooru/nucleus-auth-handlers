@@ -9,10 +9,13 @@ import org.gooru.auth.handlers.constants.HelperConstants;
 import org.gooru.auth.handlers.constants.HttpConstants;
 import org.gooru.auth.handlers.constants.MessageCodeConstants;
 import org.gooru.auth.handlers.constants.ParameterConstants;
+import org.gooru.auth.handlers.constants.TableNameConstants;
 import org.gooru.auth.handlers.infra.RedisClient;
 import org.gooru.auth.handlers.processors.UserContext;
 import org.gooru.auth.handlers.processors.data.transform.model.UserDTO;
 import org.gooru.auth.handlers.processors.error.Errors;
+import org.gooru.auth.handlers.processors.event.Event;
+import org.gooru.auth.handlers.processors.event.EventBuilder;
 import org.gooru.auth.handlers.processors.exceptions.BadRequestException;
 import org.gooru.auth.handlers.processors.repositories.CountryRepo;
 import org.gooru.auth.handlers.processors.repositories.SchoolDistrictRepo;
@@ -81,8 +84,9 @@ public class UserServiceImpl extends ServerValidatorUtility implements UserServi
     saveAccessToken(token, accessToken, userContext.getAccessTokenValidity());
     accessToken.put(ParameterConstants.PARAM_ACCESS_TOKEN, token);
     StringBuilder uri = new StringBuilder(HelperConstants.USER_ENTITY_URI).append(userIdentity.getUserId());
-    return new MessageResponse.Builder().setResponseBody(accessToken).setHeader(HelperConstants.LOCATION, uri.toString()).setContentTypeJson()
-            .setStatusCreated().successful().build();
+    JsonObject eventData = createOrUpdateEvent(Event.CREATE_USER.getName(), userIdentity.getUser(), userIdentity);
+    return new MessageResponse.Builder().setResponseBody(accessToken).setEventData(eventData).setHeader(HelperConstants.LOCATION, uri.toString())
+            .setContentTypeJson().setStatusCreated().successful().build();
   }
 
   @Override
@@ -177,7 +181,7 @@ public class UserServiceImpl extends ServerValidatorUtility implements UserServi
     if (!userIdentity.getEmailId().equalsIgnoreCase(emailId)) {
       userIdentity.setEmailId(emailId);
     }
-    userIdentity.setetEmailConfirmStatus(true);
+    userIdentity.setEmailConfirmStatus(true);
     getUserIdentityRepo().createOrUpdate(userIdentity);
     getRedisClient().del(token);
     return new MessageResponse.Builder().setContentTypeJson().setStatusOkay().successful().build();
@@ -199,9 +203,10 @@ public class UserServiceImpl extends ServerValidatorUtility implements UserServi
     Validator<AJEntityUser> userValidator = createUserValidator(userDTO);
     userValidator.getModel().setBirthDate(dob);
     rejectError(userValidator.getErrors(), HttpConstants.HttpStatus.BAD_REQUEST.getCode());
-    getUserRepo().create(userValidator.getModel());
+    AJEntityUser user = getUserRepo().create(userValidator.getModel());
     AJEntityUserIdentity userIdentity = createUserIdentityValue(userDTO, userValidator.getModel(), clientId);
     getUserIdentityRepo().createOrUpdate(userIdentity);
+    userIdentity.setUser(user);
     return userIdentity;
   }
 
@@ -209,9 +214,10 @@ public class UserServiceImpl extends ServerValidatorUtility implements UserServi
     Validator<AJEntityUser> userValidator = createChildUserValidator(userDTO);
     userValidator.getModel().setBirthDate(dob);
     rejectError(userValidator.getErrors(), HttpConstants.HttpStatus.BAD_REQUEST.getCode());
-    getUserRepo().create(userValidator.getModel());
+    AJEntityUser user = getUserRepo().create(userValidator.getModel());
     AJEntityUserIdentity userIdentity = createUserIdentityValue(userDTO, userValidator.getModel(), clientId);
     getUserIdentityRepo().createOrUpdate(userIdentity);
+    userIdentity.setUser(user);
     return userIdentity;
   }
 
@@ -445,6 +451,13 @@ public class UserServiceImpl extends ServerValidatorUtility implements UserServi
     JsonObject data = new JsonObject(accessToken.toString());
     data.put(ParameterConstants.PARAM_ACCESS_TOKEN_VALIDITY, expireAtInSeconds);
     getRedisClient().set(token, data.toString(), expireAtInSeconds);
+  }
+
+  private JsonObject createOrUpdateEvent(final String eventName, final AJEntityUser user, final AJEntityUserIdentity userIdentity) {
+    JsonObject data = new JsonObject();
+    data.put(TableNameConstants.USER_DEMOGRAPHIC, new JsonObject(user.toJson(false)));
+    data.put(TableNameConstants.USER_IDENTITY, new JsonObject(userIdentity.toJson(false)));
+    return new EventBuilder().setEventName(eventName).setPayLoadObject(data).build();
   }
 
   public UserIdentityRepo getUserIdentityRepo() {

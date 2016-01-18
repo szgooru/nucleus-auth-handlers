@@ -2,11 +2,9 @@ package org.gooru.auth.handlers.bootstrap;
 
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Future;
-import io.vertx.core.eventbus.DeliveryOptions;
 import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.json.JsonObject;
 
-import org.gooru.auth.handlers.constants.MessageConstants;
 import org.gooru.auth.handlers.constants.MessagebusEndpoints;
 import org.gooru.auth.handlers.processors.ProcessorBuilder;
 import org.gooru.auth.handlers.processors.command.executor.AuthorizeCommandExecutor;
