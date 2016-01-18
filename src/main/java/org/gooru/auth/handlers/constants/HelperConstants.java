@@ -17,6 +17,8 @@ public class HelperConstants {
   public static final String USER_ENTITY_URI = "/users/";
   
   public static final String USERS_JSON_FIELDS [] = {"course", "grade"};
+  
+  public static final String USERS_PREFS_JSON_FIELDS [] = {"standard_preference"};
 
   static {
     Map<String, String> gender = new HashMap<String, String>();

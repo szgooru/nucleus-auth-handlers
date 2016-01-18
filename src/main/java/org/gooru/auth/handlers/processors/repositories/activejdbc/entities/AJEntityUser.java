@@ -56,14 +56,6 @@ public class AJEntityUser extends Model {
     setDate("birth_date", birthDate);
   }
 
-  public String getModifiedBy() {
-    return getString("modified_by");
-  }
-
-  public void setModifiedBy(String modifiedBy) {
-    setString("modified_by", modifiedBy);
-  }
-
   public String getParentUserId() {
     return getString("parent_user_id");
   }

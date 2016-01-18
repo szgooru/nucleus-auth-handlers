@@ -4,6 +4,7 @@ import org.gooru.auth.handlers.constants.CommandConstants;
 import org.gooru.auth.handlers.constants.MessageConstants;
 import org.gooru.auth.handlers.constants.ParameterConstants;
 import org.gooru.auth.handlers.processors.MessageContext;
+import org.gooru.auth.handlers.processors.data.transform.model.UserPrefsDTO;
 import org.gooru.auth.handlers.processors.exceptions.InvalidRequestException;
 import org.gooru.auth.handlers.processors.service.MessageResponse;
 import org.gooru.auth.handlers.processors.service.user.UserPrefsService;
@@ -29,10 +30,11 @@ public final class UserPrefsCommandExecutor implements CommandExecutor {
       if (userUpdateId.equalsIgnoreCase(ParameterConstants.PARAM_ME)) {
         userUpdateId = messageContext.user().getUserId();
       }
-      result = getUserPrefsService().updateUserPreference(userUpdateId, messageContext.requestBody());
+      UserPrefsDTO userPrefsDTO = new UserPrefsDTO(messageContext.requestBody().getMap());
+      result = getUserPrefsService().updateUserPreference(userUpdateId, userPrefsDTO);
       break;
     case CommandConstants.GET_USER_PREFERENCE:
-      String userId = messageContext.requestBody().getString(MessageConstants.MSG_USER_ID);
+      String userId = messageContext.requestParams().getString(MessageConstants.MSG_USER_ID);
       if (userId.equalsIgnoreCase(ParameterConstants.PARAM_ME)) {
         userId = messageContext.user().getUserId();
       }

@@ -95,7 +95,6 @@ public class AuthorizeServiceImpl extends ServerValidatorUtility implements Auth
     }
 
     user.setId(UUID.randomUUID().toString());
-    user.setModifiedBy(user.getId());
     getUserRepo().create(user);
     final AJEntityUserIdentity userIdentity = createUserIdentityValue(grantType, user, clientId);
     if (isEmailIdentity) {

@@ -11,5 +11,7 @@ public interface UserPreferenceRepo {
 
   AJEntityUserPreference getUserPreference(String userId);
   
+  AJEntityUserPreference createPreference(AJEntityUserPreference userPreference);
+  
   AJEntityUserPreference updatePreference(AJEntityUserPreference userPreference);
 }

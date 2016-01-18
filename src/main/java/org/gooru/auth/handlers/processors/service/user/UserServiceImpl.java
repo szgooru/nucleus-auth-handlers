@@ -241,7 +241,6 @@ public class UserServiceImpl extends ServerValidatorUtility implements UserServi
     final AJEntityUser user = new AJEntityUser();
     user.setId(UUID.randomUUID().toString());
     user.setUserCategory(userCategory);
-    user.setModifiedBy(user.getId());
     if (parentUserEmailId != null) {
       AJEntityUserIdentity userIdentity = getUserIdentityRepo().getUserIdentityByEmailId(parentUserEmailId);
       addValidator(errors, (userIdentity == null), ParameterConstants.PARAM_USER_PARENT_EMAIL_ID, MessageCodeConstants.AU0032);
@@ -302,7 +301,6 @@ public class UserServiceImpl extends ServerValidatorUtility implements UserServi
     user.setLastname(lastname);
     user.setUserCategory(userCategory);
     user.setEmailId(emailId);
-    user.setModifiedBy(user.getId());
     if (userDTO.getGrade() != null) {
       user.setGrade(userDTO.getGrade());
     }
