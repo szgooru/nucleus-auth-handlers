@@ -10,6 +10,8 @@ import org.gooru.auth.handlers.constants.MessageConstants;
 import org.gooru.auth.handlers.constants.ParameterConstants;
 import org.gooru.auth.handlers.infra.RedisClient;
 import org.gooru.auth.handlers.processors.data.transform.model.AuthClientDTO;
+import org.gooru.auth.handlers.processors.event.Event;
+import org.gooru.auth.handlers.processors.event.EventBuilder;
 import org.gooru.auth.handlers.processors.repositories.AuthClientRepo;
 import org.gooru.auth.handlers.processors.repositories.UserIdentityRepo;
 import org.gooru.auth.handlers.processors.repositories.UserPreferenceRepo;
@@ -41,7 +43,9 @@ public class AuthenticationServiceImpl extends ServerValidatorUtility implements
   public MessageResponse createAnonymousAccessToken(AuthClientDTO authClientDTO, String requestDomain) {
     reject(!(GrantType.ANONYMOUS.getType().equalsIgnoreCase(authClientDTO.getGrantType())), MessageCodeConstants.AU0003,
             HttpConstants.HttpStatus.UNAUTHORIZED.getCode());
-    final AJEntityAuthClient authClient = validateAuthClient(authClientDTO.getClientId(), InternalHelper.encryptClientKey(authClientDTO.getClientKey()), authClientDTO.getGrantType());
+    final AJEntityAuthClient authClient =
+            validateAuthClient(authClientDTO.getClientId(), InternalHelper.encryptClientKey(authClientDTO.getClientKey()),
+                    authClientDTO.getGrantType());
     verifyClientkeyDomains(requestDomain, authClient.getRefererDomains());
     final JsonObject accessToken = new JsonObject();
     accessToken.put(ParameterConstants.PARAM_USER_ID, MessageConstants.MSG_USER_ANONYMOUS);
@@ -55,12 +59,13 @@ public class AuthenticationServiceImpl extends ServerValidatorUtility implements
   }
 
   @Override
-  public MessageResponse
-          createBasicAuthAccessToken(AuthClientDTO authClientDTO, String requestDomain, String basicAuthCredentials) {
+  public MessageResponse createBasicAuthAccessToken(AuthClientDTO authClientDTO, String requestDomain, String basicAuthCredentials) {
     reject(!(GrantType.CREDENTIAL.getType().equalsIgnoreCase(authClientDTO.getGrantType())), MessageCodeConstants.AU0003,
             HttpConstants.HttpStatus.UNAUTHORIZED.getCode());
     rejectIfNullOrEmpty(basicAuthCredentials, MessageCodeConstants.AU0006, HttpConstants.HttpStatus.UNAUTHORIZED.getCode());
-    final AJEntityAuthClient authClient = validateAuthClient(authClientDTO.getClientId(), InternalHelper.encryptClientKey(authClientDTO.getClientKey()), authClientDTO.getGrantType());
+    final AJEntityAuthClient authClient =
+            validateAuthClient(authClientDTO.getClientId(), InternalHelper.encryptClientKey(authClientDTO.getClientKey()),
+                    authClientDTO.getGrantType());
     verifyClientkeyDomains(requestDomain, authClient.getRefererDomains());
     final String credentials[] = InternalHelper.getUsernameAndPassword(basicAuthCredentials);
     final String username = credentials[0];
@@ -91,7 +96,13 @@ public class AuthenticationServiceImpl extends ServerValidatorUtility implements
     saveAccessToken(token, accessToken, authClient.getAccessTokenValidity());
     accessToken.put(ParameterConstants.PARAM_ACCESS_TOKEN, token);
     accessToken.put(ParameterConstants.PARAM_CDN_URLS, authClient.getCdnUrls());
-    return new MessageResponse.Builder().setResponseBody(accessToken).setContentTypeJson().setStatusOkay().successful().build();
+    EventBuilder eventBuilder = new EventBuilder();
+    eventBuilder.setEventName(Event.AUTHENTICATION_USER.getName()).putPayLoadObject(ParameterConstants.PARAM_ACCESS_TOKEN, token)
+            .putPayLoadObject(ParameterConstants.PARAM_CLIENT_ID, authClient.getClientId())
+            .putPayLoadObject(ParameterConstants.PARAM_USER_ID, userIdentity.getUserId())
+            .putPayLoadObject(ParameterConstants.PARAM_GRANT_TYPE, authClientDTO.getGrantType());
+    return new MessageResponse.Builder().setResponseBody(accessToken).setEventData(eventBuilder.build()).setContentTypeJson().setStatusOkay()
+            .successful().build();
   }
 
   @Override

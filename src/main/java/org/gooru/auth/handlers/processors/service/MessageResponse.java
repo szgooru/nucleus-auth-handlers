@@ -82,6 +82,11 @@ public class MessageResponse {
       this.httpStatus = HttpConstants.HttpStatus.SUCCESS;
       return this;
     }
+    
+    public Builder setStatusRedirect() {
+      this.httpStatus = HttpConstants.HttpStatus.MOVED_PERMANENTLY;
+      return this;
+    }
 
     public Builder setStatusNoOutput() {
       this.httpStatus = HttpConstants.HttpStatus.NO_CONTENT;

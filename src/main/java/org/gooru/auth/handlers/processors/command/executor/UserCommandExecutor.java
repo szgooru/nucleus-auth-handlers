@@ -65,7 +65,8 @@ public final class UserCommandExecutor implements CommandExecutor {
       }
       break;
     case CommandConstants.RESET_EMAIL_ADDRESS:
-      result = getUserService().updateUserEmail(messageContext.requestBody().getString(ParameterConstants.PARAM_USER_EMAIL_ID));
+     final String newEmailId = messageContext.requestBody().getString(ParameterConstants.PARAM_USER_EMAIL_ID);
+      result = getUserService().updateUserEmail(messageContext.user().getUserId(), newEmailId);
       break;
     case CommandConstants.RESEND_CONFIRMATION_EMAIL:
       result = getUserService().resendConfirmationEmail(messageContext.requestBody().getString(ParameterConstants.PARAM_USER_EMAIL_ID));

@@ -43,6 +43,8 @@ public class ParameterConstants {
   public static final String PARAM_USER_OLD_PASSWORD = "old_password";
   public static final String PARAM_USER_PARENT_EMAIL_ID = "parent_email_id";
   public static final String PARAM_USER_THUMBNAIL_PATH = "thumbnail_path";
+  public static final String PARAM_USER_NEW_EMAIL_ID = "new_email_id";
+  
   
   
   // Helper 
@@ -50,6 +52,7 @@ public class ParameterConstants {
   public static final String PARAM_ME = "me";
   public static final String PARAM_QUERY = "query";
   public static final String PARAM_AUTHORIZE_IDENTITY_ID = "identity_id";
+  public static final String PARAM_TOKEN = "token";
   
   
 }

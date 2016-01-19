@@ -19,6 +19,8 @@ public class HelperConstants {
   public static final String USERS_JSON_FIELDS [] = {"course", "grade"};
   
   public static final String USERS_PREFS_JSON_FIELDS [] = {"standard_preference"};
+  
+  public static final String QUESTION_SYMBOL = "?";
 
   static {
     Map<String, String> gender = new HashMap<String, String>();

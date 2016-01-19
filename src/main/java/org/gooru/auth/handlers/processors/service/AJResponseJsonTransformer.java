@@ -12,16 +12,17 @@ final public class AJResponseJsonTransformer {
     if (ajResult == null || ajResult.isEmpty()) {
       return result;
     }
-
-    for (String fieldName : jsonFields) {
-      String valueToXform = result.getString(fieldName);
-      if (valueToXform != null && !valueToXform.isEmpty()) {
-        if (valueToXform.startsWith("{")) {
-          JsonObject xformedValue = new JsonObject(valueToXform);
-          result.put(fieldName, xformedValue);
-        } else if (valueToXform.startsWith("[")) {
-          JsonArray xformedValue = new JsonArray(valueToXform);
-          result.put(fieldName, xformedValue);
+    if (jsonFields != null) {
+      for (String fieldName : jsonFields) {
+        String valueToXform = result.getString(fieldName);
+        if (valueToXform != null && !valueToXform.isEmpty()) {
+          if (valueToXform.startsWith("{")) {
+            JsonObject xformedValue = new JsonObject(valueToXform);
+            result.put(fieldName, xformedValue);
+          } else if (valueToXform.startsWith("[")) {
+            JsonArray xformedValue = new JsonArray(valueToXform);
+            result.put(fieldName, xformedValue);
+          }
         }
       }
     }
@@ -37,4 +38,17 @@ final public class AJResponseJsonTransformer {
     }
     return result;
   }
+
+  public static JsonObject transform(String ajResult, boolean removeNullFields) {
+    return transform(ajResult, null, removeNullFields);
+  }
+
+  public static JsonObject transform(String ajResult) {
+    return transform(ajResult, null, true);
+  }
+
+  public static JsonObject transform(String ajResult, String[] jsonFields) {
+    return transform(ajResult, jsonFields, true);
+  }
+
 }

@@ -10,9 +10,12 @@ import org.gooru.auth.handlers.constants.HelperConstants;
 import org.gooru.auth.handlers.constants.HttpConstants;
 import org.gooru.auth.handlers.constants.MessageCodeConstants;
 import org.gooru.auth.handlers.constants.ParameterConstants;
+import org.gooru.auth.handlers.constants.SchemaConstants;
 import org.gooru.auth.handlers.infra.RedisClient;
 import org.gooru.auth.handlers.processors.data.transform.model.AuthorizeDTO;
 import org.gooru.auth.handlers.processors.data.transform.model.UserDTO;
+import org.gooru.auth.handlers.processors.event.Event;
+import org.gooru.auth.handlers.processors.event.EventBuilder;
 import org.gooru.auth.handlers.processors.repositories.AuthClientRepo;
 import org.gooru.auth.handlers.processors.repositories.UserIdentityRepo;
 import org.gooru.auth.handlers.processors.repositories.UserPreferenceRepo;
@@ -21,6 +24,8 @@ import org.gooru.auth.handlers.processors.repositories.activejdbc.entities.AJEnt
 import org.gooru.auth.handlers.processors.repositories.activejdbc.entities.AJEntityUser;
 import org.gooru.auth.handlers.processors.repositories.activejdbc.entities.AJEntityUserIdentity;
 import org.gooru.auth.handlers.processors.repositories.activejdbc.entities.AJEntityUserPreference;
+import org.gooru.auth.handlers.processors.service.AJResponseJsonTransformer;
+import org.gooru.auth.handlers.processors.service.ActionResponseDTO;
 import org.gooru.auth.handlers.processors.service.MessageResponse;
 import org.gooru.auth.handlers.utils.InternalHelper;
 import org.gooru.auth.handlers.utils.ServerValidatorUtility;
@@ -56,6 +61,7 @@ public class AuthorizeServiceImpl extends ServerValidatorUtility implements Auth
     rejectIfNullOrEmpty(identityId, MessageCodeConstants.AU0033, 400);
     boolean isEmailIdentity = false;
     AJEntityUserIdentity userIdentity = null;
+    EventBuilder eventBuilder = new EventBuilder();
     if (identityId.indexOf("@") > 1) {
       isEmailIdentity = true;
       userIdentity = getUserIdentityRepo().getUserIdentityByEmailId(identityId);
@@ -63,7 +69,10 @@ public class AuthorizeServiceImpl extends ServerValidatorUtility implements Auth
       userIdentity = getUserIdentityRepo().getUserIdentityByReferenceId(identityId);
     }
     if (userIdentity == null) {
-      userIdentity = createUserWithIdentity(authorizeDTO.getUser(), authorizeDTO.getGrantType(), authorizeDTO.getClientId(), isEmailIdentity);
+      ActionResponseDTO<AJEntityUserIdentity> responseDTO =
+              createUserWithIdentity(authorizeDTO.getUser(), authorizeDTO.getGrantType(), authorizeDTO.getClientId(), isEmailIdentity, eventBuilder);
+      userIdentity = responseDTO.getModel();
+      eventBuilder = responseDTO.getEventBuilder();
     }
 
     final JsonObject accessToken = new JsonObject();
@@ -83,10 +92,18 @@ public class AuthorizeServiceImpl extends ServerValidatorUtility implements Auth
     saveAccessToken(token, accessToken, authClient.getAccessTokenValidity());
     accessToken.put(ParameterConstants.PARAM_ACCESS_TOKEN, token);
     accessToken.put(ParameterConstants.PARAM_CDN_URLS, authClient.getCdnUrls());
-    return new MessageResponse.Builder().setResponseBody(accessToken).setContentTypeJson().setStatusOkay().successful().build();
+    StringBuilder uri = new StringBuilder(authorizeDTO.getReturnUrl());
+    uri.append(HelperConstants.QUESTION_SYMBOL).append(token);
+    eventBuilder.setEventName(Event.AUTHORIZE_USER.getName()).putPayLoadObject(ParameterConstants.PARAM_ACCESS_TOKEN, token)
+            .putPayLoadObject(ParameterConstants.PARAM_CLIENT_ID, authClient.getClientId())
+            .putPayLoadObject(ParameterConstants.PARAM_USER_ID, userIdentity.getUserId())
+            .putPayLoadObject(ParameterConstants.PARAM_GRANT_TYPE, authorizeDTO.getGrantType());
+    return new MessageResponse.Builder().setHeader(HelperConstants.LOCATION, uri.toString()).setEventData(eventBuilder.build()).setContentTypeJson()
+            .setStatusRedirect().successful().build();
   }
 
-  private AJEntityUserIdentity createUserWithIdentity(UserDTO userDTO, String grantType, String clientId, boolean isEmailIdentity) {
+  private ActionResponseDTO<AJEntityUserIdentity> createUserWithIdentity(final UserDTO userDTO, final String grantType, final String clientId,
+          final boolean isEmailIdentity, final EventBuilder eventBuilder) {
     final AJEntityUser user = new AJEntityUser();
     user.setFirstname(userDTO.getFirstname());
     if (userDTO.getLastname() != null) {
@@ -95,6 +112,9 @@ public class AuthorizeServiceImpl extends ServerValidatorUtility implements Auth
 
     user.setId(UUID.randomUUID().toString());
     getUserRepo().create(user);
+    eventBuilder.putPayLoadObject(SchemaConstants.USER_DEMOGRAPHIC,
+            AJResponseJsonTransformer.transform(user.toJson(false), HelperConstants.USERS_JSON_FIELDS));
+
     final AJEntityUserIdentity userIdentity = createUserIdentityValue(grantType, user, clientId);
     if (isEmailIdentity) {
       userIdentity.setEmailId(userDTO.getIdentityId());
@@ -116,7 +136,8 @@ public class AuthorizeServiceImpl extends ServerValidatorUtility implements Auth
       userIdentity.setUsername(userDTO.getUsername());
     }
     getUserIdentityRepo().createOrUpdate(userIdentity);
-    return userIdentity;
+    eventBuilder.putPayLoadObject(SchemaConstants.USER_IDENTITY, AJResponseJsonTransformer.transform(userIdentity.toJson(false)));
+    return new ActionResponseDTO<AJEntityUserIdentity>(userIdentity, eventBuilder);
   }
 
   private AJEntityAuthClient validateAuthClient(String clientId, String clientKey, String grantType) {

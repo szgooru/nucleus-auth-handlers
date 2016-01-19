@@ -55,14 +55,16 @@ public class UserPrefsServiceImpl extends ServerValidatorUtility implements User
       getUserPreferenceRepo().updatePreference(userPreference);
     }
     EventBuilder eventBuilder = new EventBuilder();
-    eventBuilder.putPayLoadObject(SchemaConstants.USER_PREFERENCE, userPreference.toJson(false)).setEventName(Event.UPDATE_USER_PREFS.getName());
+    eventBuilder.putPayLoadObject(SchemaConstants.USER_PREFERENCE,
+            AJResponseJsonTransformer.transform(userPreference.toJson(false), HelperConstants.USERS_PREFS_JSON_FIELDS)).setEventName(
+            Event.UPDATE_USER_PREFS.getName());
     return new MessageResponse.Builder().setContentTypeJson().setEventData(eventBuilder.build()).setStatusNoOutput().successful().build();
   }
 
   @Override
   public MessageResponse getUserPreference(String userId) {
     AJEntityUserPreference userPreference = getUserPreferenceRepo().getUserPreference(userId);
-    JsonObject result = AJResponseJsonTransformer.transform(userPreference.toJson(false), HelperConstants.USERS_PREFS_JSON_FIELDS, true);
+    JsonObject result = AJResponseJsonTransformer.transform(userPreference.toJson(false), HelperConstants.USERS_PREFS_JSON_FIELDS);
     return new MessageResponse.Builder().setResponseBody(result).setContentTypeJson().setStatusOkay().successful().build();
   }
 

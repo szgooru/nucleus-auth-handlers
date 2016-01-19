@@ -28,6 +28,6 @@ public interface UserService {
   
   MessageResponse confirmUserEmail(String userId, String token);
   
-  MessageResponse updateUserEmail(String emailId);
+  MessageResponse updateUserEmail(String userId, String newEmailId);
 
 }

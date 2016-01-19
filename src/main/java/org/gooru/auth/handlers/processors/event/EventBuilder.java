@@ -16,9 +16,9 @@ public class EventBuilder extends JsonObject {
   private JsonObject context;
   private JsonObject version;
   private JsonObject payLoadObject;
-  
- public EventBuilder() {
-   this.payLoadObject = new JsonObject();
+
+  public EventBuilder() {
+    this.payLoadObject = new JsonObject();
   }
 
   public String getEventId() {
@@ -111,11 +111,15 @@ public class EventBuilder extends JsonObject {
     return this;
   }
 
-  public EventBuilder putPayLoadObject(String key, String value) {
-    this.payLoadObject.put(key, new JsonObject(value));
+  public EventBuilder putPayLoadObject(String key, JsonObject value) {
+    this.payLoadObject.put(key, value);
     return this;
   }
 
+  public EventBuilder putPayLoadObject(String key, String value) {
+    this.payLoadObject.put(key, value);
+    return this;
+  }
 
   public JsonObject build() {
     intializeDefaultIfNull();
