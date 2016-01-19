@@ -6,7 +6,10 @@ import org.gooru.auth.handlers.constants.HelperConstants;
 import org.gooru.auth.handlers.constants.HttpConstants;
 import org.gooru.auth.handlers.constants.MessageCodeConstants;
 import org.gooru.auth.handlers.constants.ParameterConstants;
+import org.gooru.auth.handlers.constants.SchemaConstants;
 import org.gooru.auth.handlers.processors.data.transform.model.UserPrefsDTO;
+import org.gooru.auth.handlers.processors.event.Event;
+import org.gooru.auth.handlers.processors.event.EventBuilder;
 import org.gooru.auth.handlers.processors.repositories.UserIdentityRepo;
 import org.gooru.auth.handlers.processors.repositories.UserPreferenceRepo;
 import org.gooru.auth.handlers.processors.repositories.activejdbc.entities.AJEntityUserIdentity;
@@ -51,7 +54,9 @@ public class UserPrefsServiceImpl extends ServerValidatorUtility implements User
     } else {
       getUserPreferenceRepo().updatePreference(userPreference);
     }
-    return new MessageResponse.Builder().setContentTypeJson().setStatusNoOutput().successful().build();
+    EventBuilder eventBuilder = new EventBuilder();
+    eventBuilder.putPayLoadObject(SchemaConstants.USER_PREFERENCE, userPreference.toJson(false)).setEventName(Event.UPDATE_USER_PREFS.getName());
+    return new MessageResponse.Builder().setContentTypeJson().setEventData(eventBuilder.build()).setStatusNoOutput().successful().build();
   }
 
   @Override

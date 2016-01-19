@@ -29,7 +29,6 @@ public class UserVerticle extends AbstractVerticle {
         message.reply(result.reply(), result.deliveryOptions());
 
         JsonObject eventData = result.event();
-        System.out.println(eventData);
         if (eventData != null) {
           eb.publish(MessagebusEndpoints.MBEP_EVENT, eventData);
         }
