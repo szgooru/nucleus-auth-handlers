@@ -7,7 +7,6 @@ import org.gooru.auth.handlers.constants.HttpConstants;
 import org.gooru.auth.handlers.constants.MessageCodeConstants;
 import org.gooru.auth.handlers.constants.MessageConstants;
 import org.gooru.auth.handlers.constants.ParameterConstants;
-import org.gooru.auth.handlers.constants.HttpConstants.HttpStatus;
 import org.gooru.auth.handlers.infra.RedisClient;
 import org.gooru.auth.handlers.processors.repositories.AuthClientRepo;
 import org.gooru.auth.handlers.processors.repositories.UserIdentityRepo;
@@ -48,7 +47,7 @@ public class AuthenticationGLAVersionServiceImpl extends ServerValidatorUtility 
     saveAccessToken(token, accessToken, authClient.getAccessTokenValidity());
     accessToken.put(ParameterConstants.PARAM_ACCESS_TOKEN, token);
     accessToken.put(ParameterConstants.PARAM_CDN_URLS, authClient.getCdnUrls());
-    return new MessageResponse.Builder().setResponseBody(accessToken).setContentTypeJson().setStatusHttpCode(HttpStatus.ACCEPTED).build();
+    return new MessageResponse.Builder().setResponseBody(accessToken).setContentTypeJson().setStatusOkay().successful().build();
   }
 
   @Override
@@ -83,7 +82,7 @@ public class AuthenticationGLAVersionServiceImpl extends ServerValidatorUtility 
     saveAccessToken(token, accessToken, authClient.getAccessTokenValidity());
     accessToken.put(ParameterConstants.PARAM_ACCESS_TOKEN, token);
     accessToken.put(ParameterConstants.PARAM_CDN_URLS, authClient.getCdnUrls());
-    return new MessageResponse.Builder().setResponseBody(accessToken).setContentTypeJson().setStatusHttpCode(HttpStatus.ACCEPTED).build();
+    return new MessageResponse.Builder().setResponseBody(accessToken).setContentTypeJson().setStatusOkay().successful().build();
   }
 
   private AJEntityAuthClient validateAuthClient(String clientKey) {

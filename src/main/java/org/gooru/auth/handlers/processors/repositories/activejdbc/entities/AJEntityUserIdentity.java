@@ -2,16 +2,14 @@ package org.gooru.auth.handlers.processors.repositories.activejdbc.entities;
 
 import java.util.Date;
 
-import org.gooru.auth.handlers.constants.TableNameConstants;
+import org.gooru.auth.handlers.constants.SchemaConstants;
 import org.javalite.activejdbc.Model;
 import org.javalite.activejdbc.annotations.IdName;
 import org.javalite.activejdbc.annotations.Table;
 
-@Table(TableNameConstants.USER_IDENTITY)
-@IdName("id")
+@Table(SchemaConstants.USER_IDENTITY)
+@IdName(SchemaConstants.ID)
 public class AJEntityUserIdentity extends Model {
-
-  private AJEntityUser user;
   
   public String getUsername() {
     return getString("username");
@@ -99,14 +97,6 @@ public class AJEntityUserIdentity extends Model {
 
   public void setEmailConfirmStatus(Boolean value) {
     setBoolean("email_confirm_status", value);
-  }
-
-  public AJEntityUser getUser() {
-    return user;
-  }
-
-  public void setUser(AJEntityUser user) {
-    this.user = user;
   }
   
 }

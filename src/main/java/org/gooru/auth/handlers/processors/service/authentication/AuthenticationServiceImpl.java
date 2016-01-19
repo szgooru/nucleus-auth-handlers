@@ -5,7 +5,6 @@ import io.vertx.core.json.JsonObject;
 
 import org.gooru.auth.handlers.constants.HelperConstants.GrantType;
 import org.gooru.auth.handlers.constants.HttpConstants;
-import org.gooru.auth.handlers.constants.HttpConstants.HttpStatus;
 import org.gooru.auth.handlers.constants.MessageCodeConstants;
 import org.gooru.auth.handlers.constants.MessageConstants;
 import org.gooru.auth.handlers.constants.ParameterConstants;
@@ -52,7 +51,7 @@ public class AuthenticationServiceImpl extends ServerValidatorUtility implements
     saveAccessToken(token, accessToken, authClient.getAccessTokenValidity());
     accessToken.put(ParameterConstants.PARAM_ACCESS_TOKEN, token);
     accessToken.put(ParameterConstants.PARAM_CDN_URLS, authClient.getCdnUrls());
-    return new MessageResponse.Builder().setResponseBody(accessToken).setContentTypeJson().setStatusHttpCode(HttpStatus.ACCEPTED).build();
+    return new MessageResponse.Builder().setResponseBody(accessToken).setContentTypeJson().setStatusOkay().successful().build();
   }
 
   @Override
@@ -92,13 +91,13 @@ public class AuthenticationServiceImpl extends ServerValidatorUtility implements
     saveAccessToken(token, accessToken, authClient.getAccessTokenValidity());
     accessToken.put(ParameterConstants.PARAM_ACCESS_TOKEN, token);
     accessToken.put(ParameterConstants.PARAM_CDN_URLS, authClient.getCdnUrls());
-    return new MessageResponse.Builder().setResponseBody(accessToken).setContentTypeJson().setStatusHttpCode(HttpStatus.ACCEPTED).build();
+    return new MessageResponse.Builder().setResponseBody(accessToken).setContentTypeJson().setStatusOkay().successful().build();
   }
 
   @Override
   public MessageResponse deleteAccessToken(String token) {
     getRedisClient().del(token);
-    return new MessageResponse.Builder().setContentTypeJson().setStatusHttpCode(HttpStatus.ACCEPTED).build();
+    return new MessageResponse.Builder().setContentTypeJson().setStatusNoOutput().successful().build();
   }
 
   private AJEntityAuthClient validateAuthClient(String clientId, String clientKey, String grantType) {

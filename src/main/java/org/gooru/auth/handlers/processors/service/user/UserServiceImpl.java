@@ -9,7 +9,7 @@ import org.gooru.auth.handlers.constants.HelperConstants;
 import org.gooru.auth.handlers.constants.HttpConstants;
 import org.gooru.auth.handlers.constants.MessageCodeConstants;
 import org.gooru.auth.handlers.constants.ParameterConstants;
-import org.gooru.auth.handlers.constants.TableNameConstants;
+import org.gooru.auth.handlers.constants.SchemaConstants;
 import org.gooru.auth.handlers.infra.RedisClient;
 import org.gooru.auth.handlers.processors.UserContext;
 import org.gooru.auth.handlers.processors.data.transform.model.UserDTO;
@@ -30,8 +30,8 @@ import org.gooru.auth.handlers.processors.repositories.activejdbc.entities.AJEnt
 import org.gooru.auth.handlers.processors.repositories.activejdbc.entities.AJEntityUser;
 import org.gooru.auth.handlers.processors.repositories.activejdbc.entities.AJEntityUserIdentity;
 import org.gooru.auth.handlers.processors.service.AJResponseJsonTransformer;
+import org.gooru.auth.handlers.processors.service.ActionResponseDTO;
 import org.gooru.auth.handlers.processors.service.MessageResponse;
-import org.gooru.auth.handlers.processors.service.Validator;
 import org.gooru.auth.handlers.utils.InternalHelper;
 import org.gooru.auth.handlers.utils.ServerValidatorUtility;
 
@@ -69,12 +69,13 @@ public class UserServiceImpl extends ServerValidatorUtility implements UserServi
     Date dob = InternalHelper.isValidDate(userDTO.getBirthDate());
     rejectIfNull(dob, MessageCodeConstants.AU0022, 400, ParameterConstants.PARAM_USER_BIRTH_DATE);
     int age = InternalHelper.getAge(dob);
-    AJEntityUserIdentity userIdentity = null;
+    ActionResponseDTO<AJEntityUserIdentity> responseDTO = null;
     if (age < 13) {
-      userIdentity = createChildUser(userDTO, userContext.getClientId(), dob);
+      responseDTO = createChildUser(userDTO, userContext.getClientId(), dob);
     } else {
-      userIdentity = createUser(userDTO, userContext.getClientId(), dob);
+      responseDTO = createUser(userDTO, userContext.getClientId(), dob);
     }
+    AJEntityUserIdentity userIdentity = responseDTO.getModel();
     final JsonObject accessToken = new JsonObject();
     accessToken.put(ParameterConstants.PARAM_USER_ID, userIdentity.getUserId());
     accessToken.put(ParameterConstants.PARAM_USER_USERNAME, userIdentity.getUsername());
@@ -84,23 +85,26 @@ public class UserServiceImpl extends ServerValidatorUtility implements UserServi
     saveAccessToken(token, accessToken, userContext.getAccessTokenValidity());
     accessToken.put(ParameterConstants.PARAM_ACCESS_TOKEN, token);
     StringBuilder uri = new StringBuilder(HelperConstants.USER_ENTITY_URI).append(userIdentity.getUserId());
-    JsonObject eventData = createOrUpdateEvent(Event.CREATE_USER.getName(), userIdentity.getUser(), userIdentity);
-    return new MessageResponse.Builder().setResponseBody(accessToken).setEventData(eventData).setHeader(HelperConstants.LOCATION, uri.toString())
-            .setContentTypeJson().setStatusCreated().successful().build();
+    EventBuilder eventBuilder = responseDTO.getEventBuilder().setEventName(Event.CREATE_USER.getName());
+    return new MessageResponse.Builder().setResponseBody(accessToken).setEventData(eventBuilder.build())
+            .setHeader(HelperConstants.LOCATION, uri.toString()).setContentTypeJson().setStatusCreated().successful().build();
   }
 
   @Override
   public MessageResponse updateUser(final String userId, final UserDTO userDTO) {
-    Validator<AJEntityUser> userValidator = updateUserValidator(userId, userDTO);
+    ActionResponseDTO<AJEntityUser> userValidator = updateUserValidator(userId, userDTO);
     rejectError(userValidator.getErrors(), HttpConstants.HttpStatus.BAD_REQUEST.getCode());
     AJEntityUser user = userValidator.getModel();
-    getUserRepo().update(user);
+    user = getUserRepo().update(user);
+    EventBuilder eventBuilder = userValidator.getEventBuilder().setEventName(Event.UPDATE_USER.getName());
+    eventBuilder.putPayLoadObject(SchemaConstants.USER_DEMOGRAPHIC, user.toJson(false));
     if (userDTO.getUsername() != null) {
       final AJEntityUserIdentity userIdentity = getUserIdentityRepo().getUserIdentityById(userId);
       userIdentity.setUsername(userDTO.getUsername());
       getUserIdentityRepo().createOrUpdate(userIdentity);
+      eventBuilder.putPayLoadObject(SchemaConstants.USER_IDENTITY, userIdentity.toJson(false));
     }
-    return new MessageResponse.Builder().setContentTypeJson().setStatusNoOutput().successful().build();
+    return new MessageResponse.Builder().setContentTypeJson().setEventData(eventBuilder.build()).setStatusNoOutput().successful().build();
   }
 
   @Override
@@ -180,6 +184,9 @@ public class UserServiceImpl extends ServerValidatorUtility implements UserServi
     rejectIfNull(userIdentity, MessageCodeConstants.AU0026, HttpConstants.HttpStatus.NOT_FOUND.getCode(), ParameterConstants.PARAM_USER);
     if (!userIdentity.getEmailId().equalsIgnoreCase(emailId)) {
       userIdentity.setEmailId(emailId);
+      AJEntityUser user = getUserRepo().getUser(userId);
+      user.setEmailId(emailId);
+      getUserRepo().update(user);
     }
     userIdentity.setEmailConfirmStatus(true);
     getUserIdentityRepo().createOrUpdate(userIdentity);
@@ -199,29 +206,33 @@ public class UserServiceImpl extends ServerValidatorUtility implements UserServi
     return new MessageResponse.Builder().setContentTypeJson().setStatusNoOutput().successful().build();
   }
 
-  private AJEntityUserIdentity createUser(final UserDTO userDTO, final String clientId, final Date dob) {
-    Validator<AJEntityUser> userValidator = createUserValidator(userDTO);
+  private ActionResponseDTO<AJEntityUserIdentity> createUser(final UserDTO userDTO, final String clientId, final Date dob) {
+    ActionResponseDTO<AJEntityUser> userValidator = createUserValidator(userDTO);
     userValidator.getModel().setBirthDate(dob);
     rejectError(userValidator.getErrors(), HttpConstants.HttpStatus.BAD_REQUEST.getCode());
     AJEntityUser user = getUserRepo().create(userValidator.getModel());
     AJEntityUserIdentity userIdentity = createUserIdentityValue(userDTO, userValidator.getModel(), clientId);
     getUserIdentityRepo().createOrUpdate(userIdentity);
-    userIdentity.setUser(user);
-    return userIdentity;
+    final EventBuilder eventBuilder = new EventBuilder();
+    eventBuilder.putPayLoadObject(SchemaConstants.USER_DEMOGRAPHIC, user.toJson(false));
+    eventBuilder.putPayLoadObject(SchemaConstants.USER_IDENTITY, userIdentity.toJson(false));
+    return new ActionResponseDTO<AJEntityUserIdentity>(userIdentity, eventBuilder);
   }
 
-  private AJEntityUserIdentity createChildUser(final UserDTO userDTO, final String clientId, final Date dob) {
-    Validator<AJEntityUser> userValidator = createChildUserValidator(userDTO);
+  private ActionResponseDTO<AJEntityUserIdentity> createChildUser(final UserDTO userDTO, final String clientId, final Date dob) {
+    ActionResponseDTO<AJEntityUser> userValidator = createChildUserValidator(userDTO);
     userValidator.getModel().setBirthDate(dob);
     rejectError(userValidator.getErrors(), HttpConstants.HttpStatus.BAD_REQUEST.getCode());
     AJEntityUser user = getUserRepo().create(userValidator.getModel());
     AJEntityUserIdentity userIdentity = createUserIdentityValue(userDTO, userValidator.getModel(), clientId);
     getUserIdentityRepo().createOrUpdate(userIdentity);
-    userIdentity.setUser(user);
-    return userIdentity;
+    final EventBuilder eventBuilder = new EventBuilder();
+    eventBuilder.putPayLoadObject(SchemaConstants.USER_DEMOGRAPHIC, user.toJson(false));
+    eventBuilder.putPayLoadObject(SchemaConstants.USER_IDENTITY, userIdentity.toJson(false));
+    return new ActionResponseDTO<AJEntityUserIdentity>(userIdentity, eventBuilder);
   }
 
-  private Validator<AJEntityUser> createChildUserValidator(UserDTO userDTO) {
+  private ActionResponseDTO<AJEntityUser> createChildUserValidator(UserDTO userDTO) {
     final String username = userDTO.getUsername();
     final String userCategory = userDTO.getUserCategory();
     final String parentUserEmailId = userDTO.getParentEmailId();
@@ -253,10 +264,10 @@ public class UserServiceImpl extends ServerValidatorUtility implements UserServi
       user.setParentUserId(userIdentity.getUserId());
     }
 
-    return new Validator<AJEntityUser>(user, errors);
+    return new ActionResponseDTO<AJEntityUser>(user, errors);
   }
 
-  private Validator<AJEntityUser> createUserValidator(final UserDTO userDTO) {
+  private ActionResponseDTO<AJEntityUser> createUserValidator(final UserDTO userDTO) {
     final Errors errors = new Errors();
     final AJEntityUser user = new AJEntityUser();
     final String firstname = userDTO.getFirstname();
@@ -316,7 +327,7 @@ public class UserServiceImpl extends ServerValidatorUtility implements UserServi
       user.setGender(user.getGender());
     }
 
-    return new Validator<AJEntityUser>(user, errors);
+    return new ActionResponseDTO<AJEntityUser>(user, errors);
   }
 
   private AJEntityUserIdentity createUserIdentityValue(final UserDTO userDTO, final AJEntityUser user, final String clientId) {
@@ -334,7 +345,7 @@ public class UserServiceImpl extends ServerValidatorUtility implements UserServi
     return userIdentity;
   }
 
-  private Validator<AJEntityUser> updateUserValidator(final String userId, final UserDTO userDTO) {
+  private ActionResponseDTO<AJEntityUser> updateUserValidator(final String userId, final UserDTO userDTO) {
     final AJEntityUser user = getUserRepo().getUser(userId);
     rejectIfNull(user, MessageCodeConstants.AU0026, HttpConstants.HttpStatus.NOT_FOUND.getCode(), ParameterConstants.PARAM_USER);
     final AJEntityUserIdentity userIdentity = getUserIdentityRepo().getUserIdentityById(userId);
@@ -343,6 +354,7 @@ public class UserServiceImpl extends ServerValidatorUtility implements UserServi
             HttpConstants.HttpStatus.FORBIDDEN.getCode());
     final Errors errors = new Errors();
     final String username = userDTO.getUsername();
+    final EventBuilder eventBuilder = new EventBuilder();
 
     if (userDTO.getFirstname() != null) {
       addValidator(errors, !(userDTO.getFirstname().matches("[a-zA-Z0-9 ]+")), ParameterConstants.PARAM_USER_FIRSTNAME, MessageCodeConstants.AU0021);
@@ -402,6 +414,7 @@ public class UserServiceImpl extends ServerValidatorUtility implements UserServi
       AJEntityCountry country = getCountryRepo().getCountryByName(userDTO.getCountry());
       if (country == null) {
         country = getCountryRepo().createCountry(userDTO.getCountry(), userId);
+        eventBuilder.putPayLoadObject(SchemaConstants.COUNTRY, country.toJson(false));
       }
       user.setCountryId(country.getId());
     }
@@ -410,6 +423,7 @@ public class UserServiceImpl extends ServerValidatorUtility implements UserServi
       AJEntityState state = getStateRepo().getStateByName(userDTO.getState());
       if (state == null) {
         state = getStateRepo().createState(userDTO.getState(), userId);
+        eventBuilder.putPayLoadObject(SchemaConstants.STATE, state.toJson(false));
       }
       user.setStateId(state.getId());
     }
@@ -418,6 +432,7 @@ public class UserServiceImpl extends ServerValidatorUtility implements UserServi
       AJEntitySchool school = getSchoolRepo().getSchoolByName(userDTO.getSchool());
       if (school == null) {
         school = getSchoolRepo().createSchool(userDTO.getSchool(), userId);
+        eventBuilder.putPayLoadObject(SchemaConstants.SCHOOL, school.toJson(false));
       }
       user.setSchoolId(school.getId());
     }
@@ -426,6 +441,7 @@ public class UserServiceImpl extends ServerValidatorUtility implements UserServi
       AJEntitySchoolDistrict schoolDistrict = getSchoolDistrictRepo().getSchoolDistrictByName(userDTO.getSchoolDistrict());
       if (schoolDistrict == null) {
         schoolDistrict = getSchoolDistrictRepo().createSchoolDistrict(userDTO.getSchoolDistrict(), userId);
+        eventBuilder.putPayLoadObject(SchemaConstants.SCHOOL_DISTRICT, schoolDistrict.toJson(false));
       }
       user.setSchoolDistrictId(schoolDistrict.getId());
     }
@@ -443,7 +459,7 @@ public class UserServiceImpl extends ServerValidatorUtility implements UserServi
     if (userDTO.getThumbnailPath() != null) {
       user.setThumbnailPath(userDTO.getThumbnailPath());
     }
-    return new Validator<AJEntityUser>(user, errors);
+    return new ActionResponseDTO<AJEntityUser>(user, eventBuilder, errors);
 
   }
 
@@ -451,13 +467,6 @@ public class UserServiceImpl extends ServerValidatorUtility implements UserServi
     JsonObject data = new JsonObject(accessToken.toString());
     data.put(ParameterConstants.PARAM_ACCESS_TOKEN_VALIDITY, expireAtInSeconds);
     getRedisClient().set(token, data.toString(), expireAtInSeconds);
-  }
-
-  private JsonObject createOrUpdateEvent(final String eventName, final AJEntityUser user, final AJEntityUserIdentity userIdentity) {
-    JsonObject data = new JsonObject();
-    data.put(TableNameConstants.USER_DEMOGRAPHIC, new JsonObject(user.toJson(false)));
-    data.put(TableNameConstants.USER_IDENTITY, new JsonObject(userIdentity.toJson(false)));
-    return new EventBuilder().setEventName(eventName).setPayLoadObject(data).build();
   }
 
   public UserIdentityRepo getUserIdentityRepo() {

@@ -3,10 +3,13 @@ package org.gooru.auth.handlers.processors.repositories.activejdbc.entities;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
+import org.gooru.auth.handlers.constants.SchemaConstants;
 import org.javalite.activejdbc.Model;
+import org.javalite.activejdbc.annotations.IdName;
 import org.javalite.activejdbc.annotations.Table;
 
-@Table("auth_client")
+@Table(SchemaConstants.AUTH_CLIENT)
+@IdName(SchemaConstants.CLIENT_ID)
 public class AJEntityAuthClient extends Model {
 
   public String getClientId() {

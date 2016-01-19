@@ -1,11 +1,12 @@
 package org.gooru.auth.handlers.processors.repositories.activejdbc.entities;
 
+import org.gooru.auth.handlers.constants.SchemaConstants;
 import org.javalite.activejdbc.Model;
 import org.javalite.activejdbc.annotations.IdName;
 import org.javalite.activejdbc.annotations.Table;
 
-@Table("state")
-@IdName("id")
+@Table(SchemaConstants.STATE)
+@IdName(SchemaConstants.ID)
 public class AJEntityState extends Model {
 
   public Long getId() {

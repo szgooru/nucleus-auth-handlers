@@ -5,13 +5,13 @@ import io.vertx.core.json.JsonObject;
 
 import java.util.Date;
 
-import org.gooru.auth.handlers.constants.TableNameConstants;
+import org.gooru.auth.handlers.constants.SchemaConstants;
 import org.javalite.activejdbc.Model;
 import org.javalite.activejdbc.annotations.IdName;
 import org.javalite.activejdbc.annotations.Table;
 
-@Table(TableNameConstants.USER_DEMOGRAPHIC)
-@IdName("id")
+@Table(SchemaConstants.USER_DEMOGRAPHIC)
+@IdName(SchemaConstants.ID)
 public class AJEntityUser extends Model {
 
   public String getId() {

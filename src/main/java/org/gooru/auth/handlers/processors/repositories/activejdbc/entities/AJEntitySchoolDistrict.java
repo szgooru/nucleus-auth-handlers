@@ -1,11 +1,12 @@
 package org.gooru.auth.handlers.processors.repositories.activejdbc.entities;
 
+import org.gooru.auth.handlers.constants.SchemaConstants;
 import org.javalite.activejdbc.Model;
 import org.javalite.activejdbc.annotations.IdName;
 import org.javalite.activejdbc.annotations.Table;
 
-@Table("school_district")
-@IdName("id")
+@Table(SchemaConstants.SCHOOL_DISTRICT)
+@IdName(SchemaConstants.ID)
 public class AJEntitySchoolDistrict extends Model {
 
   public String getId() {

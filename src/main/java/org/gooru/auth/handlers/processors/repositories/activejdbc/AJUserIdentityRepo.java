@@ -58,7 +58,7 @@ public class AJUserIdentityRepo extends AJAbstractRepo implements UserIdentityRe
   private AJEntityUserIdentity query(final String whereClause, final Object... params) {
     Base.open(dataSource());
     LazyList<AJEntityUserIdentity> results = AJEntityUserIdentity.where(whereClause, params);
-    AJEntityUserIdentity result = results.size() > 0 ? (AJEntityUserIdentity) results.get(0) : null;
+    AJEntityUserIdentity result = results.size() > 0 ? results.get(0) : null;
     Base.close();
     return result;
   }

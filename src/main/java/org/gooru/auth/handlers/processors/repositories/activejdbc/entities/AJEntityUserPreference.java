@@ -3,12 +3,13 @@ package org.gooru.auth.handlers.processors.repositories.activejdbc.entities;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
+import org.gooru.auth.handlers.constants.SchemaConstants;
 import org.javalite.activejdbc.Model;
 import org.javalite.activejdbc.annotations.IdName;
 import org.javalite.activejdbc.annotations.Table;
 
-@Table("user_preference")
-@IdName("user_id")
+@Table(SchemaConstants.USER_PREFERENCE)
+@IdName(SchemaConstants.USER_ID)
 public class AJEntityUserPreference extends Model {
 
   public String getUserId() {

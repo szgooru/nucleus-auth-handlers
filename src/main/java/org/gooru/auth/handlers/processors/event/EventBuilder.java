@@ -1,8 +1,8 @@
 package org.gooru.auth.handlers.processors.event;
 
-import java.util.UUID;
-
 import io.vertx.core.json.JsonObject;
+
+import java.util.UUID;
 
 public class EventBuilder extends JsonObject {
 
@@ -16,6 +16,10 @@ public class EventBuilder extends JsonObject {
   private JsonObject context;
   private JsonObject version;
   private JsonObject payLoadObject;
+  
+ public EventBuilder() {
+   this.payLoadObject = new JsonObject();
+  }
 
   public String getEventId() {
     return eventId;
@@ -107,15 +111,11 @@ public class EventBuilder extends JsonObject {
     return this;
   }
 
-  public JsonObject getPayLoadObject() {
-    return payLoadObject;
-  }
-
-  public EventBuilder setPayLoadObject(JsonObject payLoadObject) {
-    this.payLoadObject = payLoadObject;
-    put("payLoadObject", payLoadObject);
+  public EventBuilder putPayLoadObject(String key, String value) {
+    this.payLoadObject.put(key, new JsonObject(value));
     return this;
   }
+
 
   public JsonObject build() {
     intializeDefaultIfNull();
@@ -138,9 +138,6 @@ public class EventBuilder extends JsonObject {
     if (getVersion() == null) {
       setVersion(new JsonObject().put("logApi", "0.1"));
     }
-    if (getPayLoadObject() == null) {
-      setPayLoadObject(new JsonObject());
-    }
     if (getSession() == null) {
       setSession(new JsonObject());
     }
@@ -150,6 +147,7 @@ public class EventBuilder extends JsonObject {
     if (getEndTime() == null) {
       setEndTime(System.currentTimeMillis());
     }
+    put("payLoadObject", payLoadObject);
     return this;
   }
 }

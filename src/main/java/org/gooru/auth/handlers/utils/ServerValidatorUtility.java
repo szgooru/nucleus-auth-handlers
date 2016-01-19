@@ -106,7 +106,7 @@ public class ServerValidatorUtility {
   }
 
   public static void rejectError(Errors errors, int errorCode) {
-    if (errors != null && errors.size() > 0) {
+    if (errors != null && !errors.isEmpty()) {
       if (errorCode == BAD_REQUEST.getCode()) {
         throw new BadRequestException(errors.toString());
       }

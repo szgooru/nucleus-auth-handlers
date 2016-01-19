@@ -10,7 +10,6 @@ import org.gooru.auth.handlers.constants.HelperConstants;
 import org.gooru.auth.handlers.constants.HttpConstants;
 import org.gooru.auth.handlers.constants.MessageCodeConstants;
 import org.gooru.auth.handlers.constants.ParameterConstants;
-import org.gooru.auth.handlers.constants.HttpConstants.HttpStatus;
 import org.gooru.auth.handlers.infra.RedisClient;
 import org.gooru.auth.handlers.processors.data.transform.model.AuthorizeDTO;
 import org.gooru.auth.handlers.processors.data.transform.model.UserDTO;
@@ -84,7 +83,7 @@ public class AuthorizeServiceImpl extends ServerValidatorUtility implements Auth
     saveAccessToken(token, accessToken, authClient.getAccessTokenValidity());
     accessToken.put(ParameterConstants.PARAM_ACCESS_TOKEN, token);
     accessToken.put(ParameterConstants.PARAM_CDN_URLS, authClient.getCdnUrls());
-    return new MessageResponse.Builder().setResponseBody(accessToken).setContentTypeJson().setStatusHttpCode(HttpStatus.ACCEPTED).build();
+    return new MessageResponse.Builder().setResponseBody(accessToken).setContentTypeJson().setStatusOkay().successful().build();
   }
 
   private AJEntityUserIdentity createUserWithIdentity(UserDTO userDTO, String grantType, String clientId, boolean isEmailIdentity) {
