@@ -9,7 +9,7 @@ public interface SchoolRepo {
     return new AJSchoolRepo();
   }
 
-  AJEntitySchool createSchool(String name, String creatorId);
+  AJEntitySchool createSchool(String name,  String schoolDistrictId, String creatorId);
   
   AJEntitySchool createSchool(AJEntitySchool school);
 

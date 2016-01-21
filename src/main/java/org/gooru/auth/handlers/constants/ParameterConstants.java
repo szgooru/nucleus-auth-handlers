@@ -5,6 +5,7 @@ public class ParameterConstants {
   public static final String PARAM_CLIENT_ID = "client_id";
   public static final String PARAM_CLIENT_KEY = "client_key";
   public static final String PARAM_GRANT_TYPE = "grant_type";
+  public static final String PARAM_GRANT_TYPES = "grant_types";
   public static final String PARAM_USER_ID = "user_id";
   public static final String PARAM_PROVIDED_AT = "provided_at";
   public static final String PARAM_ACCESS_TOKEN = "access_token";
@@ -15,7 +16,11 @@ public class ParameterConstants {
   public static final String PARAM_RETURN_URL = "return_url";
   public static final String PARAM_CDN_URLS = "cdn_urls";
   public static final String PARAM_API_KEY = "apiKey";
-  
+  public static final String PARAM_LOGIN_TYPE = "login_type";
+  public static final String PARAM_STANDARD_PREFERENCE = "standard_preference";
+  public static final String PARAM_PROFILE_VISIBLITY = "profile_visiblity";
+  public static final String PARAM_REFERER_DOMAINS = "referer_domains";
+
   // User
   public static final String PARAM_USER = "user";
   public static final String PARAM_USER_FIRSTNAME = "firstname";
@@ -44,15 +49,22 @@ public class ParameterConstants {
   public static final String PARAM_USER_PARENT_EMAIL_ID = "parent_email_id";
   public static final String PARAM_USER_THUMBNAIL_PATH = "thumbnail_path";
   public static final String PARAM_USER_NEW_EMAIL_ID = "new_email_id";
-  
-  
-  
-  // Helper 
+  public static final String PARAM_USER_PARENT_USER_ID = "parent_user_id";
+  public static final String PARAM_USER_PROVISION_TYPE = "provision_type";
+  public static final String PARAM_USER_LAST_LOGIN = "last_login";
+  public static final String PARAM_USER_REFERENCE_ID = "reference_id";
+  public static final String PARAM_USER_STATUS = "status";
+  public static final String PARAM_USER_EMAIL_CONFIRM_STATUS = "email_confirm_status";
+
+  // misc
   public static final String EMAIL_ADDRESS = "email address";
   public static final String PARAM_ME = "me";
   public static final String PARAM_QUERY = "query";
   public static final String PARAM_AUTHORIZE_IDENTITY_ID = "identity_id";
   public static final String PARAM_TOKEN = "token";
-  
-  
+  public static final String PARAM_ID = "id";
+  public static final String PARAM_NAME = "name";
+  public static final String PARAM_CODE = "code";
+  public static final String PARAM_CREATOR_ID = "creator_id";
+
 }

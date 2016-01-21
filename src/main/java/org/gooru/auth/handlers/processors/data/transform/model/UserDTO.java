@@ -94,8 +94,8 @@ public class UserDTO extends JsonObject {
     return getJsonArray(ParameterConstants.PARAM_GRADE);
   }
 
-  public JsonObject getCourse() {
-    return getJsonObject(ParameterConstants.PARAM_COURSE);
+  public JsonArray getCourse() {
+    return getJsonArray(ParameterConstants.PARAM_COURSE);
   }
 
   public String getIdentityId() {

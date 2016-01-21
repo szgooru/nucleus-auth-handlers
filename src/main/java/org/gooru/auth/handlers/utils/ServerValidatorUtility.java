@@ -112,6 +112,10 @@ public class ServerValidatorUtility {
       }
     }
   }
+  
+  public static void throwASInternalServerError() { 
+    throw new RuntimeException("internal api error");
+  }
 
   public static void addError(Errors errors, String fieldName, String code, String... placeHolderRepalcer) {
     org.gooru.auth.handlers.processors.error.Error error = new org.gooru.auth.handlers.processors.error.Error();

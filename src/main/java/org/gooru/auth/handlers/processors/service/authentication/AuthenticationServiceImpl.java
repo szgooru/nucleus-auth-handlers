@@ -51,10 +51,10 @@ public class AuthenticationServiceImpl extends ServerValidatorUtility implements
     accessToken.put(ParameterConstants.PARAM_USER_ID, MessageConstants.MSG_USER_ANONYMOUS);
     accessToken.put(ParameterConstants.PARAM_CLIENT_ID, authClient.getClientId());
     accessToken.put(ParameterConstants.PARAM_PROVIDED_AT, System.currentTimeMillis());
+    accessToken.put(ParameterConstants.PARAM_CDN_URLS, authClient.getCdnUrls());
     final String token = InternalHelper.generateToken(MessageConstants.MSG_USER_ANONYMOUS);
     saveAccessToken(token, accessToken, authClient.getAccessTokenValidity());
     accessToken.put(ParameterConstants.PARAM_ACCESS_TOKEN, token);
-    accessToken.put(ParameterConstants.PARAM_CDN_URLS, authClient.getCdnUrls());
     return new MessageResponse.Builder().setResponseBody(accessToken).setContentTypeJson().setStatusOkay().successful().build();
   }
 
@@ -93,9 +93,9 @@ public class AuthenticationServiceImpl extends ServerValidatorUtility implements
       }
       accessToken.put(ParameterConstants.PARAM_USER_PREFERENCE, prefs);
     }
+    accessToken.put(ParameterConstants.PARAM_CDN_URLS, authClient.getCdnUrls());
     saveAccessToken(token, accessToken, authClient.getAccessTokenValidity());
     accessToken.put(ParameterConstants.PARAM_ACCESS_TOKEN, token);
-    accessToken.put(ParameterConstants.PARAM_CDN_URLS, authClient.getCdnUrls());
     EventBuilder eventBuilder = new EventBuilder();
     eventBuilder.setEventName(Event.AUTHENTICATION_USER.getName()).putPayLoadObject(ParameterConstants.PARAM_ACCESS_TOKEN, token)
             .putPayLoadObject(ParameterConstants.PARAM_CLIENT_ID, authClient.getClientId())
@@ -109,6 +109,17 @@ public class AuthenticationServiceImpl extends ServerValidatorUtility implements
   public MessageResponse deleteAccessToken(String token) {
     getRedisClient().del(token);
     return new MessageResponse.Builder().setContentTypeJson().setStatusNoOutput().successful().build();
+  }
+
+  @Override
+  public MessageResponse getAccessToken(String token) {
+    JsonObject accessToken = getRedisClient().getJsonObject(token);
+    reject(accessToken == null, MessageCodeConstants.AU0040, 400);
+    if (accessToken.containsKey(MessageConstants.MSG_KEY_PREFS)) {
+      accessToken.remove(MessageConstants.MSG_KEY_PREFS);
+    }
+    accessToken.remove(ParameterConstants.PARAM_ACCESS_TOKEN_VALIDITY);
+    return new MessageResponse.Builder().setResponseBody(accessToken).setContentTypeJson().setStatusOkay().successful().build();
   }
 
   private AJEntityAuthClient validateAuthClient(String clientId, String clientKey, String grantType) {
@@ -171,5 +182,4 @@ public class AuthenticationServiceImpl extends ServerValidatorUtility implements
   public void setRedisClient(RedisClient redisClient) {
     this.redisClient = redisClient;
   }
-
 }

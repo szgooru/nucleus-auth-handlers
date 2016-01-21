@@ -2,10 +2,15 @@ package org.gooru.auth.handlers.processors.repositories.activejdbc;
 
 import org.gooru.auth.handlers.processors.repositories.UserIdentityRepo;
 import org.gooru.auth.handlers.processors.repositories.activejdbc.entities.AJEntityUserIdentity;
+import org.gooru.auth.handlers.utils.ServerValidatorUtility;
 import org.javalite.activejdbc.Base;
 import org.javalite.activejdbc.LazyList;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class AJUserIdentityRepo extends AJAbstractRepo implements UserIdentityRepo {
+
+  private static final Logger LOG = LoggerFactory.getLogger(AJUserIdentityRepo.class);
 
   private static final String GET_BY_USERNAME_PASSWORD = "username = ?  and password = ? and login_type = 'credential' and status != 'deleted'";
   private static final String GET_BY_EMAIL_PASSWORD = "email_id = ?  and password = ? and login_type = 'credential' and status != 'deleted'";
@@ -56,10 +61,17 @@ public class AJUserIdentityRepo extends AJAbstractRepo implements UserIdentityRe
   }
 
   private AJEntityUserIdentity query(final String whereClause, final Object... params) {
-    Base.open(dataSource());
-    LazyList<AJEntityUserIdentity> results = AJEntityUserIdentity.where(whereClause, params);
-    AJEntityUserIdentity result = results.size() > 0 ? results.get(0) : null;
-    Base.close();
-    return result;
+    AJEntityUserIdentity userIdentity = null;
+    try {
+      Base.open(dataSource());
+      LazyList<AJEntityUserIdentity> results = AJEntityUserIdentity.where(whereClause, params);
+      userIdentity = results.size() > 0 ? results.get(0) : null;
+    } catch (Exception e) {
+      LOG.error("Exception while marking connetion to be read", e);
+      ServerValidatorUtility.throwASInternalServerError();
+    } finally {
+      Base.close();
+    }
+    return userIdentity;
   }
 }

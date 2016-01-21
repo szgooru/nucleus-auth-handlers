@@ -40,6 +40,11 @@ public class MessageCodeConstants {
   public final static String AU0035 = "AU0035";
   public final static String AU0036 = "AU0036";
   public final static String AU0037 = "AU0037";
+  public final static String AU0038 = "AU0038";
+  public final static String AU0039 = "AU0039";
+  public final static String AU0040 = "AU0040";
+  public final static String AU0041 = "AU0041";
+  public final static String AU0042 = "AU0042";
   
   // Error code constant
   public final static String AUE400 = "AUE400";

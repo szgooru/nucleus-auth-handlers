@@ -14,6 +14,7 @@ import org.gooru.auth.handlers.constants.SchemaConstants;
 import org.gooru.auth.handlers.infra.RedisClient;
 import org.gooru.auth.handlers.processors.data.transform.model.AuthorizeDTO;
 import org.gooru.auth.handlers.processors.data.transform.model.UserDTO;
+import org.gooru.auth.handlers.processors.error.Errors;
 import org.gooru.auth.handlers.processors.event.Event;
 import org.gooru.auth.handlers.processors.event.EventBuilder;
 import org.gooru.auth.handlers.processors.repositories.AuthClientRepo;
@@ -57,8 +58,8 @@ public class AuthorizeServiceImpl extends ServerValidatorUtility implements Auth
     final AJEntityAuthClient authClient =
             validateAuthClient(authorizeDTO.getClientId(), InternalHelper.encryptClientKey(authorizeDTO.getClientKey()), authorizeDTO.getGrantType());
     verifyClientkeyDomains(requestDomain, authClient.getRefererDomains());
+    authorizeValidator(authorizeDTO);
     String identityId = authorizeDTO.getUser().getIdentityId();
-    rejectIfNullOrEmpty(identityId, MessageCodeConstants.AU0033, 400);
     boolean isEmailIdentity = false;
     AJEntityUserIdentity userIdentity = null;
     EventBuilder eventBuilder = new EventBuilder();
@@ -89,11 +90,11 @@ public class AuthorizeServiceImpl extends ServerValidatorUtility implements Auth
       }
       accessToken.put(ParameterConstants.PARAM_USER_PREFERENCE, prefs);
     }
+    accessToken.put(ParameterConstants.PARAM_CDN_URLS, authClient.getCdnUrls());
     saveAccessToken(token, accessToken, authClient.getAccessTokenValidity());
     accessToken.put(ParameterConstants.PARAM_ACCESS_TOKEN, token);
-    accessToken.put(ParameterConstants.PARAM_CDN_URLS, authClient.getCdnUrls());
     StringBuilder uri = new StringBuilder(authorizeDTO.getReturnUrl());
-    uri.append(HelperConstants.QUESTION_SYMBOL).append(token);
+    uri.append(HelperConstants.QUESTION_SYMBOL).append(ParameterConstants.PARAM_ACCESS_TOKEN).append(HelperConstants.EQUAL_SYMBOL).append(token);
     eventBuilder.setEventName(Event.AUTHORIZE_USER.getName()).putPayLoadObject(ParameterConstants.PARAM_ACCESS_TOKEN, token)
             .putPayLoadObject(ParameterConstants.PARAM_CLIENT_ID, authClient.getClientId())
             .putPayLoadObject(ParameterConstants.PARAM_USER_ID, userIdentity.getUserId())
@@ -118,6 +119,7 @@ public class AuthorizeServiceImpl extends ServerValidatorUtility implements Auth
     final AJEntityUserIdentity userIdentity = createUserIdentityValue(grantType, user, clientId);
     if (isEmailIdentity) {
       userIdentity.setEmailId(userDTO.getIdentityId());
+      userIdentity.setEmailConfirmStatus(true);
     } else {
       userIdentity.setReferenceId(userDTO.getIdentityId());
     }
@@ -177,6 +179,14 @@ public class AuthorizeServiceImpl extends ServerValidatorUtility implements Auth
     userIdentity.setClientId(clientId);
     userIdentity.setStatus(HelperConstants.UserIdentityStatus.ACTIVE.getStatus());
     return userIdentity;
+  }
+
+  private void authorizeValidator(AuthorizeDTO authorizeDTO) {
+    reject(authorizeDTO.getUser() == null, MessageCodeConstants.AU0038, 400);
+    Errors errors = new Errors();
+    addValidator(errors, authorizeDTO.getUser().getIdentityId() == null, ParameterConstants.PARAM_AUTHORIZE_IDENTITY_ID, MessageCodeConstants.AU0033);
+    addValidator(errors, authorizeDTO.getReturnUrl() == null, ParameterConstants.PARAM_RETURN_URL, MessageCodeConstants.AU0039);
+    rejectError(errors, HttpConstants.HttpStatus.BAD_REQUEST.getCode());
   }
 
   public AuthClientRepo getAuthClientRepo() {

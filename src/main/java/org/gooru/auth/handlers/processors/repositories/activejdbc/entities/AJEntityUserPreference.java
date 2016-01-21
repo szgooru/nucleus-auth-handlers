@@ -3,6 +3,7 @@ package org.gooru.auth.handlers.processors.repositories.activejdbc.entities;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
+import org.gooru.auth.handlers.constants.ParameterConstants;
 import org.gooru.auth.handlers.constants.SchemaConstants;
 import org.javalite.activejdbc.Model;
 import org.javalite.activejdbc.annotations.IdName;
@@ -13,16 +14,16 @@ import org.javalite.activejdbc.annotations.Table;
 public class AJEntityUserPreference extends Model {
 
   public String getUserId() {
-    return getString("user_id");
+    return getString(ParameterConstants.PARAM_USER_ID);
   }
 
   public void setUserId(String userId) {
     setId(userId);
-    set("user_id", userId);
+    set(ParameterConstants.PARAM_USER_ID, userId);
   }
 
   public JsonArray getStandardPreference() {
-    String json = getString("standard_preference");
+    String json = getString(ParameterConstants.PARAM_STANDARD_PREFERENCE);
     JsonArray prefs = null;
     if (json != null) {
       prefs = new JsonArray(json);
@@ -31,15 +32,15 @@ public class AJEntityUserPreference extends Model {
   }
 
   public void setStandardPreference(JsonObject standardPreference) {
-    set("standard_preference", DBEnums.jsonObject(standardPreference));
+    set(ParameterConstants.PARAM_STANDARD_PREFERENCE, DBEnums.jsonObject(standardPreference));
   }
 
   public Boolean getProfileVisiblity(Boolean profileVisiblity) {
-    return getBoolean("profile_visiblity");
+    return getBoolean(ParameterConstants.PARAM_PROFILE_VISIBLITY);
   }
 
   public void setProfileVisiblity(Boolean profileVisiblity) {
-    set("profile_visiblity", profileVisiblity);
+    set(ParameterConstants.PARAM_PROFILE_VISIBLITY, profileVisiblity);
   }
 
 }

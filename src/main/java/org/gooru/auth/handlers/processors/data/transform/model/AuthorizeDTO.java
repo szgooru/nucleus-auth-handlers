@@ -4,63 +4,39 @@ import io.vertx.core.json.JsonObject;
 
 import java.util.Map;
 
+import org.gooru.auth.handlers.constants.ParameterConstants;
+
 public class AuthorizeDTO extends JsonObject {
 
-  public AuthorizeDTO() { 
+  public AuthorizeDTO() {
     super();
   }
-  
-  public AuthorizeDTO(Map<String, Object> map) { 
+
+  public AuthorizeDTO(Map<String, Object> map) {
     super(map);
   }
 
-  private String clientId;
-  
-  private String clientKey;
-  
-  private String grantType;
-  
-  private String returnUrl;
-  
-  private UserDTO user;
-  
   public String getClientId() {
-    return clientId;
-  }
-
-  public void setClientId(String clientId) {
-    this.clientId = clientId;
+    return getString(ParameterConstants.PARAM_CLIENT_ID);
   }
 
   public String getClientKey() {
-    return clientKey;
-  }
-
-  public void setClientKey(String clientKey) {
-    this.clientKey = clientKey;
+    return getString(ParameterConstants.PARAM_CLIENT_KEY);
   }
 
   public String getGrantType() {
-    return grantType;
-  }
-
-  public void setGrantType(String grantType) {
-    this.grantType = grantType;
+    return getString(ParameterConstants.PARAM_GRANT_TYPE);
   }
 
   public String getReturnUrl() {
-    return returnUrl;
+    return getString(ParameterConstants.PARAM_RETURN_URL);
   }
-
-  public void setReturnUrl(String returnUrl) {
-    this.returnUrl = returnUrl;
+  
+  public String getIdentityId() {
+    return getString(ParameterConstants.PARAM_AUTHORIZE_IDENTITY_ID);
   }
 
   public UserDTO getUser() {
-    return user;
-  }
-
-  public void setUser(UserDTO user) {
-    this.user = user;
+    return new UserDTO(getJsonObject(ParameterConstants.PARAM_USER).getMap());
   }
 }

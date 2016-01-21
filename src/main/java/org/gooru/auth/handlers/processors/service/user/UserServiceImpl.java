@@ -81,6 +81,7 @@ public class UserServiceImpl extends ServerValidatorUtility implements UserServi
     accessToken.put(ParameterConstants.PARAM_USER_USERNAME, userIdentity.getUsername());
     accessToken.put(ParameterConstants.PARAM_CLIENT_ID, userContext.getClientId());
     accessToken.put(ParameterConstants.PARAM_PROVIDED_AT, System.currentTimeMillis());
+    accessToken.put(ParameterConstants.PARAM_CDN_URLS, userContext.getCdnUrls());
     final String token = InternalHelper.generateToken(userIdentity.getUserId());
     saveAccessToken(token, accessToken, userContext.getAccessTokenValidity());
     accessToken.put(ParameterConstants.PARAM_ACCESS_TOKEN, token);
@@ -131,7 +132,6 @@ public class UserServiceImpl extends ServerValidatorUtility implements UserServi
     } else {
       throw new BadRequestException("Invalid param type passed");
     }
-
     JsonObject result = userIdentity != null ? new JsonObject(userIdentity.toJson(false, "user_id", "username", "email_id")) : new JsonObject();
     return new MessageResponse.Builder().setResponseBody(result).setContentTypeJson().setStatusOkay().successful().build();
   }
@@ -146,13 +146,14 @@ public class UserServiceImpl extends ServerValidatorUtility implements UserServi
     eventBuilder.setEventName(Event.RESET_USER_PASSWORD.getName());
     eventBuilder.putPayLoadObject(SchemaConstants.USER_IDENTITY, AJResponseJsonTransformer.transform(userIdentity.toJson(false)));
     eventBuilder.putPayLoadObject(ParameterConstants.PARAM_TOKEN, token);
-    return new MessageResponse.Builder().setEventData(eventBuilder.build()).setContentTypeJson().setStatusNoOutput().successful().build();
+    return new MessageResponse.Builder().setEventData(eventBuilder.build()).setContentTypeJson().setStatusOkay().successful().build();
   }
 
   @Override
   public MessageResponse resetUnAuthenticateUserPassword(final String token, final String password) {
     String emailId = getRedisClient().get(token);
     rejectIfNull(emailId, MessageCodeConstants.AU0028, HttpConstants.HttpStatus.UNAUTHORIZED.getCode());
+    rejectIfNull(password, MessageCodeConstants.AU0042, HttpConstants.HttpStatus.BAD_REQUEST.getCode());
     AJEntityUserIdentity userIdentity = getUserIdentityRepo().getUserIdentityByEmailId(emailId);
     userIdentity.setPassword(InternalHelper.encryptPassword(password));
     getUserIdentityRepo().createOrUpdate(userIdentity);
@@ -165,6 +166,8 @@ public class UserServiceImpl extends ServerValidatorUtility implements UserServi
 
   @Override
   public MessageResponse resetAuthenticateUserPassword(final String userId, final String oldPassword, final String newPassword) {
+    rejectIfNull(oldPassword, MessageCodeConstants.AU0041, HttpConstants.HttpStatus.BAD_REQUEST.getCode());
+    rejectIfNull(newPassword, MessageCodeConstants.AU0042, HttpConstants.HttpStatus.BAD_REQUEST.getCode());
     final AJEntityUserIdentity userIdentity =
             getUserIdentityRepo().getUserIdentityByIdAndPassword(userId, InternalHelper.encryptPassword(oldPassword));
     rejectIfNull(userIdentity, MessageCodeConstants.AU0026, HttpConstants.HttpStatus.NOT_FOUND.getCode(), ParameterConstants.PARAM_USER);
@@ -388,7 +391,6 @@ public class UserServiceImpl extends ServerValidatorUtility implements UserServi
     if (userDTO.getLastname() != null) {
       addValidator(errors, !(userDTO.getLastname().matches("[a-zA-Z0-9 ]+")), ParameterConstants.PARAM_USER_LASTNAME, MessageCodeConstants.AU0021);
       user.setLastname(userDTO.getLastname());
-
     }
     if (userDTO.getGender() != null) {
       addValidator(errors, (HelperConstants.USER_GENDER.get(userDTO.getGender()) == null), ParameterConstants.PARAM_USER_GENDER,
@@ -409,33 +411,12 @@ public class UserServiceImpl extends ServerValidatorUtility implements UserServi
               ParameterConstants.PARAM_USER_USERNAME);
     }
 
-    if (userDTO.getSchoolId() != null) {
-      AJEntitySchool school = getSchoolRepo().getSchoolById(userDTO.getSchoolId());
-      addValidator(errors, (school == null), ParameterConstants.PARAM_USER_SCHOOL_ID, MessageCodeConstants.AU0027,
-              ParameterConstants.PARAM_USER_SCHOOL);
-      user.setSchoolId(userDTO.getSchoolId());
-    }
-    if (userDTO.getSchoolDistrictId() != null) {
-      AJEntitySchoolDistrict schoolDistrict = getSchoolDistrictRepo().getSchoolDistrictById(userDTO.getSchoolDistrictId());
-      addValidator(errors, (schoolDistrict == null), ParameterConstants.PARAM_USER_SCHOOL_DISTRICT_ID, MessageCodeConstants.AU0027,
-              ParameterConstants.PARAM_USER_SCHOOL_DISTRICT);
-      user.setSchoolDistrictId(userDTO.getSchoolDistrictId());
-    }
-
-    if (userDTO.getStateId() != null) {
-      AJEntityState state = getStateRepo().getStateById(userDTO.getStateId());
-      addValidator(errors, (state == null), ParameterConstants.PARAM_USER_STATE_ID, MessageCodeConstants.AU0027, ParameterConstants.PARAM_USER_STATE);
-      user.setStateId(userDTO.getStateId());
-    }
-
     if (userDTO.getCountryId() != null) {
       AJEntityCountry country = getCountryRepo().getCountry(userDTO.getCountryId());
       addValidator(errors, (country == null), ParameterConstants.PARAM_USER_COUNTRY_ID, MessageCodeConstants.AU0027,
               ParameterConstants.PARAM_USER_COUNTRY);
       user.setCountryId(userDTO.getCountryId());
-    }
-
-    if (userDTO.getCountry() != null) {
+    } else if (userDTO.getCountry() != null) {
       AJEntityCountry country = getCountryRepo().getCountryByName(userDTO.getCountry());
       if (country == null) {
         country = getCountryRepo().createCountry(userDTO.getCountry(), userId);
@@ -443,32 +424,46 @@ public class UserServiceImpl extends ServerValidatorUtility implements UserServi
       }
       user.setCountryId(country.getId());
     }
-
-    if (userDTO.getState() != null) {
+    
+    if (userDTO.getStateId() != null) {
+      AJEntityState state = getStateRepo().getStateById(userDTO.getStateId());
+      addValidator(errors, (state == null), ParameterConstants.PARAM_USER_STATE_ID, MessageCodeConstants.AU0027, ParameterConstants.PARAM_USER_STATE);
+      user.setStateId(userDTO.getStateId());
+    } else if (userDTO.getState() != null) {
       AJEntityState state = getStateRepo().getStateByName(userDTO.getState());
       if (state == null) {
-        state = getStateRepo().createState(userDTO.getState(), userId);
+        state = getStateRepo().createState(userDTO.getState(), user.getCountryId(), userId);
         eventBuilder.putPayLoadObject(SchemaConstants.STATE, AJResponseJsonTransformer.transform(state.toJson(false)));
       }
       user.setStateId(state.getId());
     }
 
-    if (userDTO.getSchool() != null) {
-      AJEntitySchool school = getSchoolRepo().getSchoolByName(userDTO.getSchool());
-      if (school == null) {
-        school = getSchoolRepo().createSchool(userDTO.getSchool(), userId);
-        eventBuilder.putPayLoadObject(SchemaConstants.SCHOOL, AJResponseJsonTransformer.transform(school.toJson(false)));
-      }
-      user.setSchoolId(school.getId());
-    }
-
-    if (userDTO.getSchoolDistrict() != null) {
+    if (userDTO.getSchoolDistrictId() != null) {
+      AJEntitySchoolDistrict schoolDistrict = getSchoolDistrictRepo().getSchoolDistrictById(userDTO.getSchoolDistrictId());
+      addValidator(errors, (schoolDistrict == null), ParameterConstants.PARAM_USER_SCHOOL_DISTRICT_ID, MessageCodeConstants.AU0027,
+              ParameterConstants.PARAM_USER_SCHOOL_DISTRICT);
+      user.setSchoolDistrictId(userDTO.getSchoolDistrictId());
+    } else if (userDTO.getSchoolDistrict() != null) {
       AJEntitySchoolDistrict schoolDistrict = getSchoolDistrictRepo().getSchoolDistrictByName(userDTO.getSchoolDistrict());
       if (schoolDistrict == null) {
         schoolDistrict = getSchoolDistrictRepo().createSchoolDistrict(userDTO.getSchoolDistrict(), userId);
         eventBuilder.putPayLoadObject(SchemaConstants.SCHOOL_DISTRICT, AJResponseJsonTransformer.transform(schoolDistrict.toJson(false)));
       }
       user.setSchoolDistrictId(schoolDistrict.getId());
+    }
+    
+    if (userDTO.getSchoolId() != null) {
+      AJEntitySchool school = getSchoolRepo().getSchoolById(userDTO.getSchoolId());
+      addValidator(errors, (school == null), ParameterConstants.PARAM_USER_SCHOOL_ID, MessageCodeConstants.AU0027,
+              ParameterConstants.PARAM_USER_SCHOOL);
+      user.setSchoolId(userDTO.getSchoolId());
+    } else if (userDTO.getSchool() != null) {
+      AJEntitySchool school = getSchoolRepo().getSchoolByName(userDTO.getSchool());
+      if (school == null) {
+        school = getSchoolRepo().createSchool(userDTO.getSchool(), user.getSchoolDistrictId(), userId);
+        eventBuilder.putPayLoadObject(SchemaConstants.SCHOOL, AJResponseJsonTransformer.transform(school.toJson(false)));
+      }
+      user.setSchoolId(school.getId());
     }
 
     if (userDTO.getGrade() != null) {

@@ -3,6 +3,7 @@ package org.gooru.auth.handlers.processors.repositories.activejdbc;
 import javax.sql.DataSource;
 
 import org.gooru.auth.handlers.infra.DataSourceRegistry;
+import org.gooru.auth.handlers.utils.ServerValidatorUtility;
 import org.javalite.activejdbc.Base;
 import org.javalite.activejdbc.Model;
 import org.slf4j.Logger;
@@ -23,8 +24,9 @@ public abstract class AJAbstractRepo {
       model.insert();
       Base.commitTransaction();
     } catch (Throwable e) {
-      LOG.error("Exception while marking connetion to be read/write", e);
+      LOG.error("Exception while marking connetion to be write", e);
       Base.rollbackTransaction();
+      ServerValidatorUtility.throwASInternalServerError();
     } finally {
       Base.close();
     }
@@ -37,9 +39,9 @@ public abstract class AJAbstractRepo {
       model.saveIt();
       Base.commitTransaction();
     } catch (Throwable e) {
-      LOG.error("Exception while marking connetion to be read/write", e);
+      LOG.error("Exception while marking connetion to be write", e);
       Base.rollbackTransaction();
-
+      ServerValidatorUtility.throwASInternalServerError();
     } finally {
       Base.close();
     }
@@ -52,9 +54,9 @@ public abstract class AJAbstractRepo {
       model.toUpdate();
       Base.commitTransaction();
     } catch (Throwable e) {
-      LOG.error("Exception while marking connetion to be read/write", e);
+      LOG.error("Exception while marking connetion to be write", e);
       Base.rollbackTransaction();
-
+      ServerValidatorUtility.throwASInternalServerError();
     } finally {
       Base.close();
     }

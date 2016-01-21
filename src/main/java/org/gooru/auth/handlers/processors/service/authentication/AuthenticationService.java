@@ -13,5 +13,7 @@ public interface AuthenticationService {
   MessageResponse createBasicAuthAccessToken(AuthClientDTO authClientDTO, String requestDomain, String basicAuthCredentials);
 
   MessageResponse deleteAccessToken(String token);
+  
+  MessageResponse getAccessToken(String token);
 
 }

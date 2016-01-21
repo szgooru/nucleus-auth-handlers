@@ -1,10 +1,10 @@
 package org.gooru.auth.handlers.processors.repositories.activejdbc.entities;
 
 import io.vertx.core.json.JsonArray;
-import io.vertx.core.json.JsonObject;
 
 import java.util.Date;
 
+import org.gooru.auth.handlers.constants.ParameterConstants;
 import org.gooru.auth.handlers.constants.SchemaConstants;
 import org.javalite.activejdbc.Model;
 import org.javalite.activejdbc.annotations.IdName;
@@ -15,59 +15,59 @@ import org.javalite.activejdbc.annotations.Table;
 public class AJEntityUser extends Model {
 
   public String getId() {
-    return getString("id");
+    return getString(ParameterConstants.PARAM_ID);
   }
 
   public String getFirstname() {
-    return getString("firstname");
+    return getString(ParameterConstants.PARAM_USER_FIRSTNAME);
   }
 
   public void setFirstname(String firstname) {
-    setString("firstname", firstname);
+    setString(ParameterConstants.PARAM_USER_FIRSTNAME, firstname);
   }
 
   public String getLastname() {
-    return getString("lastname");
+    return getString(ParameterConstants.PARAM_USER_LASTNAME);
   }
 
   public void setLastname(String lastname) {
-    setString("lastname", lastname);
+    setString(ParameterConstants.PARAM_USER_LASTNAME, lastname);
   }
 
   public String getGender() {
-    return getString("gender");
+    return getString(ParameterConstants.PARAM_USER_GENDER);
   }
 
   public void setGender(String gender) {
-    set("gender", DBEnums.userGenderType(gender));
+    set(ParameterConstants.PARAM_USER_GENDER, DBEnums.userGenderType(gender));
   }
 
   public String getUserCategory() {
-    return getString("user_category");
+    return getString(ParameterConstants.PARAM_USER_CATEGORY);
   }
 
   public void setUserCategory(String userCategory) {
-    set("user_category", DBEnums.userCategoryType(userCategory));
+    set(ParameterConstants.PARAM_USER_CATEGORY, DBEnums.userCategoryType(userCategory));
   }
 
   public Date getBirthDate() {
-    return getDate("birth_date");
+    return getDate(ParameterConstants.PARAM_USER_BIRTH_DATE);
   }
 
   public void setBirthDate(Date birthDate) {
-    setDate("birth_date", birthDate);
+    setDate(ParameterConstants.PARAM_USER_BIRTH_DATE, birthDate);
   }
 
   public String getParentUserId() {
-    return getString("parent_user_id");
+    return getString(ParameterConstants.PARAM_USER_PARENT_USER_ID);
   }
 
   public void setParentUserId(String parentUserId) {
-    setString("parent_user_id", parentUserId);
+    setString(ParameterConstants.PARAM_USER_PARENT_USER_ID, parentUserId);
   }
 
   public JsonArray getGrade() {
-    String json = getString("grade");
+    String json = getString(ParameterConstants.PARAM_GRADE);
     JsonArray grade = null;
     if (json != null) {
       grade = new JsonArray(json);
@@ -76,75 +76,75 @@ public class AJEntityUser extends Model {
   }
 
   public void setGrade(JsonArray grade) {
-    set("grade", DBEnums.jsonArray(grade));
+    set(ParameterConstants.PARAM_GRADE, DBEnums.jsonArray(grade));
   }
 
   public String getAboutMe() {
-    return getString("about_me");
+    return getString(ParameterConstants.PARAM_USER_ABOUT_ME);
   }
 
   public void setAboutMe(String aboutMe) {
-    setString("about_me", aboutMe);
+    setString(ParameterConstants.PARAM_USER_ABOUT_ME, aboutMe);
   }
 
   public String getSchoolId() {
-    return getString("school_id");
+    return getString(ParameterConstants.PARAM_USER_SCHOOL_ID);
   }
 
   public void setSchoolId(String schoolId) {
-    setString("school_id", schoolId);
+    setString(ParameterConstants.PARAM_USER_SCHOOL_ID, schoolId);
   }
 
   public String getSchoolDistrictId() {
-    return getString("school_district_id");
+    return getString(ParameterConstants.PARAM_USER_SCHOOL_DISTRICT_ID);
   }
 
   public void setSchoolDistrictId(String schoolDistrictId) {
-    setString("school_district_id", schoolDistrictId);
+    setString(ParameterConstants.PARAM_USER_SCHOOL_DISTRICT_ID, schoolDistrictId);
   }
 
   public String getEmailId() {
-    return getString("email_id");
+    return getString(ParameterConstants.PARAM_USER_EMAIL_ID);
   }
 
   public void setEmailId(String emailId) {
-    set("email_id", emailId);
+    set(ParameterConstants.PARAM_USER_EMAIL_ID, emailId);
   }
 
   public Long getCountryId() {
-    return getLong("country_id");
+    return getLong(ParameterConstants.PARAM_USER_COUNTRY_ID);
   }
 
   public void setCountryId(Long countryId) {
-    set("country_id", countryId);
+    set(ParameterConstants.PARAM_USER_COUNTRY_ID, countryId);
   }
 
   public Long getStateId() {
-    return getLong("state_id");
+    return getLong(ParameterConstants.PARAM_USER_STATE_ID);
   }
 
   public void setStateId(Long stateId) {
-    setLong("state_id", stateId);
+    setLong(ParameterConstants.PARAM_USER_STATE_ID, stateId);
   }
 
-  public JsonObject getCourse() {
-    String json = getString("course");
-    JsonObject course = null;
+  public JsonArray getCourse() {
+    String json = getString(ParameterConstants.PARAM_COURSE);
+    JsonArray course = null;
     if (json != null) {
-      course = new JsonObject(json);
+      course = new JsonArray(json);
     }
     return course;
   }
 
-  public void setCourse(JsonObject course) {
-    set("course", DBEnums.jsonObject(course));
+  public void setCourse(JsonArray course) {
+    set(ParameterConstants.PARAM_COURSE, DBEnums.jsonArray(course));
   }
 
   public String getThumbnailPath() {
-    return getString("thumbnail_path");
+    return getString(ParameterConstants.PARAM_USER_THUMBNAIL_PATH);
   }
 
   public void setThumbnailPath(String thumbnailPath) {
-    setString("thumbnail_path", thumbnailPath);
+    setString(ParameterConstants.PARAM_USER_THUMBNAIL_PATH, thumbnailPath);
   }
 }

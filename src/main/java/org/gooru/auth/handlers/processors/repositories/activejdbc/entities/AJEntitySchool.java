@@ -1,5 +1,6 @@
 package org.gooru.auth.handlers.processors.repositories.activejdbc.entities;
 
+import org.gooru.auth.handlers.constants.ParameterConstants;
 import org.gooru.auth.handlers.constants.SchemaConstants;
 import org.javalite.activejdbc.Model;
 import org.javalite.activejdbc.annotations.IdName;
@@ -10,31 +11,39 @@ import org.javalite.activejdbc.annotations.Table;
 public class AJEntitySchool extends Model {
 
   public String getId() {
-    return getString("id");
+    return getString(ParameterConstants.PARAM_ID);
   }
 
   public String getName() {
-    return getString("name");
+    return getString(ParameterConstants.PARAM_NAME);
   }
 
   public void setName(String name) {
-    set("name", name);
+    set(ParameterConstants.PARAM_NAME, name);
   }
 
   public String getCode() {
-    return getString("code");
+    return getString(ParameterConstants.PARAM_CODE);
   }
 
   public void setCode(String code) {
-    set("code", code);
+    set(ParameterConstants.PARAM_CODE, code);
   }
 
   public String getCreatorId() {
-    return getString("creator_id");
+    return getString(ParameterConstants.PARAM_CREATOR_ID);
   }
 
   public void setCreatorId(String creatorId) {
-    set("creator_id", creatorId);
+    set(ParameterConstants.PARAM_CREATOR_ID, creatorId);
+  }
+  
+  public String getSchoolDistrictId() {
+    return getString(ParameterConstants.PARAM_USER_SCHOOL_DISTRICT_ID);
+  }
+
+  public void setSchoolDistrictId(String schoolDistrictId) {
+    set(ParameterConstants.PARAM_USER_SCHOOL_DISTRICT_ID, schoolDistrictId);
   }
 
 }

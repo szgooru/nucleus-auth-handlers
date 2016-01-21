@@ -4,11 +4,16 @@ import java.util.UUID;
 
 import org.gooru.auth.handlers.processors.repositories.CountryRepo;
 import org.gooru.auth.handlers.processors.repositories.activejdbc.entities.AJEntityCountry;
+import org.gooru.auth.handlers.utils.ServerValidatorUtility;
 import org.javalite.activejdbc.Base;
 import org.javalite.activejdbc.LazyList;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class AJCountryRepo extends AJAbstractRepo implements CountryRepo {
 
+  private static final Logger LOG = LoggerFactory.getLogger(AJCountryRepo.class);
+  
   private static final String GET_COUNTRY_BY_NAME = "name = ?";
 
   private static final String GET_COUNTRY_BY_ID = "id = ?";
@@ -38,10 +43,17 @@ public class AJCountryRepo extends AJAbstractRepo implements CountryRepo {
   }
 
   private AJEntityCountry query(String whereClause, Object... params) {
-    Base.open(dataSource());
-    LazyList<AJEntityCountry> results = AJEntityCountry.where(whereClause, params);
-    AJEntityCountry country = results.size() > 0 ? results.get(0) : null;
-    Base.close();
+    AJEntityCountry country = null;
+    try {
+      Base.open(dataSource());
+      LazyList<AJEntityCountry> results = AJEntityCountry.where(whereClause, params);
+      country = results.size() > 0 ? results.get(0) : null;
+    } catch (Exception e) {
+      LOG.error("Exception while marking connetion to be read", e);
+      ServerValidatorUtility.throwASInternalServerError();
+    } finally {
+      Base.close();
+    }
     return country;
   }
 }

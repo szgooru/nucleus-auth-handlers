@@ -4,10 +4,15 @@ import java.util.UUID;
 
 import org.gooru.auth.handlers.processors.repositories.SchoolDistrictRepo;
 import org.gooru.auth.handlers.processors.repositories.activejdbc.entities.AJEntitySchoolDistrict;
+import org.gooru.auth.handlers.utils.ServerValidatorUtility;
 import org.javalite.activejdbc.Base;
 import org.javalite.activejdbc.LazyList;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class AJSchoolDistrictRepo extends AJAbstractRepo implements SchoolDistrictRepo {
+
+  private static final Logger LOG = LoggerFactory.getLogger(AJSchoolDistrictRepo.class);
 
   private static final String GET_SCHOOL_DISTRICT_BY_NAME = "name = ?";
 
@@ -15,7 +20,7 @@ public class AJSchoolDistrictRepo extends AJAbstractRepo implements SchoolDistri
 
   @Override
   public AJEntitySchoolDistrict createSchoolDistrict(AJEntitySchoolDistrict schoolDistrict) {
-    return (AJEntitySchoolDistrict) saveOrUpdate(schoolDistrict);
+    return (AJEntitySchoolDistrict) save(schoolDistrict);
   }
 
   @Override
@@ -39,10 +44,18 @@ public class AJSchoolDistrictRepo extends AJAbstractRepo implements SchoolDistri
   }
 
   private AJEntitySchoolDistrict query(String whereClause, Object... params) {
-    Base.open(dataSource());
-    LazyList<AJEntitySchoolDistrict> results = AJEntitySchoolDistrict.where(whereClause, params);
-    AJEntitySchoolDistrict schoolDistrict = results.size() > 0 ? results.get(0) : null;
-    Base.close();
+    AJEntitySchoolDistrict schoolDistrict = null;
+    try {
+      Base.open(dataSource());
+      LazyList<AJEntitySchoolDistrict> results = AJEntitySchoolDistrict.where(whereClause, params);
+      schoolDistrict = results.size() > 0 ? results.get(0) : null;
+    } catch (Exception e) {
+      LOG.error("Exception while marking connetion to be read", e);
+      ServerValidatorUtility.throwASInternalServerError();
+    } finally {
+      Base.close();
+    }
+
     return schoolDistrict;
   }
 }

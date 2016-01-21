@@ -4,10 +4,15 @@ import java.util.UUID;
 
 import org.gooru.auth.handlers.processors.repositories.SchoolRepo;
 import org.gooru.auth.handlers.processors.repositories.activejdbc.entities.AJEntitySchool;
+import org.gooru.auth.handlers.utils.ServerValidatorUtility;
 import org.javalite.activejdbc.Base;
 import org.javalite.activejdbc.LazyList;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class AJSchoolRepo extends AJAbstractRepo implements SchoolRepo {
+
+  private static final Logger LOG = LoggerFactory.getLogger(AJSchoolRepo.class);
 
   private static final String GET_SCHOOL_BY_NAME = "name = ?";
 
@@ -19,12 +24,13 @@ public class AJSchoolRepo extends AJAbstractRepo implements SchoolRepo {
   }
 
   @Override
-  public AJEntitySchool createSchool(String name, String creatorId) {
+  public AJEntitySchool createSchool(String name, String schoolDistrictId, String creatorId) {
     AJEntitySchool school = new AJEntitySchool();
     school.setId(UUID.randomUUID().toString());
     school.setName(name);
     school.setCode(UUID.randomUUID().toString());
     school.setCreatorId(creatorId);
+    school.setSchoolDistrictId(schoolDistrictId);
     return createSchool(school);
   }
 
@@ -39,10 +45,17 @@ public class AJSchoolRepo extends AJAbstractRepo implements SchoolRepo {
   }
 
   private AJEntitySchool query(String whereClause, Object... params) {
-    Base.open(dataSource());
-    LazyList<AJEntitySchool> results = AJEntitySchool.where(whereClause, params);
-    AJEntitySchool school = results.size() > 0 ? results.get(0) : null;
-    Base.close();
+    AJEntitySchool school = null;
+    try {
+      Base.open(dataSource());
+      LazyList<AJEntitySchool> results = AJEntitySchool.where(whereClause, params);
+      school = results.size() > 0 ? results.get(0) : null;
+    } catch (Exception e) {
+      LOG.error("Exception while marking connetion to be read", e);
+      ServerValidatorUtility.throwASInternalServerError();
+    } finally {
+      Base.close();
+    }
     return school;
   }
 
