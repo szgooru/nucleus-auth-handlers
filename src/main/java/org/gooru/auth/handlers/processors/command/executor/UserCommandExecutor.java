@@ -54,26 +54,31 @@ public final class UserCommandExecutor implements CommandExecutor {
       result = getUserService().resetPassword(emailId);
       break;
     case CommandConstants.UPDATE_PASSWORD:
-      final String userUpdatePasswordId = messageContext.requestParams().getString(MessageConstants.MSG_USER_ID);
       final String resetPasswordToken = messageContext.requestBody().getString(ParameterConstants.PARAM_USER_TOKEN);
       final String newPassword = messageContext.requestBody().getString(ParameterConstants.PARAM_USER_NEW_PASSWORD);
       if (messageContext.user().getUserId().equalsIgnoreCase(MessageConstants.MSG_USER_ANONYMOUS)) {
         result = getUserService().resetUnAuthenticateUserPassword(resetPasswordToken, newPassword);
       } else {
         final String oldPassword = messageContext.requestBody().getString(ParameterConstants.PARAM_USER_OLD_PASSWORD);
-        result = getUserService().resetAuthenticateUserPassword(userUpdatePasswordId, oldPassword, newPassword);
+        result = getUserService().resetAuthenticateUserPassword(messageContext.user().getUserId(), oldPassword, newPassword);
       }
       break;
     case CommandConstants.RESET_EMAIL_ADDRESS:
-     final String newEmailId = messageContext.requestBody().getString(ParameterConstants.PARAM_USER_EMAIL_ID);
+     String newEmailId = null;
+     if (messageContext.requestBody() != null) {        
+       newEmailId = messageContext.requestBody().getString(ParameterConstants.PARAM_USER_EMAIL_ID);
+     }
       result = getUserService().updateUserEmail(messageContext.user().getUserId(), newEmailId);
       break;
     case CommandConstants.RESEND_CONFIRMATION_EMAIL:
-      result = getUserService().resendConfirmationEmail(messageContext.requestBody().getString(ParameterConstants.PARAM_USER_EMAIL_ID));
+      result = getUserService().resendConfirmationEmail(messageContext.user().getUserId());
       break;
     case CommandConstants.CONFIRMATION_EMAIL:
-      String token = messageContext.requestBody().getString(ParameterConstants.PARAM_USER_TOKEN);
-      result = getUserService().confirmUserEmail(messageContext.user().getUserId(), token);
+      String token = null;
+      if (messageContext.requestBody() != null) { 
+        token = messageContext.requestBody().getString(ParameterConstants.PARAM_USER_TOKEN);        
+      }
+      result = getUserService().confirmUserEmail(token);
       break;
     default:
       LOG.error("Invalid command type passed in, not able to handle");

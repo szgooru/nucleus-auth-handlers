@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import org.gooru.auth.handlers.infra.ConfigRegistry;
 import org.gooru.auth.handlers.infra.DataSourceRegistry;
 import org.gooru.auth.handlers.infra.RedisClient;
 
@@ -14,6 +15,7 @@ public class Initializers implements Iterable<Initializer> {
     final List<Initializer> initializers = new ArrayList<Initializer>();
     initializers.add(DataSourceRegistry.getInstance());
     initializers.add(RedisClient.instance());
+    initializers.add(ConfigRegistry.instance());
     internalIterator = initializers.iterator();
   }
 

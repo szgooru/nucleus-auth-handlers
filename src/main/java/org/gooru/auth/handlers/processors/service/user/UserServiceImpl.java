@@ -180,29 +180,40 @@ public class UserServiceImpl extends ServerValidatorUtility implements UserServi
   }
 
   @Override
-  public MessageResponse resendConfirmationEmail(String emailId) {
-    final AJEntityUserIdentity userIdentity = getUserIdentityRepo().getUserIdentityByEmailId(emailId);
+  public MessageResponse resendConfirmationEmail(String userId) {
+    final AJEntityUser user = getUserRepo().getUser(userId);
+    rejectIfNull(user, MessageCodeConstants.AU0026, HttpConstants.HttpStatus.NOT_FOUND.getCode(), ParameterConstants.PARAM_USER);
+    final AJEntityUserIdentity userIdentity = getUserIdentityRepo().getUserIdentityByEmailId(user.getEmailId());
     rejectIfNull(userIdentity, MessageCodeConstants.AU0026, HttpConstants.HttpStatus.NOT_FOUND.getCode(), ParameterConstants.PARAM_USER);
+    reject(userIdentity.getStatus().equalsIgnoreCase(ParameterConstants.PARAM_STATUS_DEACTIVTED), MessageCodeConstants.AU0009,
+            HttpConstants.HttpStatus.FORBIDDEN.getCode());
     final String token = InternalHelper.generateToken(InternalHelper.EMAIL_CONFIRM_TOKEN);
-    getRedisClient().set(token, userIdentity.getEmailId(), EXPIRE_IN_SECONDS);
+    JsonObject tokenData = new JsonObject();
+    tokenData.put(ParameterConstants.PARAM_USER_EMAIL_ID, userIdentity.getEmailId());
+    tokenData.put(ParameterConstants.PARAM_USER_ID, userId);
+    getRedisClient().set(token, tokenData.toString(), EXPIRE_IN_SECONDS);
     EventBuilder eventBuilder = new EventBuilder();
     eventBuilder.setEventName(Event.RESEND_CONFIRM_EMAIL.getName());
+    eventBuilder.putPayLoadObject(SchemaConstants.USER_DEMOGRAPHIC, AJResponseJsonTransformer.transform(user.toJson(false)));
     eventBuilder.putPayLoadObject(SchemaConstants.USER_IDENTITY, AJResponseJsonTransformer.transform(userIdentity.toJson(false)));
-    eventBuilder.putPayLoadObject(ParameterConstants.PARAM_USER_EMAIL_ID, emailId).putPayLoadObject(ParameterConstants.PARAM_TOKEN, token);
+    eventBuilder.putPayLoadObject(ParameterConstants.PARAM_USER_EMAIL_ID, user.getEmailId()).putPayLoadObject(ParameterConstants.PARAM_TOKEN, token);
     return new MessageResponse.Builder().setEventData(eventBuilder.build()).setContentTypeJson().setStatusOkay().successful().build();
   }
 
   @Override
-  public MessageResponse confirmUserEmail(String userId, String token) {
-    final String emailId = getRedisClient().get(token);
-    rejectIfNull(emailId, MessageCodeConstants.AU0028, HttpConstants.HttpStatus.UNAUTHORIZED.getCode());
+  public MessageResponse confirmUserEmail(String token) {
+    final String tokenData = getRedisClient().get(token);
+    rejectIfNull(tokenData, MessageCodeConstants.AU0028, HttpConstants.HttpStatus.UNAUTHORIZED.getCode());
+    JsonObject tokenJsonData = new JsonObject(tokenData);
+    final String userId = tokenJsonData.getString(ParameterConstants.PARAM_USER_ID);
+    final String emailId = tokenJsonData.getString(ParameterConstants.PARAM_USER_EMAIL_ID);
     final AJEntityUserIdentity userIdentity = getUserIdentityRepo().getUserIdentityById(userId);
     rejectIfNull(userIdentity, MessageCodeConstants.AU0026, HttpConstants.HttpStatus.NOT_FOUND.getCode(), ParameterConstants.PARAM_USER);
     EventBuilder eventBuilder = new EventBuilder();
     eventBuilder.setEventName(Event.UPDATE_USER_EMAIL_CONFIRM.getName());
     if (!userIdentity.getEmailId().equalsIgnoreCase(emailId)) {
       userIdentity.setEmailId(emailId);
-      AJEntityUser user = getUserRepo().getUser(userId);
+      AJEntityUser user = getUserRepo().getUser(userIdentity.getUserId());
       user.setEmailId(emailId);
       getUserRepo().update(user);
       eventBuilder.put(SchemaConstants.USER_DEMOGRAPHIC, AJResponseJsonTransformer.transform(user.toJson(false), HelperConstants.USERS_JSON_FIELDS));
@@ -211,7 +222,7 @@ public class UserServiceImpl extends ServerValidatorUtility implements UserServi
     getUserIdentityRepo().createOrUpdate(userIdentity);
     getRedisClient().del(token);
     eventBuilder.put(SchemaConstants.USER_IDENTITY, AJResponseJsonTransformer.transform(userIdentity.toJson(false)));
-    return new MessageResponse.Builder().setEventData(eventBuilder.build()).setContentTypeJson().setStatusOkay().successful().build();
+    return new MessageResponse.Builder().setEventData(eventBuilder.build()).setContentTypeJson().setStatusNoOutput().successful().build();
   }
 
   @Override
@@ -221,7 +232,10 @@ public class UserServiceImpl extends ServerValidatorUtility implements UserServi
     reject(userIdentityEmail != null, MessageCodeConstants.AU0023, HttpConstants.HttpStatus.BAD_REQUEST.getCode(), emailId,
             ParameterConstants.EMAIL_ADDRESS);
     final String token = InternalHelper.generateToken(InternalHelper.EMAIL_CONFIRM_TOKEN);
-    getRedisClient().set(token, emailId, EXPIRE_IN_SECONDS);
+    JsonObject tokenData = new JsonObject();
+    tokenData.put(ParameterConstants.PARAM_USER_EMAIL_ID, emailId);
+    tokenData.put(ParameterConstants.PARAM_USER_ID, userId);
+    getRedisClient().set(token, tokenData.toString(), EXPIRE_IN_SECONDS);
     AJEntityUser user = getUserRepo().getUser(userId);
     AJEntityUserIdentity userIdentity = getUserIdentityRepo().getUserIdentityById(userId);
     EventBuilder eventBuilder = new EventBuilder();
@@ -229,7 +243,7 @@ public class UserServiceImpl extends ServerValidatorUtility implements UserServi
     eventBuilder.putPayLoadObject(SchemaConstants.USER_IDENTITY, AJResponseJsonTransformer.transform(userIdentity.toJson(false)));
     eventBuilder.putPayLoadObject(SchemaConstants.USER_DEMOGRAPHIC, AJResponseJsonTransformer.transform(user.toJson(false)));
     eventBuilder.putPayLoadObject(ParameterConstants.PARAM_USER_NEW_EMAIL_ID, emailId).putPayLoadObject(ParameterConstants.PARAM_TOKEN, token);
-    return new MessageResponse.Builder().setContentTypeJson().setEventData(eventBuilder.build()).setStatusNoOutput().successful().build();
+    return new MessageResponse.Builder().setContentTypeJson().setEventData(eventBuilder.build()).setStatusOkay().successful().build();
   }
 
   private ActionResponseDTO<AJEntityUserIdentity> createUser(final UserDTO userDTO, final String clientId, final Date dob) {
@@ -252,6 +266,7 @@ public class UserServiceImpl extends ServerValidatorUtility implements UserServi
     rejectError(userValidator.getErrors(), HttpConstants.HttpStatus.BAD_REQUEST.getCode());
     AJEntityUser user = getUserRepo().create(userValidator.getModel());
     AJEntityUserIdentity userIdentity = createUserIdentityValue(userDTO, userValidator.getModel(), clientId);
+    userIdentity.setLastLogin(new Date(System.currentTimeMillis()));
     getUserIdentityRepo().createOrUpdate(userIdentity);
     final EventBuilder eventBuilder = new EventBuilder();
     eventBuilder.putPayLoadObject(SchemaConstants.USER_DEMOGRAPHIC,
@@ -424,7 +439,7 @@ public class UserServiceImpl extends ServerValidatorUtility implements UserServi
       }
       user.setCountryId(country.getId());
     }
-    
+
     if (userDTO.getStateId() != null) {
       AJEntityState state = getStateRepo().getStateById(userDTO.getStateId());
       addValidator(errors, (state == null), ParameterConstants.PARAM_USER_STATE_ID, MessageCodeConstants.AU0027, ParameterConstants.PARAM_USER_STATE);
@@ -451,7 +466,7 @@ public class UserServiceImpl extends ServerValidatorUtility implements UserServi
       }
       user.setSchoolDistrictId(schoolDistrict.getId());
     }
-    
+
     if (userDTO.getSchoolId() != null) {
       AJEntitySchool school = getSchoolRepo().getSchoolById(userDTO.getSchoolId());
       addValidator(errors, (school == null), ParameterConstants.PARAM_USER_SCHOOL_ID, MessageCodeConstants.AU0027,

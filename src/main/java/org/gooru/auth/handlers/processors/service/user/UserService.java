@@ -26,7 +26,7 @@ public interface UserService {
   
   MessageResponse resendConfirmationEmail(String emailId);
   
-  MessageResponse confirmUserEmail(String userId, String token);
+  MessageResponse confirmUserEmail(String token);
   
   MessageResponse updateUserEmail(String userId, String newEmailId);
 

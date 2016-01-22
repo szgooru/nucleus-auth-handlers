@@ -1,5 +1,7 @@
 package org.gooru.auth.handlers.processors.service.authentication;
 
+import java.util.Date;
+
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
@@ -68,6 +70,8 @@ public class AuthenticationGLAVersionServiceImpl extends ServerValidatorUtility 
     rejectIfNull(userIdentity, MessageCodeConstants.AU0008, HttpConstants.HttpStatus.UNAUTHORIZED.getCode());
     reject(userIdentity.getStatus().equalsIgnoreCase(ParameterConstants.PARAM_STATUS_DEACTIVTED), MessageCodeConstants.AU0009,
             HttpConstants.HttpStatus.FORBIDDEN.getCode());
+    userIdentity.setLastLogin(new Date(System.currentTimeMillis()));
+    getUserIdentityRepo().createOrUpdate(userIdentity);
     final JsonObject accessToken = new JsonObject();
     accessToken.put(ParameterConstants.PARAM_USER_ID, userIdentity.getUserId());
     accessToken.put(ParameterConstants.PARAM_USER_USERNAME, userIdentity.getUsername());

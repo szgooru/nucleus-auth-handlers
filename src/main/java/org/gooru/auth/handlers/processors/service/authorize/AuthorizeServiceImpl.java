@@ -3,6 +3,7 @@ package org.gooru.auth.handlers.processors.service.authorize;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
+import java.util.Date;
 import java.util.Random;
 import java.util.UUID;
 
@@ -74,6 +75,9 @@ public class AuthorizeServiceImpl extends ServerValidatorUtility implements Auth
               createUserWithIdentity(authorizeDTO.getUser(), authorizeDTO.getGrantType(), authorizeDTO.getClientId(), isEmailIdentity, eventBuilder);
       userIdentity = responseDTO.getModel();
       eventBuilder = responseDTO.getEventBuilder();
+    } else {
+      userIdentity.setLastLogin(new Date(System.currentTimeMillis()));
+      getUserIdentityRepo().createOrUpdate(userIdentity);
     }
 
     final JsonObject accessToken = new JsonObject();
@@ -126,7 +130,8 @@ public class AuthorizeServiceImpl extends ServerValidatorUtility implements Auth
     if (userDTO.getUsername() == null) {
       StringBuilder username = new StringBuilder(userDTO.getFirstname().replaceAll("\\s+", ""));
       if (userDTO.getLastname() != null && userDTO.getLastname().length() > 0 && username.length() < 14) {
-        username.append(userDTO.getLastname().substring(0, 5));
+        final String lastname = userDTO.getLastname();
+        username.append(lastname.substring(0, lastname.length() > 5 ? 5 : lastname.length()));
       }
       AJEntityUserIdentity identityUsername = getUserIdentityRepo().getUserIdentityByUsername(username.toString());
       if (identityUsername != null) {
@@ -137,6 +142,7 @@ public class AuthorizeServiceImpl extends ServerValidatorUtility implements Auth
     } else {
       userIdentity.setUsername(userDTO.getUsername());
     }
+    userIdentity.setLastLogin(new Date(System.currentTimeMillis()));
     getUserIdentityRepo().createOrUpdate(userIdentity);
     eventBuilder.putPayLoadObject(SchemaConstants.USER_IDENTITY, AJResponseJsonTransformer.transform(userIdentity.toJson(false)));
     return new ActionResponseDTO<AJEntityUserIdentity>(userIdentity, eventBuilder);

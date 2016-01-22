@@ -7,6 +7,7 @@ import org.gooru.auth.handlers.constants.HttpConstants;
 import org.gooru.auth.handlers.constants.MessageCodeConstants;
 import org.gooru.auth.handlers.constants.ParameterConstants;
 import org.gooru.auth.handlers.constants.SchemaConstants;
+import org.gooru.auth.handlers.infra.ConfigRegistry;
 import org.gooru.auth.handlers.processors.data.transform.model.UserPrefsDTO;
 import org.gooru.auth.handlers.processors.event.Event;
 import org.gooru.auth.handlers.processors.event.EventBuilder;
@@ -40,6 +41,9 @@ public class UserPrefsServiceImpl extends ServerValidatorUtility implements User
     if (userPreference == null) {
       userPreference = new AJEntityUserPreference();
       userPreference.setUserId(userId);
+      if (userPrefsDTO.getStandardPreference() == null) {
+        userPreference.setStandardPreference(ConfigRegistry.instance().getDefaultUserPrefs());
+      }
       isNew = true;
     }
     if (userPrefsDTO.getStandardPreference() != null) {
@@ -63,8 +67,14 @@ public class UserPrefsServiceImpl extends ServerValidatorUtility implements User
 
   @Override
   public MessageResponse getUserPreference(String userId) {
-    AJEntityUserPreference userPreference = getUserPreferenceRepo().getUserPreference(userId);
-    JsonObject result = AJResponseJsonTransformer.transform(userPreference.toJson(false), HelperConstants.USERS_PREFS_JSON_FIELDS);
+    final AJEntityUserPreference userPreference = getUserPreferenceRepo().getUserPreference(userId);
+    JsonObject result = null;
+    if (userPreference != null) {
+      result = AJResponseJsonTransformer.transform(userPreference.toJson(false), HelperConstants.USERS_PREFS_JSON_FIELDS);
+    } else {
+      result = ConfigRegistry.instance().getDefaultUserPrefs();
+    }
+
     return new MessageResponse.Builder().setResponseBody(result).setContentTypeJson().setStatusOkay().successful().build();
   }
 
