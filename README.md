@@ -20,10 +20,10 @@ DONE
 * Provided Redis connection support
 
 **API features**
-- <a href="api-docs/AUTHENTICATION.MD">AUTHENTICATION</a>
-- <a href="api-docs/USER.MD">USER</a>
-- <a href="api-docs/USER_PREFERENCE.MD">USER_PREFERENCE</a>
-- <a href="api-docs/AUTHORIZE.MD">AUTHORIZE</a>
+- <a  href="https://github.com/Gooru/nucleus-auth-gateway/blob/master/api-docs/AUTHENTICATION.md">AUTHENTICATION</a>
+- <a href="https://github.com/Gooru/nucleus-auth-gateway/blob/master/api-docs/USER.MD">USER</a>
+- <a href="https://github.com/Gooru/nucleus-auth-gateway/blob/master/api-docs/USER_PREFERENCE.MD">USER_PREFERENCE</a>
+- <a href="https://github.com/Gooru/nucleus-auth-gateway/blob/master/api-docs/AUTHORIZE.MD">AUTHORIZE</a>
 
 
 **service**
@@ -33,5 +33,5 @@ TODO
 ----
  - Notification
 
-To understand build related stuff, take a look at <a href="api-docs/BUILD_README.md">BUILD_README</a>
+To understand build related stuff, take a look at <a href="BUILD_README.md">BUILD_README</a>
 
