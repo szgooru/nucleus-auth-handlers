@@ -31,8 +31,8 @@ public class AJEntityUserPreference extends Model {
     return prefs;
   }
 
-  public void setStandardPreference(JsonObject standardPreference) {
-    set(ParameterConstants.PARAM_STANDARD_PREFERENCE, DBEnums.jsonObject(standardPreference));
+  public void setStandardPreference(JsonArray standardPreference) {
+    set(ParameterConstants.PARAM_STANDARD_PREFERENCE, DBEnums.jsonArray(standardPreference));
   }
 
   public Boolean getProfileVisiblity(Boolean profileVisiblity) {

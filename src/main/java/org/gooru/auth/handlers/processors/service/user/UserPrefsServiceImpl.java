@@ -46,14 +46,14 @@ public class UserPrefsServiceImpl extends ServerValidatorUtility implements User
       userPreference = new AJEntityUserPreference();
       userPreference.setUserId(userId);
       if (userPrefsDTO.getStandardPreference() == null) {
-        userPreference.setStandardPreference(ConfigRegistry.instance().getDefaultUserPrefs());
+        userPreference.setStandardPreference(ConfigRegistry.instance().getDefaultUserStandardPrefs());
       }
       isNew = true;
     }
     if (userPrefsDTO.getStandardPreference() != null) {
       userPreference.setStandardPreference(userPrefsDTO.getStandardPreference());
       JsonObject accessToken = getRedisClient().getJsonObject(token);
-      accessToken.put(ParameterConstants.PARAM_ACCESS_TOKEN, userPreference.getStandardPreference());
+      accessToken.put(ParameterConstants.PARAM_TAXONOMY, userPreference.getStandardPreference());
       getRedisClient().set(token, accessToken.toString());
     }
 

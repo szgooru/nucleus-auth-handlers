@@ -3,7 +3,6 @@ package org.gooru.auth.handlers.processors.service.authorize;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
-import java.util.Date;
 import java.util.Random;
 import java.util.UUID;
 
@@ -76,7 +75,7 @@ public class AuthorizeServiceImpl extends ServerValidatorUtility implements Auth
               createUserWithIdentity(authorizeDTO.getUser(), authorizeDTO.getGrantType(), authorizeDTO.getClientId(), isEmailIdentity, eventBuilder);
       userIdentity = responseDTO.getModel();
       eventBuilder = responseDTO.getEventBuilder();
-    } 
+    }
 
     final JsonObject accessToken = new JsonObject();
     accessToken.put(ParameterConstants.PARAM_USER_ID, userIdentity.getUserId());
@@ -91,8 +90,8 @@ public class AuthorizeServiceImpl extends ServerValidatorUtility implements Auth
     } else {
       prefs.put(ParameterConstants.PARAM_TAXONOMY, ConfigRegistry.instance().getDefaultUserStandardPrefs());
     }
-    accessToken.put(ParameterConstants.PARAM_USER_PREFERENCE, prefs);
     accessToken.put(ParameterConstants.PARAM_CDN_URLS, authClient.getCdnUrls());
+    accessToken.put(ParameterConstants.PARAM_USER_PREFERENCE, prefs);
     saveAccessToken(token, accessToken, authClient.getAccessTokenValidity());
     accessToken.put(ParameterConstants.PARAM_ACCESS_TOKEN, token);
     StringBuilder uri = new StringBuilder(authorizeDTO.getReturnUrl());
