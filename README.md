@@ -20,20 +20,18 @@ DONE
 * Provided Redis connection support
 
 **API features**
-* Authenticate client and generate anonymous access token
-* Authenticate client, user credentials and generate authenticate access token
-* Delete access token
+- <a  href="https://github.com/Gooru/nucleus-auth-gateway/blob/master/api-docs/AUTHENTICATION.md">AUTHENTICATION</a>
+- <a href="https://github.com/Gooru/nucleus-auth-gateway/blob/master/api-docs/USER.MD">USER</a>
+- <a href="https://github.com/Gooru/nucleus-auth-gateway/blob/master/api-docs/USER_PREFERENCE.MD">USER_PREFERENCE</a>
+- <a href="https://github.com/Gooru/nucleus-auth-gateway/blob/master/api-docs/AUTHORIZE.MD">AUTHORIZE</a>
+
 
 **service**
 * Read access token from redis
 
 TODO
 ----
-* Handle exception and create as  json object
-* Support to store the content, user profile repository urls in auth_client table
-* Authorize user - it will be used by auth-node based implementation of google connect, WSFED and SAML
-* Create user, Update user, get user
-* Update user preference, get user preference
+ - Notification
 
-To understand build related stuff, take a look at **BUILD_README.md**.
+To understand build related stuff, take a look at <a href="BUILD_README.md">BUILD_README</a>
 
