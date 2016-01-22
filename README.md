@@ -20,20 +20,17 @@ DONE
 * Provided Redis connection support
 
 **API features**
-* Authenticate client and generate anonymous access token
-* Authenticate client, user credentials and generate authenticate access token
-* Delete access token
+[#AUTHENTICATION.MD]
+[#USER.MD]
+[#USER_PREFERENCE.MD]
+[#AUTHORIZE.MD]
 
 **service**
 * Read access token from redis
 
 TODO
 ----
-* Handle exception and create as  json object
-* Support to store the content, user profile repository urls in auth_client table
-* Authorize user - it will be used by auth-node based implementation of google connect, WSFED and SAML
-* Create user, Update user, get user
-* Update user preference, get user preference
+ - Notification
 
 To understand build related stuff, take a look at **BUILD_README.md**.
 
