@@ -20,10 +20,11 @@ DONE
 * Provided Redis connection support
 
 **API features**
-[#AUTHENTICATION.MD]
-[#USER.MD]
-[#USER_PREFERENCE.MD]
-[#AUTHORIZE.MD]
+- <a href="api-docs/AUTHENTICATION.MD">AUTHENTICATION</a>
+- <a href="api-docs/USER.MD">USER</a>
+- <a href="api-docs/USER_PREFERENCE.MD">USER_PREFERENCE</a>
+- <a href="api-docs/AUTHORIZE.MD">AUTHORIZE</a>
+
 
 **service**
 * Read access token from redis
@@ -32,5 +33,5 @@ TODO
 ----
  - Notification
 
-To understand build related stuff, take a look at **BUILD_README.md**.
+To understand build related stuff, take a look at <a href="api-docs/BUILD_README.md">BUILD_README</a>
 
