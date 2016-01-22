@@ -31,7 +31,8 @@ public final class UserPrefsCommandExecutor implements CommandExecutor {
         userUpdateId = messageContext.user().getUserId();
       }
       UserPrefsDTO userPrefsDTO = new UserPrefsDTO(messageContext.requestBody().getMap());
-      result = getUserPrefsService().updateUserPreference(userUpdateId, userPrefsDTO);
+      String accessToken = messageContext.headers().get(MessageConstants.MSG_HEADER_TOKEN);
+      result = getUserPrefsService().updateUserPreference(accessToken, userUpdateId, userPrefsDTO);
       break;
     case CommandConstants.GET_USER_PREFERENCE:
       String userId = messageContext.requestParams().getString(MessageConstants.MSG_USER_ID);

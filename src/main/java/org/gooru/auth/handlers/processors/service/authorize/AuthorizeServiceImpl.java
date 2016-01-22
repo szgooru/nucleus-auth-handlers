@@ -12,6 +12,7 @@ import org.gooru.auth.handlers.constants.HttpConstants;
 import org.gooru.auth.handlers.constants.MessageCodeConstants;
 import org.gooru.auth.handlers.constants.ParameterConstants;
 import org.gooru.auth.handlers.constants.SchemaConstants;
+import org.gooru.auth.handlers.infra.ConfigRegistry;
 import org.gooru.auth.handlers.infra.RedisClient;
 import org.gooru.auth.handlers.processors.data.transform.model.AuthorizeDTO;
 import org.gooru.auth.handlers.processors.data.transform.model.UserDTO;
@@ -75,10 +76,7 @@ public class AuthorizeServiceImpl extends ServerValidatorUtility implements Auth
               createUserWithIdentity(authorizeDTO.getUser(), authorizeDTO.getGrantType(), authorizeDTO.getClientId(), isEmailIdentity, eventBuilder);
       userIdentity = responseDTO.getModel();
       eventBuilder = responseDTO.getEventBuilder();
-    } else {
-      userIdentity.setLastLogin(new Date(System.currentTimeMillis()));
-      getUserIdentityRepo().createOrUpdate(userIdentity);
-    }
+    } 
 
     final JsonObject accessToken = new JsonObject();
     accessToken.put(ParameterConstants.PARAM_USER_ID, userIdentity.getUserId());
@@ -87,13 +85,13 @@ public class AuthorizeServiceImpl extends ServerValidatorUtility implements Auth
     accessToken.put(ParameterConstants.PARAM_PROVIDED_AT, System.currentTimeMillis());
     final String token = InternalHelper.generateToken(userIdentity.getUserId());
     final AJEntityUserPreference userPreference = getUserPreferenceRepo().getUserPreference(userIdentity.getUserId());
+    JsonObject prefs = new JsonObject();
     if (userPreference != null) {
-      JsonObject prefs = new JsonObject();
-      if (userPreference.getStandardPreference() != null) {
-        prefs.put(ParameterConstants.PARAM_TAXONOMY, userPreference.getStandardPreference());
-      }
-      accessToken.put(ParameterConstants.PARAM_USER_PREFERENCE, prefs);
+      prefs.put(ParameterConstants.PARAM_TAXONOMY, userPreference.getStandardPreference());
+    } else {
+      prefs.put(ParameterConstants.PARAM_TAXONOMY, ConfigRegistry.instance().getDefaultUserStandardPrefs());
     }
+    accessToken.put(ParameterConstants.PARAM_USER_PREFERENCE, prefs);
     accessToken.put(ParameterConstants.PARAM_CDN_URLS, authClient.getCdnUrls());
     saveAccessToken(token, accessToken, authClient.getAccessTokenValidity());
     accessToken.put(ParameterConstants.PARAM_ACCESS_TOKEN, token);
@@ -142,8 +140,6 @@ public class AuthorizeServiceImpl extends ServerValidatorUtility implements Auth
     } else {
       userIdentity.setUsername(userDTO.getUsername());
     }
-    userIdentity.setLastLogin(new Date(System.currentTimeMillis()));
-    getUserIdentityRepo().createOrUpdate(userIdentity);
     eventBuilder.putPayLoadObject(SchemaConstants.USER_IDENTITY, AJResponseJsonTransformer.transform(userIdentity.toJson(false)));
     return new ActionResponseDTO<AJEntityUserIdentity>(userIdentity, eventBuilder);
   }

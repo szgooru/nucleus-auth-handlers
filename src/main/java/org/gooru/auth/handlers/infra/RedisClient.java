@@ -106,6 +106,18 @@ public final class RedisClient implements Initializer, Finalizer {
     }
   }
 
+  public void set(String key, String value) {
+    Jedis jedis = null;
+    try {
+      jedis = getJedis();
+      jedis.set(key, value);
+    } finally {
+      if (jedis != null) {
+        jedis.close();
+      }
+    }
+  }
+
   public Jedis getJedis() {
 
     return pool.getResource();

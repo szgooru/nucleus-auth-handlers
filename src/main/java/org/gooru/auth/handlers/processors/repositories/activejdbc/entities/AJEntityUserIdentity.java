@@ -1,7 +1,5 @@
 package org.gooru.auth.handlers.processors.repositories.activejdbc.entities;
 
-import java.util.Date;
-
 import org.gooru.auth.handlers.constants.ParameterConstants;
 import org.gooru.auth.handlers.constants.SchemaConstants;
 import org.javalite.activejdbc.Model;
@@ -50,14 +48,6 @@ public class AJEntityUserIdentity extends Model {
 
   public void setProvisionType(String provisionType) {
     set(ParameterConstants.PARAM_USER_PROVISION_TYPE, DBEnums.provisionType(provisionType));
-  }
-
-  public Date getLastLogin() {
-    return getDate(ParameterConstants.PARAM_USER_LAST_LOGIN);
-  }
-
-  public void setLastLogin(Date lastLogin) {
-    set(ParameterConstants.PARAM_USER_LAST_LOGIN, lastLogin);
   }
 
   public String getReferenceId() {

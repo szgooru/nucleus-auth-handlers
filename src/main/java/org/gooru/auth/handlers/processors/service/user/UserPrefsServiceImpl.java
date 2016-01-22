@@ -8,6 +8,7 @@ import org.gooru.auth.handlers.constants.MessageCodeConstants;
 import org.gooru.auth.handlers.constants.ParameterConstants;
 import org.gooru.auth.handlers.constants.SchemaConstants;
 import org.gooru.auth.handlers.infra.ConfigRegistry;
+import org.gooru.auth.handlers.infra.RedisClient;
 import org.gooru.auth.handlers.processors.data.transform.model.UserPrefsDTO;
 import org.gooru.auth.handlers.processors.event.Event;
 import org.gooru.auth.handlers.processors.event.EventBuilder;
@@ -25,13 +26,16 @@ public class UserPrefsServiceImpl extends ServerValidatorUtility implements User
 
   private UserIdentityRepo userIdentityRepo;
 
+  private RedisClient redisClient;
+
   public UserPrefsServiceImpl() {
     setUserPreferenceRepo(UserPreferenceRepo.instance());
     setUserIdentityRepo(UserIdentityRepo.instance());
+    setRedisClient(RedisClient.instance());
   }
 
   @Override
-  public MessageResponse updateUserPreference(String userId, UserPrefsDTO userPrefsDTO) {
+  public MessageResponse updateUserPreference(String token, String userId, UserPrefsDTO userPrefsDTO) {
     final AJEntityUserIdentity userIdentity = getUserIdentityRepo().getUserIdentityById(userId);
     rejectIfNull(userIdentity, MessageCodeConstants.AU0026, HttpConstants.HttpStatus.NOT_FOUND.getCode(), ParameterConstants.PARAM_USER);
     reject(userIdentity.getStatus().equalsIgnoreCase(ParameterConstants.PARAM_STATUS_DEACTIVTED), MessageCodeConstants.AU0009,
@@ -48,6 +52,9 @@ public class UserPrefsServiceImpl extends ServerValidatorUtility implements User
     }
     if (userPrefsDTO.getStandardPreference() != null) {
       userPreference.setStandardPreference(userPrefsDTO.getStandardPreference());
+      JsonObject accessToken = getRedisClient().getJsonObject(token);
+      accessToken.put(ParameterConstants.PARAM_ACCESS_TOKEN, userPreference.getStandardPreference());
+      getRedisClient().set(token, accessToken.toString());
     }
 
     if (userPrefsDTO.getProfileVisiblity() != null) {
@@ -92,6 +99,14 @@ public class UserPrefsServiceImpl extends ServerValidatorUtility implements User
 
   public void setUserIdentityRepo(UserIdentityRepo userIdentityRepo) {
     this.userIdentityRepo = userIdentityRepo;
+  }
+
+  public RedisClient getRedisClient() {
+    return redisClient;
+  }
+
+  public void setRedisClient(RedisClient redisClient) {
+    this.redisClient = redisClient;
   }
 
 }

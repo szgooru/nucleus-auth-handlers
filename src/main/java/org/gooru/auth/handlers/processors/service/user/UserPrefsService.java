@@ -8,7 +8,7 @@ public interface UserPrefsService {
     return new UserPrefsServiceImpl();
   }
 
-  MessageResponse updateUserPreference(String userId, UserPrefsDTO userPrefsDTO);
+  MessageResponse updateUserPreference(String accesstoken, String userId, UserPrefsDTO userPrefsDTO);
 
   MessageResponse getUserPreference(String userId);
 }

@@ -10,6 +10,7 @@ import org.gooru.auth.handlers.constants.HttpConstants;
 import org.gooru.auth.handlers.constants.MessageCodeConstants;
 import org.gooru.auth.handlers.constants.ParameterConstants;
 import org.gooru.auth.handlers.constants.SchemaConstants;
+import org.gooru.auth.handlers.infra.ConfigRegistry;
 import org.gooru.auth.handlers.infra.RedisClient;
 import org.gooru.auth.handlers.processors.UserContext;
 import org.gooru.auth.handlers.processors.data.transform.model.UserDTO;
@@ -82,6 +83,9 @@ public class UserServiceImpl extends ServerValidatorUtility implements UserServi
     accessToken.put(ParameterConstants.PARAM_CLIENT_ID, userContext.getClientId());
     accessToken.put(ParameterConstants.PARAM_PROVIDED_AT, System.currentTimeMillis());
     accessToken.put(ParameterConstants.PARAM_CDN_URLS, userContext.getCdnUrls());
+    JsonObject prefs = new JsonObject();
+    prefs.put(ParameterConstants.PARAM_TAXONOMY, ConfigRegistry.instance().getDefaultUserStandardPrefs());
+    accessToken.put(ParameterConstants.PARAM_USER_PREFERENCE, prefs);
     final String token = InternalHelper.generateToken(userIdentity.getUserId());
     saveAccessToken(token, accessToken, userContext.getAccessTokenValidity());
     accessToken.put(ParameterConstants.PARAM_ACCESS_TOKEN, token);
@@ -266,8 +270,6 @@ public class UserServiceImpl extends ServerValidatorUtility implements UserServi
     rejectError(userValidator.getErrors(), HttpConstants.HttpStatus.BAD_REQUEST.getCode());
     AJEntityUser user = getUserRepo().create(userValidator.getModel());
     AJEntityUserIdentity userIdentity = createUserIdentityValue(userDTO, userValidator.getModel(), clientId);
-    userIdentity.setLastLogin(new Date(System.currentTimeMillis()));
-    getUserIdentityRepo().createOrUpdate(userIdentity);
     final EventBuilder eventBuilder = new EventBuilder();
     eventBuilder.putPayLoadObject(SchemaConstants.USER_DEMOGRAPHIC,
             AJResponseJsonTransformer.transform(user.toJson(false), HelperConstants.USERS_JSON_FIELDS));
