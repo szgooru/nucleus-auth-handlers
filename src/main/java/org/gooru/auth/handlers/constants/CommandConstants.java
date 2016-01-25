@@ -2,6 +2,7 @@ package org.gooru.auth.handlers.constants;
 
 public class CommandConstants {
   // Authentication command
+  public static final String ANONYMOUS_CREATE_ACCESS_TOKEN = "anonymous.create.access.token";
   public static final String CREATE_ACCESS_TOKEN = "create.access.token";
   public static final String DELETE_ACCESS_TOKEN = "delete.access.token";
   public static final String GET_ACCESS_TOKEN = "get.access.token";

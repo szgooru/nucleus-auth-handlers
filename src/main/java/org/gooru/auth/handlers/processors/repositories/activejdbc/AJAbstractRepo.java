@@ -13,6 +13,7 @@ public abstract class AJAbstractRepo {
 
   private static final Logger LOG = LoggerFactory.getLogger(AJAbstractRepo.class);
 
+
   protected DataSource dataSource() {
     return DataSourceRegistry.getInstance().getDefaultDataSource();
   }

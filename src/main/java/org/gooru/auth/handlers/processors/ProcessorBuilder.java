@@ -2,7 +2,9 @@ package org.gooru.auth.handlers.processors;
 
 import io.vertx.core.eventbus.Message;
 
-import org.gooru.auth.handlers.processors.command.executor.CommandFactory;
+import org.gooru.auth.handlers.processors.messageProcessor.MessageProcessFactory;
+import org.gooru.auth.handlers.processors.messageProcessor.MessageProcessor;
+import org.gooru.auth.handlers.processors.messageProcessor.Processor;
 
 public class ProcessorBuilder {
   private Message<Object> message;
@@ -15,6 +17,6 @@ public class ProcessorBuilder {
   }
 
   public Processor build() {
-    return new MessageProcessor(CommandFactory.getInstance(handlerClass), message);
+    return new MessageProcessor(MessageProcessFactory.getInstance(handlerClass), message);
   }
 }

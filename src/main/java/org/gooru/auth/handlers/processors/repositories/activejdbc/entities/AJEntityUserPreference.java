@@ -1,7 +1,6 @@
 package org.gooru.auth.handlers.processors.repositories.activejdbc.entities;
 
 import io.vertx.core.json.JsonArray;
-import io.vertx.core.json.JsonObject;
 
 import org.gooru.auth.handlers.constants.ParameterConstants;
 import org.gooru.auth.handlers.constants.SchemaConstants;
