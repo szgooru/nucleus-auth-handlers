@@ -3,7 +3,6 @@ package org.gooru.auth.handlers.processors.command.executor.user;
 import io.vertx.core.json.JsonObject;
 
 import java.util.Date;
-import java.util.UUID;
 
 import org.gooru.auth.handlers.constants.HelperConstants;
 import org.gooru.auth.handlers.constants.HttpConstants;
@@ -102,6 +101,7 @@ public final class CreateUserExecutor extends Executor {
     rejectError(userValidator.getErrors(), HttpConstants.HttpStatus.BAD_REQUEST.getCode());
     AJEntityUser user = getUserRepo().create(userValidator.getModel());
     AJEntityUserIdentity userIdentity = createUserIdentityValue(userDTO, userValidator.getModel(), clientId);
+    getUserIdentityRepo().createOrUpdate(userIdentity);
     final EventBuilder eventBuilder = new EventBuilder();
     eventBuilder.putPayLoadObject(SchemaConstants.USER_DEMOGRAPHIC,
             AJResponseJsonTransformer.transform(user.toJson(false), HelperConstants.USERS_JSON_FIELDS));
@@ -133,7 +133,6 @@ public final class CreateUserExecutor extends Executor {
 
     }
     final AJEntityUser user = new AJEntityUser();
-    user.setId(UUID.randomUUID().toString());
     user.setUserCategory(userCategory);
     if (parentUserEmailId != null) {
       AJEntityUserIdentity userIdentity = getUserIdentityRepo().getUserIdentityByEmailId(parentUserEmailId);
@@ -190,7 +189,6 @@ public final class CreateUserExecutor extends Executor {
 
     }
 
-    user.setId(UUID.randomUUID().toString());
     user.setFirstname(firstname);
     user.setLastname(lastname);
     user.setUserCategory(userCategory);

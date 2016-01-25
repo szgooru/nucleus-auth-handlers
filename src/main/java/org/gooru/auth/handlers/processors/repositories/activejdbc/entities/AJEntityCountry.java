@@ -10,8 +10,8 @@ import org.javalite.activejdbc.annotations.Table;
 @IdName(SchemaConstants.ID)
 public class AJEntityCountry extends Model {
 
-  public Long getId() {
-    return getLong(ParameterConstants.PARAM_ID);
+  public String getId() {
+    return getString(ParameterConstants.PARAM_ID);
   }
 
   public String getName() {
@@ -34,7 +34,7 @@ public class AJEntityCountry extends Model {
     return getString(ParameterConstants.PARAM_CREATOR_ID);
   }
 
-  public void setCreatorId(String creatorId) {
+  public void setCreatorId(Object creatorId) {
     set(ParameterConstants.PARAM_CREATOR_ID, creatorId);
   }
 }

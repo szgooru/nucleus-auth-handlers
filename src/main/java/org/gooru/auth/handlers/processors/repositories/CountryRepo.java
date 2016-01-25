@@ -9,7 +9,7 @@ public interface CountryRepo {
     return new AJCountryRepo();
   }
 
-  AJEntityCountry getCountry(Long id);
+  AJEntityCountry getCountry(String id);
 
   AJEntityCountry getCountryByName(String name);
 

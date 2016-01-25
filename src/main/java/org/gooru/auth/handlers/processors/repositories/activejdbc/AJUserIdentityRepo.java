@@ -17,8 +17,8 @@ public class AJUserIdentityRepo extends AJAbstractRepo implements UserIdentityRe
   private static final String GET_BY_EMAIL = "email_id = ? and status != 'deleted'";
   private static final String GET_BY_USERNAME = "username = ? and status != 'deleted'";
   private static final String GET_BY_REFERENCE = "reference_id = ? and status != 'deleted'";
-  private static final String GET_BY_ID_PASSWORD = "user_id = ? and password = ? and status != 'deleted'";
-  private static final String GET_BY_USER_ID = "user_id = ? and  status != 'deleted'";
+  private static final String GET_BY_ID_PASSWORD = "user_id = ?::uuid and password = ? and status != 'deleted'";
+  private static final String GET_BY_USER_ID = "user_id = ?::uuid and  status != 'deleted'";
 
   @Override
   public AJEntityUserIdentity getUserIdentityByUsernameAndPassword(final String username, final String password) {

@@ -18,22 +18,6 @@ public abstract class AJAbstractRepo {
     return DataSourceRegistry.getInstance().getDefaultDataSource();
   }
 
-  public <T extends Model> Model save(Model model) {
-    try {
-      Base.open(dataSource());
-      model.toInsert();
-      model.insert();
-      Base.commitTransaction();
-    } catch (Throwable e) {
-      LOG.error("Exception while marking connetion to be write", e);
-      Base.rollbackTransaction();
-      ServerValidatorUtility.throwASInternalServerError();
-    } finally {
-      Base.close();
-    }
-    return model;
-  }
-
   public <T extends Model> Model saveOrUpdate(Model model) {
     try {
       Base.open(dataSource());

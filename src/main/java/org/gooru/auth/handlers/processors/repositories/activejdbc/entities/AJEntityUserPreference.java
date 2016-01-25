@@ -16,7 +16,7 @@ public class AJEntityUserPreference extends Model {
     return getString(ParameterConstants.PARAM_USER_ID);
   }
 
-  public void setUserId(String userId) {
+  public void setUserId(Object userId) {
     setId(userId);
     set(ParameterConstants.PARAM_USER_ID, userId);
   }

@@ -14,6 +14,10 @@ public final class FetchAccessTokenExecutor extends Executor {
 
   private RedisClient redisClient;
 
+  public FetchAccessTokenExecutor() {
+    setRedisClient(RedisClient.instance());
+  }
+
   interface Fetch {
     MessageResponse accessToken(String token);
   }

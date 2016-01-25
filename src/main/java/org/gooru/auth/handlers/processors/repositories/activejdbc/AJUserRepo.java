@@ -12,11 +12,11 @@ public class AJUserRepo extends AJAbstractRepo implements UserRepo {
 
   private static final Logger LOG = LoggerFactory.getLogger(AJUserRepo.class);
 
-  private static final String GET_USER = "id = ?";
+  private static final String GET_USER = "id = ?::uuid";
 
   @Override
   public AJEntityUser create(AJEntityUser user) {
-    return (AJEntityUser) save(user);
+    return (AJEntityUser) saveOrUpdate(user);
   }
 
   @Override

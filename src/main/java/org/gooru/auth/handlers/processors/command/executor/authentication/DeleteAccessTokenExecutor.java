@@ -10,6 +10,10 @@ public final class DeleteAccessTokenExecutor extends Executor {
 
   private RedisClient redisClient;
 
+  public DeleteAccessTokenExecutor() {
+    setRedisClient(RedisClient.instance());
+  }
+
   interface Delete {
     MessageResponse accessToken(String token);;
   }

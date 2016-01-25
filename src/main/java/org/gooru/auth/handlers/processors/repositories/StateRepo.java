@@ -11,9 +11,9 @@ public interface StateRepo {
 
   AJEntityState createState(AJEntityState state);
 
-  AJEntityState createState(String name, Long countryId, String creatorId);
+  AJEntityState createState(String name, String countryId, String creatorId);
   
-  AJEntityState getStateById(Long id);
+  AJEntityState getStateById(String id);
 
   AJEntityState getStateByName(String name);
 }

@@ -16,7 +16,7 @@ public class AJStateRepo extends AJAbstractRepo implements StateRepo {
 
   private static final String GET_STATE_BY_NAME = "name = ?";
 
-  private static final String GET_STATE_BY_ID = "id = ?";
+  private static final String GET_STATE_BY_ID = "id = ?::uuid";
 
   @Override
   public AJEntityState createState(AJEntityState state) {
@@ -24,17 +24,19 @@ public class AJStateRepo extends AJAbstractRepo implements StateRepo {
   }
 
   @Override
-  public AJEntityState createState(String name, Long countryId, String creatorId) {
+  public AJEntityState createState(String name, String countryId, String creatorId) {
     AJEntityState state = new AJEntityState();
     state.setName(name);
     state.setCode(UUID.randomUUID().toString());
     state.setCreatorId(creatorId);
-    state.setCountryId(countryId);
+    if (countryId != null) {
+      state.setCountryId(countryId);
+    }
     return createState(state);
   }
 
   @Override
-  public AJEntityState getStateById(Long id) {
+  public AJEntityState getStateById(String id) {
     return query(GET_STATE_BY_ID, id);
   }
 

@@ -66,16 +66,16 @@ public class UserDTO extends JsonObject {
     return getString(ParameterConstants.PARAM_USER_SCHOOL_DISTRICT);
   }
 
-  public Long getStateId() {
-    return getLong(ParameterConstants.PARAM_USER_STATE_ID);
+  public String getStateId() {
+    return getString(ParameterConstants.PARAM_USER_STATE_ID);
   }
 
   public String getState() {
     return getString(ParameterConstants.PARAM_USER_STATE);
   }
 
-  public Long getCountryId() {
-    return getLong(ParameterConstants.PARAM_USER_COUNTRY_ID);
+  public String getCountryId() {
+    return getString(ParameterConstants.PARAM_USER_COUNTRY_ID);
   }
 
   public String getCountry() {

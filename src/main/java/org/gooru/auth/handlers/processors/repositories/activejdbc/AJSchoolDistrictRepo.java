@@ -16,17 +16,16 @@ public class AJSchoolDistrictRepo extends AJAbstractRepo implements SchoolDistri
 
   private static final String GET_SCHOOL_DISTRICT_BY_NAME = "name = ?";
 
-  private static final String GET_SCHOOL_DISTRICT_BY_ID = "id = ?";
+  private static final String GET_SCHOOL_DISTRICT_BY_ID = "id = ?::uuid";
 
   @Override
   public AJEntitySchoolDistrict createSchoolDistrict(AJEntitySchoolDistrict schoolDistrict) {
-    return (AJEntitySchoolDistrict) save(schoolDistrict);
+    return (AJEntitySchoolDistrict) saveOrUpdate(schoolDistrict);
   }
 
   @Override
   public AJEntitySchoolDistrict createSchoolDistrict(String name, String creatorId) {
     AJEntitySchoolDistrict schoolDistrict = new AJEntitySchoolDistrict();
-    schoolDistrict.setId(UUID.randomUUID().toString());
     schoolDistrict.setName(name);
     schoolDistrict.setCode(UUID.randomUUID().toString());
     schoolDistrict.setCreatorId(creatorId);

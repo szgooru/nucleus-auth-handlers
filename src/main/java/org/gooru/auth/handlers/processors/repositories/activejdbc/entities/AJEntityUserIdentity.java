@@ -1,5 +1,7 @@
 package org.gooru.auth.handlers.processors.repositories.activejdbc.entities;
 
+import java.util.UUID;
+
 import org.gooru.auth.handlers.constants.ParameterConstants;
 import org.gooru.auth.handlers.constants.SchemaConstants;
 import org.javalite.activejdbc.Model;
@@ -31,7 +33,7 @@ public class AJEntityUserIdentity extends Model {
   }
 
   public void setClientId(String clientId) {
-    set(ParameterConstants.PARAM_CLIENT_ID, clientId);
+    set(ParameterConstants.PARAM_CLIENT_ID, UUID.fromString(clientId));
   }
 
   public String getLoginType() {
@@ -62,7 +64,7 @@ public class AJEntityUserIdentity extends Model {
     return getString(ParameterConstants.PARAM_USER_ID);
   }
 
-  public void setUserId(String userId) {
+  public void setUserId(Object userId) {
     set(ParameterConstants.PARAM_USER_ID, userId);
   }
 

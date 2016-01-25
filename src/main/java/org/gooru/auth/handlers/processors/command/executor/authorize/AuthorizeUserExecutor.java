@@ -4,7 +4,6 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
 import java.util.Random;
-import java.util.UUID;
 
 import org.gooru.auth.handlers.constants.HelperConstants;
 import org.gooru.auth.handlers.constants.HttpConstants;
@@ -129,7 +128,6 @@ public class AuthorizeUserExecutor extends Executor {
       user.setLastname(userDTO.getLastname());
     }
 
-    user.setId(UUID.randomUUID().toString());
     getUserRepo().create(user);
     eventBuilder.putPayLoadObject(SchemaConstants.USER_DEMOGRAPHIC,
             AJResponseJsonTransformer.transform(user.toJson(false), HelperConstants.USERS_JSON_FIELDS));

@@ -1,5 +1,7 @@
 package org.gooru.auth.handlers.processors.repositories.activejdbc.entities;
 
+import java.util.UUID;
+
 import org.gooru.auth.handlers.constants.ParameterConstants;
 import org.gooru.auth.handlers.constants.SchemaConstants;
 import org.javalite.activejdbc.Model;
@@ -9,10 +11,6 @@ import org.javalite.activejdbc.annotations.Table;
 @Table(SchemaConstants.SCHOOL)
 @IdName(SchemaConstants.ID)
 public class AJEntitySchool extends Model {
-
-  public String getId() {
-    return getString(ParameterConstants.PARAM_ID);
-  }
 
   public String getName() {
     return getString(ParameterConstants.PARAM_NAME);
@@ -34,7 +32,7 @@ public class AJEntitySchool extends Model {
     return getString(ParameterConstants.PARAM_CREATOR_ID);
   }
 
-  public void setCreatorId(String creatorId) {
+  public void setCreatorId(Object creatorId) {
     set(ParameterConstants.PARAM_CREATOR_ID, creatorId);
   }
   
@@ -43,7 +41,7 @@ public class AJEntitySchool extends Model {
   }
 
   public void setSchoolDistrictId(String schoolDistrictId) {
-    set(ParameterConstants.PARAM_USER_SCHOOL_DISTRICT_ID, schoolDistrictId);
+    set(ParameterConstants.PARAM_USER_SCHOOL_DISTRICT_ID, UUID.fromString(schoolDistrictId));
   }
 
 }

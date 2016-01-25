@@ -12,7 +12,7 @@ public class AJUserPreferenceRepo extends AJAbstractRepo implements UserPreferen
 
   private static final Logger LOG = LoggerFactory.getLogger(AJUserPreferenceRepo.class);
 
-  public static final String GET_USER_PREFERENCE = "user_id = ?";
+  public static final String GET_USER_PREFERENCE = "user_id = ?::uuid";
 
   @Override
   public AJEntityUserPreference getUserPreference(String userId) {
@@ -21,7 +21,7 @@ public class AJUserPreferenceRepo extends AJAbstractRepo implements UserPreferen
 
   @Override
   public AJEntityUserPreference createPreference(AJEntityUserPreference userPreference) {
-    return (AJEntityUserPreference) save(userPreference);
+    return (AJEntityUserPreference) saveOrUpdate(userPreference);
   }
 
   @Override

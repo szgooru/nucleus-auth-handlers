@@ -16,21 +16,22 @@ public class AJSchoolRepo extends AJAbstractRepo implements SchoolRepo {
 
   private static final String GET_SCHOOL_BY_NAME = "name = ?";
 
-  private static final String GET_SCHOOL_BY_ID = "id = ?";
+  private static final String GET_SCHOOL_BY_ID = "id = ?::uuid";
 
   @Override
   public AJEntitySchool createSchool(AJEntitySchool school) {
-    return (AJEntitySchool) save(school);
+    return (AJEntitySchool) saveOrUpdate(school);
   }
 
   @Override
   public AJEntitySchool createSchool(String name, String schoolDistrictId, String creatorId) {
     AJEntitySchool school = new AJEntitySchool();
-    school.setId(UUID.randomUUID().toString());
     school.setName(name);
     school.setCode(UUID.randomUUID().toString());
     school.setCreatorId(creatorId);
-    school.setSchoolDistrictId(schoolDistrictId);
+    if (schoolDistrictId != null) {
+      school.setSchoolDistrictId(schoolDistrictId);
+    }
     return createSchool(school);
   }
 

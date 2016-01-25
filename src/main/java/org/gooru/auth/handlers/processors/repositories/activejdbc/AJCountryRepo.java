@@ -16,10 +16,10 @@ public class AJCountryRepo extends AJAbstractRepo implements CountryRepo {
   
   private static final String GET_COUNTRY_BY_NAME = "name = ?";
 
-  private static final String GET_COUNTRY_BY_ID = "id = ?";
+  private static final String GET_COUNTRY_BY_ID = "id = ?::uuid";
 
   @Override
-  public AJEntityCountry getCountry(Long id) {
+  public AJEntityCountry getCountry(String id) {
     return query(GET_COUNTRY_BY_ID, id);
   }
 

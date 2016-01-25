@@ -12,7 +12,7 @@ public class AJAuthClientRepo extends AJAbstractRepo implements AuthClientRepo {
 
   private static final Logger LOG = LoggerFactory.getLogger(AJAuthClientRepo.class);
 
-  private static final String GET_AUTH_CLIENT_ID_AND_KEY = "client_id = ? and client_key = ?";
+  private static final String GET_AUTH_CLIENT_ID_AND_KEY = "client_id = ?::uuid and client_key = ?";
   private static final String GET_AUTH_CLIENT_KEY = "client_key = ?";
 
   @Override

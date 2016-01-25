@@ -3,6 +3,7 @@ package org.gooru.auth.handlers.processors.repositories.activejdbc.entities;
 import io.vertx.core.json.JsonArray;
 
 import java.util.Date;
+import java.util.UUID;
 
 import org.gooru.auth.handlers.constants.ParameterConstants;
 import org.gooru.auth.handlers.constants.SchemaConstants;
@@ -14,9 +15,6 @@ import org.javalite.activejdbc.annotations.Table;
 @IdName(SchemaConstants.ID)
 public class AJEntityUser extends Model {
 
-  public String getId() {
-    return getString(ParameterConstants.PARAM_ID);
-  }
 
   public String getFirstname() {
     return getString(ParameterConstants.PARAM_USER_FIRSTNAME);
@@ -63,7 +61,7 @@ public class AJEntityUser extends Model {
   }
 
   public void setParentUserId(String parentUserId) {
-    setString(ParameterConstants.PARAM_USER_PARENT_USER_ID, parentUserId);
+    set(ParameterConstants.PARAM_USER_PARENT_USER_ID, UUID.fromString(parentUserId));
   }
 
   public JsonArray getGrade() {
@@ -91,16 +89,16 @@ public class AJEntityUser extends Model {
     return getString(ParameterConstants.PARAM_USER_SCHOOL_ID);
   }
 
-  public void setSchoolId(String schoolId) {
-    setString(ParameterConstants.PARAM_USER_SCHOOL_ID, schoolId);
+  public void setSchoolId(Object schoolId) {
+    set(ParameterConstants.PARAM_USER_SCHOOL_ID, schoolId);
   }
 
   public String getSchoolDistrictId() {
     return getString(ParameterConstants.PARAM_USER_SCHOOL_DISTRICT_ID);
   }
 
-  public void setSchoolDistrictId(String schoolDistrictId) {
-    setString(ParameterConstants.PARAM_USER_SCHOOL_DISTRICT_ID, schoolDistrictId);
+  public void setSchoolDistrictId(Object schoolDistrictId) {
+    set(ParameterConstants.PARAM_USER_SCHOOL_DISTRICT_ID, schoolDistrictId);
   }
 
   public String getEmailId() {
@@ -111,20 +109,20 @@ public class AJEntityUser extends Model {
     set(ParameterConstants.PARAM_USER_EMAIL_ID, emailId);
   }
 
-  public Long getCountryId() {
-    return getLong(ParameterConstants.PARAM_USER_COUNTRY_ID);
+  public String getCountryId() {
+    return getString(ParameterConstants.PARAM_USER_COUNTRY_ID);
   }
 
-  public void setCountryId(Long countryId) {
-    set(ParameterConstants.PARAM_USER_COUNTRY_ID, countryId);
+  public void setCountryId(String countryId) {
+    set(ParameterConstants.PARAM_USER_COUNTRY_ID, UUID.fromString(countryId));
   }
 
-  public Long getStateId() {
-    return getLong(ParameterConstants.PARAM_USER_STATE_ID);
+  public String getStateId() {
+    return getString(ParameterConstants.PARAM_USER_STATE_ID);
   }
 
-  public void setStateId(Long stateId) {
-    setLong(ParameterConstants.PARAM_USER_STATE_ID, stateId);
+  public void setStateId(Object stateId) {
+    set(ParameterConstants.PARAM_USER_STATE_ID, stateId);
   }
 
   public JsonArray getCourse() {
