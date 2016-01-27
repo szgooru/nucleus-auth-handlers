@@ -109,15 +109,12 @@ public class AuthorizeUserExecutor extends Executor {
             accessToken.put(ParameterConstants.PARAM_USER_PREFERENCE, prefs);
             saveAccessToken(token, accessToken, authClient.getAccessTokenValidity());
             accessToken.put(ParameterConstants.PARAM_ACCESS_TOKEN, token);
-            StringBuilder uri = new StringBuilder(authorizeDTO.getReturnUrl());
-            uri.append(HelperConstants.QUESTION_SYMBOL).append(ParameterConstants.PARAM_ACCESS_TOKEN).append(HelperConstants.EQUAL_SYMBOL)
-                    .append(token);
             eventBuilder.setEventName(Event.AUTHORIZE_USER.getName()).putPayLoadObject(ParameterConstants.PARAM_ACCESS_TOKEN, token)
                     .putPayLoadObject(ParameterConstants.PARAM_CLIENT_ID, authClient.getClientId())
                     .putPayLoadObject(ParameterConstants.PARAM_USER_ID, userIdentity.getUserId())
                     .putPayLoadObject(ParameterConstants.PARAM_GRANT_TYPE, authorizeDTO.getGrantType());
-            return new MessageResponse.Builder().setHeader(HelperConstants.LOCATION, uri.toString()).setEventData(eventBuilder.build())
-                    .setContentTypeJson().setStatusRedirect().successful().build();
+            return new MessageResponse.Builder().setResponseBody(accessToken).setEventData(eventBuilder.build()).setContentTypeJson().setStatusOkay().successful()
+                    .build();
           };
 
   private ActionResponseDTO<AJEntityUserIdentity> createUserWithIdentity(final UserDTO userDTO, final String grantType, final String clientId,
@@ -201,7 +198,6 @@ public class AuthorizeUserExecutor extends Executor {
     reject(authorizeDTO.getUser() == null, MessageCodeConstants.AU0038, 400);
     Errors errors = new Errors();
     addValidator(errors, authorizeDTO.getUser().getIdentityId() == null, ParameterConstants.PARAM_AUTHORIZE_IDENTITY_ID, MessageCodeConstants.AU0033);
-    addValidator(errors, authorizeDTO.getReturnUrl() == null, ParameterConstants.PARAM_RETURN_URL, MessageCodeConstants.AU0039);
     rejectError(errors, HttpConstants.HttpStatus.BAD_REQUEST.getCode());
   }
 

@@ -20,9 +20,6 @@ public class HelperConstants {
   
   public static final String USERS_PREFS_JSON_FIELDS [] = {"standard_preference"};
   
-  public static final String QUESTION_SYMBOL = "?";
-  
-  public static final String EQUAL_SYMBOL = "=";
 
   static {
     Map<String, String> gender = new HashMap<String, String>();

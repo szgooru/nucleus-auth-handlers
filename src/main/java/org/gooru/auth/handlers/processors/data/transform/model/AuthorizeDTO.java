@@ -27,10 +27,6 @@ public class AuthorizeDTO extends JsonObject {
   public String getGrantType() {
     return getString(ParameterConstants.PARAM_GRANT_TYPE);
   }
-
-  public String getReturnUrl() {
-    return getString(ParameterConstants.PARAM_RETURN_URL);
-  }
   
   public String getIdentityId() {
     return getString(ParameterConstants.PARAM_AUTHORIZE_IDENTITY_ID);
