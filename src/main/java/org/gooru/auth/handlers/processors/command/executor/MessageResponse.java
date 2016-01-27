@@ -7,6 +7,7 @@ import org.gooru.auth.handlers.constants.HttpConstants;
 import org.gooru.auth.handlers.constants.MessageCodeConstants;
 import org.gooru.auth.handlers.constants.MessageConstants;
 import org.gooru.auth.handlers.processors.error.Error;
+import org.gooru.auth.handlers.processors.error.ErrorType;
 import org.gooru.auth.handlers.processors.error.Errors;
 import org.gooru.auth.handlers.processors.exceptions.AccessDeniedException;
 import org.gooru.auth.handlers.processors.exceptions.BadRequestException;
@@ -50,6 +51,8 @@ public class MessageResponse {
     private JsonObject headers = null;
     private JsonObject eventData = null;
     private Throwable throwable = null;
+    private String errorType = null;
+    private String errorCode = null;
 
     public Builder() {
       this.headers = new JsonObject();
@@ -81,7 +84,7 @@ public class MessageResponse {
       this.httpStatus = HttpConstants.HttpStatus.SUCCESS;
       return this;
     }
-    
+
     public Builder setStatusRedirect() {
       this.httpStatus = HttpConstants.HttpStatus.MOVED_PERMANENTLY;
       return this;
@@ -153,6 +156,16 @@ public class MessageResponse {
       return this;
     }
 
+    public Builder setInternalErrorType(String type) {
+      this.errorType = type;
+      return this;
+    }
+
+    public Builder setInternalErrorCode(String code) {
+      this.errorCode = code;
+      return this;
+    }
+
     public Builder setEventData(JsonObject eventData) {
       this.eventData = eventData;
       return this;
@@ -208,31 +221,28 @@ public class MessageResponse {
       }
       return result;
     }
-    
+
     private Error exceptionResolver() {
-      String errorCode = MessageCodeConstants.AUE500;
       if (throwable instanceof BadRequestException) {
-        setStatusBadRequest().validationFailed();
-        errorCode = MessageCodeConstants.AUE400;
+        setStatusBadRequest().setInternalErrorCode(MessageCodeConstants.AUE400).setInternalErrorType(ErrorType.PARAMS_INVALID.getName())
+                .validationFailed();
       } else if (throwable instanceof NotFoundException) {
-        setStatusNotFound().failed();
-        errorCode = MessageCodeConstants.AUE404;
+        setStatusNotFound().setInternalErrorCode(MessageCodeConstants.AUE404).setInternalErrorType(ErrorType.UNKNOW_RECORD.getName()).failed();
       } else if (throwable instanceof AccessDeniedException) {
-        setStatusForbidden().failed();
-        errorCode = MessageCodeConstants.AUE403;
+        setStatusForbidden().setInternalErrorCode(MessageCodeConstants.AUE403).setInternalErrorType(ErrorType.PERMISSION_ERROR.getName()).failed();
       } else if (throwable instanceof UnauthorizedException) {
-        setStatusUnauthorized().failed();
-        this.status = MessageConstants.MSG_OP_STATUS_ERROR;
-        errorCode = MessageCodeConstants.AUE401;
+        setStatusUnauthorized().setInternalErrorCode(MessageCodeConstants.AUE401).setInternalErrorType(ErrorType.UNAUTHORIZE_ERROR.getName())
+                .failed();
       } else {
-        setStatusInternalError().failed();
-        this.status = MessageConstants.MSG_OP_STATUS_ERROR;
+        setStatusInternalError().setInternalErrorCode(MessageCodeConstants.AUE500).setInternalErrorType(ErrorType.API_ERROR.getName()).failed();
       }
       Errors errors = null;
       if (throwable.getMessage() != null && throwable.getMessage().startsWith("[")) {
         errors = new Errors(throwable.getMessage());
       } else {
-        errors = new Errors(throwable.getMessage(), errorCode);
+        errors =
+                new Errors(throwable.getMessage() != null ? throwable.getMessage() : ErrorType.API_ERROR.getDescription(), this.errorCode,
+                        this.errorType);
       }
       Error error = new Error();
       error.put("errors", errors);

@@ -8,6 +8,7 @@ import static org.gooru.auth.handlers.constants.HttpConstants.HttpStatus.UNAUTHO
 import java.util.Map;
 import java.util.ResourceBundle;
 
+import org.gooru.auth.handlers.processors.error.ErrorType;
 import org.gooru.auth.handlers.processors.error.Errors;
 import org.gooru.auth.handlers.processors.exceptions.AccessDeniedException;
 import org.gooru.auth.handlers.processors.exceptions.BadRequestException;
@@ -112,8 +113,8 @@ public class ServerValidatorUtility {
       }
     }
   }
-  
-  public static void throwASInternalServerError() { 
+
+  public static void throwASInternalServerError() {
     throw new RuntimeException("internal api error");
   }
 
@@ -122,6 +123,7 @@ public class ServerValidatorUtility {
     error.setCode(code);
     error.setMessage(generateErrorMessage(code, placeHolderRepalcer));
     error.setFieldName(fieldName);
+    error.setType(ErrorType.PARAMS_INVALID.getName());
     errors.add(error);
   }
 

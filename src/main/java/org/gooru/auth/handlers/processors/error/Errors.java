@@ -18,4 +18,12 @@ public class Errors extends JsonArray {
     error.setMessage(message);
     this.add(error);
   }
+  
+  public Errors(String message, String code, String type) {
+    Error error = new Error();
+    error.setCode(code);
+    error.setMessage(message);
+    error.setType(type);
+    this.add(error);
+  }
 }
