@@ -2,6 +2,7 @@ package org.gooru.auth.handlers.processors.messageProcessor;
 
 import org.gooru.auth.handlers.constants.CommandConstants;
 import org.gooru.auth.handlers.processors.command.executor.MessageResponse;
+import org.gooru.auth.handlers.processors.command.executor.authentication.AuthenticationExecutorFactory;
 import org.gooru.auth.handlers.processors.command.executor.authentication.CreateAnonymousAccessTokenExecutor;
 import org.gooru.auth.handlers.processors.command.executor.authentication.CreateBasicAuthAccessTokenExecutor;
 import org.gooru.auth.handlers.processors.command.executor.authentication.DeleteAccessTokenExecutor;
@@ -19,16 +20,16 @@ public final class AuthenticatonMessageProcessor implements MessageProcessorHand
     MessageResponse result = null;
     switch (messageContext.command()) {
     case CommandConstants.ANONYMOUS_CREATE_ACCESS_TOKEN:
-      result = new CreateAnonymousAccessTokenExecutor().execute(messageContext);
+      result = AuthenticationExecutorFactory.getInstance(CreateAnonymousAccessTokenExecutor.class).execute(messageContext);
       break;
     case CommandConstants.CREATE_ACCESS_TOKEN:
-      result = new CreateBasicAuthAccessTokenExecutor().execute(messageContext);
+      result = AuthenticationExecutorFactory.getInstance(CreateBasicAuthAccessTokenExecutor.class).execute(messageContext);
       break;
     case CommandConstants.DELETE_ACCESS_TOKEN:
-      result = new DeleteAccessTokenExecutor().execute(messageContext);
+      result = AuthenticationExecutorFactory.getInstance(DeleteAccessTokenExecutor.class).execute(messageContext);
       break;
     case CommandConstants.GET_ACCESS_TOKEN:
-      result = new FetchAccessTokenExecutor().execute(messageContext);
+      result = AuthenticationExecutorFactory.getInstance(FetchAccessTokenExecutor.class).execute(messageContext);
       break;
     default:
       LOG.error("Invalid command type passed in, not able to handle");

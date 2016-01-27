@@ -13,6 +13,7 @@ import org.gooru.auth.handlers.processors.command.executor.user.ResetPasswordExe
 import org.gooru.auth.handlers.processors.command.executor.user.ResetUnAuthenticateUserPasswordExecutor;
 import org.gooru.auth.handlers.processors.command.executor.user.UpdateUserEmailExecutor;
 import org.gooru.auth.handlers.processors.command.executor.user.UpdateUserExecutor;
+import org.gooru.auth.handlers.processors.command.executor.user.UserExecutorFactory;
 import org.gooru.auth.handlers.processors.exceptions.InvalidRequestException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,35 +27,35 @@ public final class UserMessageProcessor implements MessageProcessorHandler {
     MessageResponse result = null;
     switch (messageContext.command()) {
     case CommandConstants.CREATE_USER:
-      result = new CreateUserExecutor().execute(messageContext);
+      result = UserExecutorFactory.getInstance(CreateUserExecutor.class).execute(messageContext);
       break;
     case CommandConstants.UPDATE_USER:
-      result = new UpdateUserExecutor().execute(messageContext);
+      result = UserExecutorFactory.getInstance(UpdateUserExecutor.class).execute(messageContext);
       break;
     case CommandConstants.GET_USER:
-      result = new FetchUserExecutor().execute(messageContext);
+      result = UserExecutorFactory.getInstance(FetchUserExecutor.class).execute(messageContext);
       break;
     case CommandConstants.GET_USER_FIND:
-      result = new FindUserExecutor().execute(messageContext);
+      result = UserExecutorFactory.getInstance(FindUserExecutor.class).execute(messageContext);
       break;
     case CommandConstants.RESET_PASSWORD:
-      result = new ResetPasswordExecutor().execute(messageContext);
+      result = UserExecutorFactory.getInstance(ResetPasswordExecutor.class).execute(messageContext);
       break;
     case CommandConstants.UPDATE_PASSWORD:
       if (messageContext.user().getUserId().equalsIgnoreCase(MessageConstants.MSG_USER_ANONYMOUS)) {
-        result = new ResetUnAuthenticateUserPasswordExecutor().execute(messageContext);
+        result = UserExecutorFactory.getInstance(ResetUnAuthenticateUserPasswordExecutor.class).execute(messageContext);
       } else {
-        result = new ResetAuthenticateUserPasswordExecutor().execute(messageContext);
+        result = UserExecutorFactory.getInstance(ResetAuthenticateUserPasswordExecutor.class).execute(messageContext);
       }
       break;
     case CommandConstants.RESET_EMAIL_ADDRESS:
-      result = new UpdateUserEmailExecutor().execute(messageContext);
+      result = UserExecutorFactory.getInstance(UpdateUserEmailExecutor.class).execute(messageContext);
       break;
     case CommandConstants.RESEND_CONFIRMATION_EMAIL:
-      result = new ResendConfirmationEmailExecutor().execute(messageContext);
+      result = UserExecutorFactory.getInstance(ResendConfirmationEmailExecutor.class).execute(messageContext);
       break;
     case CommandConstants.CONFIRMATION_EMAIL:
-      result = new ConfirmUserEmailExecutor().execute(messageContext);
+      result = UserExecutorFactory.getInstance(ConfirmUserEmailExecutor.class).execute(messageContext);
       break;
     default:
       LOG.error("Invalid command type passed in, not able to handle");

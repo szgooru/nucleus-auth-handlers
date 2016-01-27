@@ -2,6 +2,7 @@ package org.gooru.auth.handlers.processors.messageProcessor;
 
 import org.gooru.auth.handlers.constants.CommandConstants;
 import org.gooru.auth.handlers.processors.command.executor.MessageResponse;
+import org.gooru.auth.handlers.processors.command.executor.authorize.AuthorizeExecutorFactory;
 import org.gooru.auth.handlers.processors.command.executor.authorize.AuthorizeUserExecutor;
 import org.gooru.auth.handlers.processors.exceptions.InvalidRequestException;
 import org.slf4j.Logger;
@@ -16,7 +17,7 @@ public final class AuthorizeMessageProcessor implements MessageProcessorHandler 
     MessageResponse result = null;
     switch (messageContext.command()) {
     case CommandConstants.AUTHORIZE:
-      result = new AuthorizeUserExecutor().execute(messageContext);
+      result = AuthorizeExecutorFactory.getInstance(AuthorizeUserExecutor.class).execute(messageContext);
       break;
     default:
       LOG.error("Invalid command type passed in, not able to handle");
