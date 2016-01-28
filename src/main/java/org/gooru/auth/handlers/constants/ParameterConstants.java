@@ -51,7 +51,6 @@ public class ParameterConstants {
   public static final String PARAM_USER_NEW_EMAIL_ID = "new_email_id";
   public static final String PARAM_USER_PARENT_USER_ID = "parent_user_id";
   public static final String PARAM_USER_PROVISION_TYPE = "provision_type";
-  public static final String PARAM_USER_LAST_LOGIN = "last_login";
   public static final String PARAM_USER_REFERENCE_ID = "reference_id";
   public static final String PARAM_USER_STATUS = "status";
   public static final String PARAM_USER_EMAIL_CONFIRM_STATUS = "email_confirm_status";
