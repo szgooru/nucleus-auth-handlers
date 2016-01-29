@@ -1,5 +1,7 @@
 package org.gooru.auth.handlers.processors.repositories;
 
+import java.util.Map;
+
 import org.gooru.auth.handlers.processors.repositories.activejdbc.AJUserRepo;
 import org.gooru.auth.handlers.processors.repositories.activejdbc.entities.AJEntityUser;
 
@@ -14,4 +16,6 @@ public interface UserRepo {
   AJEntityUser create(AJEntityUser user);
 
   AJEntityUser update(AJEntityUser user);
+  
+  Map<String, Object> findUser(String userId);
 }

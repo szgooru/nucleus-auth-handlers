@@ -1,5 +1,8 @@
 package org.gooru.auth.handlers.processors.repositories.activejdbc;
 
+import java.util.List;
+import java.util.Map;
+
 import javax.sql.DataSource;
 
 import org.gooru.auth.handlers.infra.DataSourceRegistry;
@@ -12,7 +15,6 @@ import org.slf4j.LoggerFactory;
 public abstract class AJAbstractRepo {
 
   private static final Logger LOG = LoggerFactory.getLogger(AJAbstractRepo.class);
-
 
   protected DataSource dataSource() {
     return DataSourceRegistry.getInstance().getDefaultDataSource();
@@ -46,5 +48,21 @@ public abstract class AJAbstractRepo {
       Base.close();
     }
     return model;
+  }
+
+  @SuppressWarnings("rawtypes")
+  public Map find(final String sql, final Object... params) {
+    Map result = null;
+    try {
+      Base.open(dataSource());
+      List<Map> results = Base.findAll(sql, params);
+      result = results.size() > 0 ? results.get(0) : null;
+    } catch (Throwable e) {
+      LOG.error("Exception while marking connetion to be read", e);
+      ServerValidatorUtility.throwASInternalServerError();
+    } finally {
+      Base.close();
+    }
+    return result;
   }
 }

@@ -25,7 +25,6 @@ public class MessageResponse {
 
   // Private constructor
   private MessageResponse(JsonObject response) {
-    response = response.copy();
     this.deliveryOptions = new DeliveryOptions().addHeader(MessageConstants.MSG_OP_STATUS, response.getString(MessageConstants.MSG_OP_STATUS));
     this.reply = response.getJsonObject(MessageConstants.RESP_CONTAINER_MBUS);
     this.event = response.getJsonObject(MessageConstants.RESP_CONTAINER_EVENT);

@@ -30,7 +30,6 @@ public class AuthorizeVerticle extends AbstractVerticle {
 
         JsonObject eventData = result.event();
         if (eventData != null) {
-          System.out.println(eventData);
           eb.publish(MessagebusEndpoints.MBEP_EVENT, eventData);
         }
 

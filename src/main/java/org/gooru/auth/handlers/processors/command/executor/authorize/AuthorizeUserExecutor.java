@@ -151,6 +151,7 @@ public class AuthorizeUserExecutor extends Executor {
     } else {
       userIdentity.setUsername(userDTO.getUsername());
     }
+    getUserIdentityRepo().createOrUpdate(userIdentity);
     eventBuilder.putPayLoadObject(SchemaConstants.USER_IDENTITY, AJResponseJsonTransformer.transform(userIdentity.toJson(false)));
     return new ActionResponseDTO<AJEntityUserIdentity>(userIdentity, eventBuilder);
   }

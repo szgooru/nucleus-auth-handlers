@@ -2,7 +2,8 @@ package org.gooru.auth.handlers.processors.command.executor.user;
 
 import io.vertx.core.json.JsonObject;
 
-import org.gooru.auth.handlers.constants.HelperConstants;
+import java.util.Map;
+
 import org.gooru.auth.handlers.constants.HttpConstants;
 import org.gooru.auth.handlers.constants.MessageCodeConstants;
 import org.gooru.auth.handlers.constants.MessageConstants;
@@ -13,8 +14,6 @@ import org.gooru.auth.handlers.processors.command.executor.MessageResponse;
 import org.gooru.auth.handlers.processors.messageProcessor.MessageContext;
 import org.gooru.auth.handlers.processors.repositories.UserIdentityRepo;
 import org.gooru.auth.handlers.processors.repositories.UserRepo;
-import org.gooru.auth.handlers.processors.repositories.activejdbc.entities.AJEntityUser;
-import org.gooru.auth.handlers.processors.repositories.activejdbc.entities.AJEntityUserIdentity;
 
 public final class FetchUserExecutor extends Executor {
 
@@ -41,15 +40,10 @@ public final class FetchUserExecutor extends Executor {
   }
 
   Fetch fetch = (userId) -> {
-    final AJEntityUser user = getUserRepo().getUser(userId);
+    final Map<String, Object> user = getUserRepo().findUser(userId);
     rejectIfNull(user, MessageCodeConstants.AU0026, HttpConstants.HttpStatus.NOT_FOUND.getCode(), ParameterConstants.PARAM_USER);
-    final AJEntityUserIdentity userIdentity = getUserIdentityRepo().getUserIdentityById(userId);
-    rejectIfNull(userIdentity, MessageCodeConstants.AU0026, HttpConstants.HttpStatus.NOT_FOUND.getCode(), ParameterConstants.PARAM_USER);
-    reject(userIdentity.getStatus().equalsIgnoreCase(ParameterConstants.PARAM_STATUS_DEACTIVTED), MessageCodeConstants.AU0009,
-            HttpConstants.HttpStatus.FORBIDDEN.getCode());
-    JsonObject result = AJResponseJsonTransformer.transform(user.toJson(false), HelperConstants.USERS_JSON_FIELDS, true);
-    result.put(ParameterConstants.PARAM_USER_USERNAME, userIdentity.getUsername());
-    return new MessageResponse.Builder().setResponseBody(result).setContentTypeJson().setStatusOkay().successful().build();
+    return new MessageResponse.Builder().setResponseBody(AJResponseJsonTransformer.transform(user)).setContentTypeJson().setStatusOkay().successful()
+            .build();
   };
 
   public UserIdentityRepo getUserIdentityRepo() {
