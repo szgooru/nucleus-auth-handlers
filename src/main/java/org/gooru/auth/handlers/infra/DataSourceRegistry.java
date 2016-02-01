@@ -54,8 +54,13 @@ public class DataSourceRegistry implements Initializer, Finalizer {
           for (String datasource : datasources) {
             JsonObject dbConfig = config.getJsonObject(datasource);
             if (dbConfig != null) {
+              try {
               DataSource ds = initializeDataSource(dbConfig);
               registry.put(datasource, ds);
+              } catch(Throwable e) { 
+                LOGGER.debug("Failed to create data source", e);
+                throw new IllegalStateException("Failed to create data source");
+              }
             }
           }
           initialized = true;
