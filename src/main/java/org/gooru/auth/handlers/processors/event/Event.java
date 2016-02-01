@@ -7,7 +7,7 @@ public enum Event {
   UPDATE_USER_PASSWORD("event.user.update.password"), RESET_USER_PASSWORD("event.user.reset.password"), AUTHORIZE_USER("event.user.authorize"),
   AUTHENTICATION_USER("event.user.authentication");
 
-  private String name;
+  private final String name;
 
   Event(String name) {
     this.name = name;

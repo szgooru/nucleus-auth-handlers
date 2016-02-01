@@ -65,7 +65,7 @@ public class AuthorizeUserExecutor extends Executor {
     return authorize.user(authorizeDTO, requestDomain);
   }
 
-  private Authorize authorize =
+  private final Authorize authorize =
           (AuthorizeDTO authorizeDTO, String requestDomain) -> {
             reject((HelperConstants.SSO_CONNECT_GRANT_TYPES.get(authorizeDTO.getGrantType()) == null), MessageCodeConstants.AU0003,
                     HttpConstants.HttpStatus.UNAUTHORIZED.getCode());

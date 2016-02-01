@@ -51,7 +51,7 @@ public final class CreateUserExecutor extends Executor {
     return create.user(userDTO, messageContext.user());
   }
 
-  private Create create = (UserDTO userDTO, UserContext userContext) -> {
+  private final Create create = (UserDTO userDTO, UserContext userContext) -> {
     rejectIfNullOrEmpty(userDTO.getBirthDate(), MessageCodeConstants.AU0015, 400, ParameterConstants.PARAM_USER_BIRTH_DATE);
     Date dob = InternalHelper.isValidDate(userDTO.getBirthDate());
     rejectIfNull(dob, MessageCodeConstants.AU0022, 400, ParameterConstants.PARAM_USER_BIRTH_DATE);

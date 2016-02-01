@@ -41,7 +41,7 @@ public class CreateGLAAnonymousAccessTokenExecutor extends Executor {
     return create.accessToken(clientKey, requestDomain);
   }
 
-  private Create create = (String clientKey, String requestDomain) -> {
+  private final Create create = (String clientKey, String requestDomain) -> {
     final AJEntityAuthClient authClient = validateAuthClient(InternalHelper.encryptClientKey(clientKey));
     verifyClientkeyDomains(requestDomain, authClient.getRefererDomains());
     final JsonObject accessToken = new JsonObject();

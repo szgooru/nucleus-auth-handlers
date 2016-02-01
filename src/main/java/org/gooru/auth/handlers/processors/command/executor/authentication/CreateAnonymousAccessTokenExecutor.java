@@ -41,7 +41,7 @@ public final class CreateAnonymousAccessTokenExecutor extends Executor {
     return create.accessToken(authClientDTO, requestDomain);
   }
 
-  private Create create = (AuthClientDTO authClientDTO, String requestDomain) -> {
+  private final Create create = (AuthClientDTO authClientDTO, String requestDomain) -> {
     reject(!(GrantType.ANONYMOUS.getType().equalsIgnoreCase(authClientDTO.getGrantType())), MessageCodeConstants.AU0003,
             HttpConstants.HttpStatus.UNAUTHORIZED.getCode());
     final AJEntityAuthClient authClient =

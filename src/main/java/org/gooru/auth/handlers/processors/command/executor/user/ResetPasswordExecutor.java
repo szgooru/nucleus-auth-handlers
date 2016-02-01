@@ -38,7 +38,7 @@ public final class ResetPasswordExecutor extends Executor {
     return reset.password(emailId);
   }
 
-  private Reset reset = (emailId) -> {
+  private final Reset reset = (emailId) -> {
     final AJEntityUserIdentity userIdentity = getUserIdentityRepo().getUserIdentityByEmailId(emailId);
     rejectIfNull(userIdentity, MessageCodeConstants.AU0026, HttpConstants.HttpStatus.NOT_FOUND.getCode(), ParameterConstants.PARAM_USER);
     final String token = InternalHelper.generateToken(InternalHelper.RESET_PASSWORD_TOKEN);

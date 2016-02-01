@@ -49,7 +49,7 @@ public class HelperConstants {
   public enum UserIdentityProvisionType {
     GOOGLE("google"), WSFED("wsfed"), SAML("saml"), REGISTERED("registered");
 
-    public String type;
+    public final String type;
 
     UserIdentityProvisionType(String type) {
       this.type = type;
@@ -63,7 +63,7 @@ public class HelperConstants {
   public enum UserIdentityLoginType {
     GOOGLE("google"), WSFED("wsfed"), SAML("saml"), CREDENTIAL("credential");
 
-    public String type;
+    public final String type;
 
     UserIdentityLoginType(String type) {
       this.type = type;
@@ -77,7 +77,7 @@ public class HelperConstants {
   public enum UserIdentityStatus {
     ACTIVE("active"), DEACTIVED("deactived"), DELETED("deleted");
 
-    public String status;
+    public final String status;
 
     UserIdentityStatus(String status) {
       this.status = status;
@@ -91,7 +91,7 @@ public class HelperConstants {
   public enum GrantType {
     ANONYMOUS("anonymous"), CREDENTIAL("credential"), GOOGLE("google"), WSFED("wsfed"), SAML("saml");
 
-    public String type;
+    public final String type;
 
     GrantType(String type) {
       this.type = type;

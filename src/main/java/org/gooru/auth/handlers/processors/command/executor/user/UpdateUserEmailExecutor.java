@@ -48,7 +48,7 @@ public class UpdateUserEmailExecutor extends Executor {
     return update.userEmail(messageContext.user().getUserId(), newEmailId);
   }
 
-  private Update update = (String userId, String emailId) -> {
+  private final Update update = (String userId, String emailId) -> {
     rejectIfNull(emailId, MessageCodeConstants.AU0014, HttpConstants.HttpStatus.BAD_REQUEST.getCode(), ParameterConstants.PARAM_USER_EMAIL_ID);
     AJEntityUserIdentity userIdentityEmail = getUserIdentityRepo().getUserIdentityByEmailId(emailId);
     reject(userIdentityEmail != null, MessageCodeConstants.AU0023, HttpConstants.HttpStatus.BAD_REQUEST.getCode(), emailId,

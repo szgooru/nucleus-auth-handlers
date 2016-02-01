@@ -9,7 +9,7 @@ import org.gooru.auth.handlers.infra.DataSourceRegistry;
 import org.gooru.auth.handlers.infra.RedisClient;
 
 public class Initializers implements Iterable<Initializer> {
-  private Iterator<Initializer> internalIterator;
+  private final Iterator<Initializer> internalIterator;
 
   public Initializers() {
     final List<Initializer> initializers = new ArrayList<Initializer>();

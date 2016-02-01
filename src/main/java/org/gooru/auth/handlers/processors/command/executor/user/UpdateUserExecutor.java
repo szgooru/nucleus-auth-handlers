@@ -67,7 +67,7 @@ public final class UpdateUserExecutor extends Executor {
     return update.user(userId, userDTO);
   }
 
-  private Update update = (String userId, UserDTO userDTO) -> {
+  private final Update update = (String userId, UserDTO userDTO) -> {
     ActionResponseDTO<AJEntityUser> userValidator = updateUserValidator(userId, userDTO);
     rejectError(userValidator.getErrors(), HttpConstants.HttpStatus.BAD_REQUEST.getCode());
     AJEntityUser user = userValidator.getModel();

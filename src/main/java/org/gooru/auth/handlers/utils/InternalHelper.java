@@ -14,7 +14,7 @@ import org.gooru.auth.handlers.processors.exceptions.InvalidRequestException;
 
 public class InternalHelper {
 
-  private static String CLIENT_KEY_HASH = "$GooruCLIENTKeyHash$";
+  private static final String CLIENT_KEY_HASH = "$GooruCLIENTKeyHash$";
 
   private static final String COLON = ":";
 

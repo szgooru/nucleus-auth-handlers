@@ -5,7 +5,7 @@ import java.util.Map;
 
 public class MessageProcessFactory {
 
-  private static Map<Class<?>, MessageProcessorHandler> instances = new HashMap<>();
+  private static final Map<Class<?>, MessageProcessorHandler> instances = new HashMap<>();
 
   public static MessageProcessorHandler getInstance(Class<?> classz) {
     MessageProcessorHandler cmd = instances.get(classz);

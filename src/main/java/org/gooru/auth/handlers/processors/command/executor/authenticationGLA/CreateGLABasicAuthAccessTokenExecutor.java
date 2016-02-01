@@ -56,7 +56,7 @@ public class CreateGLABasicAuthAccessTokenExecutor extends Executor {
     return create.accessToken(clientKey, requestDomain, username, password);
   }
 
-  private Create create = (String clientKey, String requestDomain, String username, String password) -> {
+  private final Create create = (String clientKey, String requestDomain, String username, String password) -> {
     rejectIfNullOrEmpty(username, MessageCodeConstants.AU0036, HttpConstants.HttpStatus.UNAUTHORIZED.getCode());
     rejectIfNullOrEmpty(password, MessageCodeConstants.AU0037, HttpConstants.HttpStatus.UNAUTHORIZED.getCode());
     final AJEntityAuthClient authClient = validateAuthClient(InternalHelper.encryptClientKey(clientKey));

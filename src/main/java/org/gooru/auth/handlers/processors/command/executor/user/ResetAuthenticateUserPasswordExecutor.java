@@ -33,7 +33,7 @@ public class ResetAuthenticateUserPasswordExecutor extends Executor {
     return reset.authenticateUserPassword(messageContext.user().getUserId(), oldPassword, newPassword);
   }
 
-  private Reset reset = (String userId, String oldPassword, String newPassword) -> {
+  private final Reset reset = (String userId, String oldPassword, String newPassword) -> {
     rejectIfNull(oldPassword, MessageCodeConstants.AU0041, HttpConstants.HttpStatus.BAD_REQUEST.getCode());
     rejectIfNull(newPassword, MessageCodeConstants.AU0042, HttpConstants.HttpStatus.BAD_REQUEST.getCode());
     final AJEntityUserIdentity userIdentity =

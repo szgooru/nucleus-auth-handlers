@@ -6,7 +6,7 @@ public enum ErrorType {
   UNKNOW_ROUTE("unknown_route", "URL was not valid."), API_ERROR("api_error", "Internal API error."), PERMISSION_ERROR("permission_error", ""),
   UNAUTHORIZE_ERROR("authorization_error", "");
 
-  private String name;
+  private final String name;
 
   private String description;
 

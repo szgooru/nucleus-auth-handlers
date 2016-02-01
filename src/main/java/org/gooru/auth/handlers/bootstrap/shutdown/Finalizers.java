@@ -9,7 +9,7 @@ import org.gooru.auth.handlers.infra.RedisClient;
 
 public class Finalizers implements Iterable<Finalizer> {
 
-  private Iterator<Finalizer> internalIterator;
+  private final Iterator<Finalizer> internalIterator;
 
   public Finalizers() {
     final List<Finalizer> finalizers = new ArrayList<Finalizer>();
