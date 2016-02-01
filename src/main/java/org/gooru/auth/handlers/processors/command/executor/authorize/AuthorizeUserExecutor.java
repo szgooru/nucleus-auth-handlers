@@ -153,7 +153,7 @@ public class AuthorizeUserExecutor extends Executor {
     }
     getUserIdentityRepo().createOrUpdate(userIdentity);
     eventBuilder.putPayLoadObject(SchemaConstants.USER_IDENTITY, AJResponseJsonTransformer.transform(userIdentity.toJson(false)));
-    return new ActionResponseDTO<AJEntityUserIdentity>(userIdentity, eventBuilder);
+    return new ActionResponseDTO<>(userIdentity, eventBuilder);
   }
 
   private AJEntityAuthClient validateAuthClient(String clientId, String clientKey, String grantType) {

@@ -12,7 +12,7 @@ public class Initializers implements Iterable<Initializer> {
   private final Iterator<Initializer> internalIterator;
 
   public Initializers() {
-    final List<Initializer> initializers = new ArrayList<Initializer>();
+    final List<Initializer> initializers = new ArrayList<>();
     initializers.add(DataSourceRegistry.getInstance());
     initializers.add(RedisClient.instance());
     initializers.add(ConfigRegistry.instance());

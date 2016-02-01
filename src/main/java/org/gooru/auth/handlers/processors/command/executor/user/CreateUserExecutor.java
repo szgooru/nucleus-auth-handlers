@@ -91,7 +91,7 @@ public final class CreateUserExecutor extends Executor {
     eventBuilder.putPayLoadObject(SchemaConstants.USER_DEMOGRAPHIC,
             AJResponseJsonTransformer.transform(user.toJson(false), HelperConstants.USERS_JSON_FIELDS));
     eventBuilder.putPayLoadObject(SchemaConstants.USER_IDENTITY, AJResponseJsonTransformer.transform(userIdentity.toJson(false)));
-    return new ActionResponseDTO<AJEntityUserIdentity>(userIdentity, eventBuilder);
+    return new ActionResponseDTO<>(userIdentity, eventBuilder);
   }
 
   private ActionResponseDTO<AJEntityUserIdentity> createChildUser(final UserDTO userDTO, final String clientId, final Date dob) {
@@ -105,7 +105,7 @@ public final class CreateUserExecutor extends Executor {
     eventBuilder.putPayLoadObject(SchemaConstants.USER_DEMOGRAPHIC,
             AJResponseJsonTransformer.transform(user.toJson(false), HelperConstants.USERS_JSON_FIELDS));
     eventBuilder.putPayLoadObject(SchemaConstants.USER_IDENTITY, AJResponseJsonTransformer.transform(userIdentity.toJson(false)));
-    return new ActionResponseDTO<AJEntityUserIdentity>(userIdentity, eventBuilder);
+    return new ActionResponseDTO<>(userIdentity, eventBuilder);
   }
 
   private ActionResponseDTO<AJEntityUser> createChildUserValidator(UserDTO userDTO) {
@@ -139,7 +139,7 @@ public final class CreateUserExecutor extends Executor {
       user.setParentUserId(userIdentity.getUserId());
     }
 
-    return new ActionResponseDTO<AJEntityUser>(user, errors);
+    return new ActionResponseDTO<>(user, errors);
   }
 
   private ActionResponseDTO<AJEntityUser> createUserValidator(final UserDTO userDTO) {
@@ -201,7 +201,7 @@ public final class CreateUserExecutor extends Executor {
       user.setGender(user.getGender());
     }
 
-    return new ActionResponseDTO<AJEntityUser>(user, errors);
+    return new ActionResponseDTO<>(user, errors);
   }
 
   private AJEntityUserIdentity createUserIdentityValue(final UserDTO userDTO, final AJEntityUser user, final String clientId) {

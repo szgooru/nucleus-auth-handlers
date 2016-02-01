@@ -19,21 +19,19 @@ public class AuthenticationGLAVersionVerticle extends AbstractVerticle {
   public void start(Future<Void> voidFuture) throws Exception {
     EventBus eb = vertx.eventBus();
 
-    eb.consumer(MessagebusEndpoints.MBEP_GLA_VERSION_AUTHENTICATION, message -> {
-      vertx.executeBlocking(future -> {
-        MessageResponse result = new ProcessorBuilder(AuthenticationGLAVersionMessageProcessor.class, message).build().process();
-        future.complete(result);
-      }, res -> {
-        MessageResponse result = (MessageResponse) res.result();
-        message.reply(result.reply(), result.deliveryOptions());
+    eb.consumer(MessagebusEndpoints.MBEP_GLA_VERSION_AUTHENTICATION, message -> vertx.executeBlocking(future -> {
+      MessageResponse result = new ProcessorBuilder(AuthenticationGLAVersionMessageProcessor.class, message).build().process();
+      future.complete(result);
+    }, res -> {
+      MessageResponse result = (MessageResponse) res.result();
+      message.reply(result.reply(), result.deliveryOptions());
 
-        JsonObject eventData = result.event();
-        if (eventData != null) {
-          eb.publish(MessagebusEndpoints.MBEP_EVENT, eventData);
-        }
+      JsonObject eventData = result.event();
+      if (eventData != null) {
+        eb.publish(MessagebusEndpoints.MBEP_EVENT, eventData);
+      }
 
-      });
-    }).completionHandler(result -> {
+    })).completionHandler(result -> {
       if (result.succeeded()) {
         LOG.info("authentication GLA 2.0 end point ready to listen");
       } else {

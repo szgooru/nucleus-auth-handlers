@@ -22,7 +22,7 @@ public class HelperConstants {
 
 
   static {
-    Map<String, String> gender = new HashMap<String, String>();
+    Map<String, String> gender = new HashMap<>();
     gender.put("male", "male");
     gender.put("female", "female");
     gender.put("other", "not wise to share");
@@ -30,7 +30,7 @@ public class HelperConstants {
   }
 
   static {
-    Map<String, String> gender = new HashMap<String, String>();
+    Map<String, String> gender = new HashMap<>();
     gender.put("teacher", "Teacher");
     gender.put("student", "Student");
     gender.put("parent", "Parent");
@@ -39,7 +39,7 @@ public class HelperConstants {
   }
 
   static {
-    Map<String, String> ssoGrantType = new HashMap<String, String>();
+    Map<String, String> ssoGrantType = new HashMap<>();
     ssoGrantType.put("google", "grant type used to connect with google authentication");
     ssoGrantType.put("wsfed", "grant type used to connect with wsfed authentication");
     ssoGrantType.put("saml", "grant type used to connect with saml authentication");

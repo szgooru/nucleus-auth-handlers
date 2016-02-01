@@ -12,7 +12,7 @@ public class Finalizers implements Iterable<Finalizer> {
   private final Iterator<Finalizer> internalIterator;
 
   public Finalizers() {
-    final List<Finalizer> finalizers = new ArrayList<Finalizer>();
+    final List<Finalizer> finalizers = new ArrayList<>();
     finalizers.add(DataSourceRegistry.getInstance());
     finalizers.add(RedisClient.instance());
     internalIterator = finalizers.iterator();

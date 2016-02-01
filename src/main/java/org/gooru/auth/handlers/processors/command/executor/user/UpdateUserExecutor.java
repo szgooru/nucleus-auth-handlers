@@ -190,7 +190,7 @@ public final class UpdateUserExecutor extends Executor {
     if (userDTO.getThumbnailPath() != null) {
       user.setThumbnailPath(userDTO.getThumbnailPath());
     }
-    return new ActionResponseDTO<AJEntityUser>(user, eventBuilder, errors);
+    return new ActionResponseDTO<>(user, eventBuilder, errors);
 
   }
 
