@@ -1,7 +1,5 @@
 package org.gooru.auth.handlers.processors.command.executor.user;
 
-import io.vertx.core.json.JsonObject;
-
 import java.util.Map;
 
 import org.gooru.auth.handlers.constants.HttpConstants;
