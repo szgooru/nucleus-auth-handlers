@@ -91,7 +91,7 @@ public class DataSourceRegistry implements Initializer, Finalizer {
     final HikariConfig config = new HikariConfig();
 
     for (Map.Entry<String, Object> entry : dbConfig) {
-      LOGGER.debug("Failed to entry ::: ", entry);
+      LOGGER.debug("Failed to entry ::: " +  entry.getValue() + "key::" + entry.getKey());
       switch (entry.getKey()) {
         case "dataSourceClassName":
           config.setDataSourceClassName((String) entry.getValue());
