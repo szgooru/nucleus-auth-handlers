@@ -25,8 +25,7 @@ public class InternalHelper {
   public static String generateToken(String name) {
     final StringBuilder sourceInfo = new StringBuilder();
     sourceInfo.append(name).append(COLON).append(new Date().toString()).append(COLON).append(System.currentTimeMillis());
-    final String token = Base64.getEncoder().encodeToString(sourceInfo.toString().getBytes());
-    return token;
+    return Base64.getEncoder().encodeToString(sourceInfo.toString().getBytes());
   }
 
   public static String encryptPassword(final String password) {
