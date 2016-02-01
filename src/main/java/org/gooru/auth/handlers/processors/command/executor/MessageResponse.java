@@ -226,7 +226,7 @@ public class MessageResponse {
         setStatusBadRequest().setInternalErrorCode(MessageCodeConstants.AUE400).setInternalErrorType(ErrorType.PARAMS_INVALID.getName())
                 .validationFailed();
       } else if (throwable instanceof NotFoundException) {
-        setStatusNotFound().setInternalErrorCode(MessageCodeConstants.AUE404).setInternalErrorType(ErrorType.UNKNOW_RECORD.getName()).failed();
+        setStatusNotFound().setInternalErrorCode(MessageCodeConstants.AUE404).setInternalErrorType(ErrorType.UNKNOWN_RECORD.getName()).failed();
       } else if (throwable instanceof AccessDeniedException) {
         setStatusForbidden().setInternalErrorCode(MessageCodeConstants.AUE403).setInternalErrorType(ErrorType.PERMISSION_ERROR.getName()).failed();
       } else if (throwable instanceof UnauthorizedException) {

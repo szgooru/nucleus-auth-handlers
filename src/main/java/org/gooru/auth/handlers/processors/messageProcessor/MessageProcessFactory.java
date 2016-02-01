@@ -11,16 +11,16 @@ public class MessageProcessFactory {
     MessageProcessorHandler cmd = instances.get(classz);
     if (cmd == null) {
       synchronized (MessageProcessFactory.class) {
-        if (classz.equals(AuthenticatonMessageProcessor.class)) {
-          cmd = new AuthenticatonMessageProcessor();
+        if (classz.equals(AuthenticationMessageProcessor.class)) {
+          cmd = new AuthenticationMessageProcessor();
         } else if (classz.equals(AuthorizeMessageProcessor.class)) {
           cmd = new AuthorizeMessageProcessor();
         } else if (classz.equals(UserMessageProcessor.class)) {
           cmd = new UserMessageProcessor();
         } else if (classz.equals(UserPrefsMessageProcessor.class)) {
           cmd = new UserPrefsMessageProcessor();
-        } else if (classz.equals(AuthenticatonGLAVersionMessageProcessor.class)) {
-          cmd = new AuthenticatonGLAVersionMessageProcessor();
+        } else if (classz.equals(AuthenticationGLAVersionMessageProcessor.class)) {
+          cmd = new AuthenticationGLAVersionMessageProcessor();
         }
       }
       instances.put(classz, cmd);

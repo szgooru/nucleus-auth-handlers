@@ -9,9 +9,9 @@ import org.gooru.auth.handlers.processors.exceptions.InvalidRequestException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public final class AuthenticatonGLAVersionMessageProcessor implements MessageProcessorHandler {
+public final class AuthenticationGLAVersionMessageProcessor implements MessageProcessorHandler {
 
-  private static final Logger LOG = LoggerFactory.getLogger(AuthenticatonGLAVersionMessageProcessor.class);
+  private static final Logger LOG = LoggerFactory.getLogger(AuthenticationGLAVersionMessageProcessor.class);
 
   @Override
   public MessageResponse process(MessageContext messageContext) {
