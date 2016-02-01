@@ -5,11 +5,11 @@
           "port" : 6379
   },
   "defaultDataSource" : {     
-         "auth.ds.type" : "hikari",
+         "nucleus.ds.type" : "hikari",
          "dataSourceClassName" : "org.postgresql.ds.PGSimpleDataSource",
          "jdbcUrl" : "jdbc:postgresql://localhost:5432/nucleus",
          "username" : "nucleus",
-         "password" : "password",
+         "password" : "password1",
          "autoCommit" : false,
          "maximumPoolSize" : 2
    },

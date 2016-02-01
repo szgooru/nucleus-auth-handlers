@@ -27,7 +27,6 @@ public class BootstrapVerticle extends AbstractVerticle {
       if (future.succeeded()) {
         voidFuture.complete();
       } else {
-        LOG.debug("Not able to initialize the auth handlers machiners properly", voidFuture.cause());
         voidFuture.fail("Not able to initialize the auth handlers machiners properly");
       }
     });
