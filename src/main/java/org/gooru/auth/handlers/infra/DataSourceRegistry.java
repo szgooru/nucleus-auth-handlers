@@ -83,7 +83,6 @@ public class DataSourceRegistry implements Initializer, Finalizer {
   private DataSource initializeDataSource(JsonObject dbConfig) {
     // The default DS provider is hikari, so if set explicitly or not set use it, else error out
     String dsType = dbConfig.getString(DEFAULT_DATA_SOURCE_TYPE);
-    LOGGER.debug("Failed to entry dsType ::: ", dsType);
     if (dsType != null && !dsType.equals(DS_HIKARI)) {
       // No support
       throw new IllegalStateException("Unsupported data store type");
@@ -91,7 +90,6 @@ public class DataSourceRegistry implements Initializer, Finalizer {
     final HikariConfig config = new HikariConfig();
 
     for (Map.Entry<String, Object> entry : dbConfig) {
-      LOGGER.debug("Failed to entry ::: " +  entry.getValue() + "key::" + entry.getKey());
       switch (entry.getKey()) {
         case "dataSourceClassName":
           config.setDataSourceClassName((String) entry.getValue());

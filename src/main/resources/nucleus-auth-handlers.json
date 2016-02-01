@@ -6,7 +6,6 @@
   },
   "defaultDataSource" : {     
          "nucleus.ds.type" : "hikari",
-         "dataSourceClassName" : "org.postgresql.ds.PGSimpleDataSource",
          "jdbcUrl" : "jdbc:postgresql://localhost:5432/nucleus",
          "username" : "nucleus",
          "password" : "password1",
