@@ -63,6 +63,7 @@ public class InternalHelper {
     try {
       date = dateFormat.parse(dateAsString.trim());
     } catch (ParseException pe) {
+      // FIXME: 1/2/16 AM: Should we do something here
     }
     return date;
   }
