@@ -23,9 +23,7 @@ public class InternalHelper {
   public static final String EMAIL_CONFIRM_TOKEN = "EMAIL_CONFIRM_TOKEN";
 
   public static String generateToken(String name) {
-    final StringBuilder sourceInfo = new StringBuilder();
-    sourceInfo.append(name).append(COLON).append(new Date().toString()).append(COLON).append(System.currentTimeMillis());
-    return Base64.getEncoder().encodeToString(sourceInfo.toString().getBytes());
+    return Base64.getEncoder().encodeToString((name + COLON + new Date().toString() + COLON + System.currentTimeMillis()).getBytes());
   }
 
   public static String encryptPassword(final String password) {
@@ -33,9 +31,7 @@ public class InternalHelper {
   }
 
   public static String encryptClientKey(final String key) {
-    final StringBuilder text = new StringBuilder(CLIENT_KEY_HASH);
-    text.append(key);
-    return encrypt(text.toString());
+    return encrypt(CLIENT_KEY_HASH + key);
   }
 
   public static String encrypt(final String text) {
