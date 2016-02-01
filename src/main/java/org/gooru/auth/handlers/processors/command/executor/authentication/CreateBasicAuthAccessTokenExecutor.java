@@ -54,7 +54,7 @@ public class CreateBasicAuthAccessTokenExecutor extends Executor {
     return create.accessToken(authClientDTO, requestDomain, basicAuthCredentials);
   }
 
-  Create create = (AuthClientDTO authClientDTO, String requestDomain, String basicAuthCredentials) -> {
+  private Create create = (AuthClientDTO authClientDTO, String requestDomain, String basicAuthCredentials) -> {
     reject(!(GrantType.CREDENTIAL.getType().equalsIgnoreCase(authClientDTO.getGrantType())), MessageCodeConstants.AU0003,
             HttpConstants.HttpStatus.UNAUTHORIZED.getCode());
     rejectIfNullOrEmpty(basicAuthCredentials, MessageCodeConstants.AU0006, HttpConstants.HttpStatus.UNAUTHORIZED.getCode());

@@ -33,7 +33,7 @@ public final class UpdateUserExecutor extends Executor {
   private UserIdentityRepo userIdentityRepo;
 
   private UserRepo userRepo;
-  
+
   private CountryRepo countryRepo;
 
   private StateRepo stateRepo;
@@ -53,7 +53,7 @@ public final class UpdateUserExecutor extends Executor {
     setStateRepo(StateRepo.instance());
     setSchoolRepo(SchoolRepo.instance());
     setSchoolDistrictRepo(SchoolDistrictRepo.instance());
-    
+
   }
 
   @Override
@@ -67,7 +67,7 @@ public final class UpdateUserExecutor extends Executor {
     return update.user(userId, userDTO);
   }
 
-  Update update = (String userId, UserDTO userDTO) -> {
+  private Update update = (String userId, UserDTO userDTO) -> {
     ActionResponseDTO<AJEntityUser> userValidator = updateUserValidator(userId, userDTO);
     rejectError(userValidator.getErrors(), HttpConstants.HttpStatus.BAD_REQUEST.getCode());
     AJEntityUser user = userValidator.getModel();
@@ -83,7 +83,7 @@ public final class UpdateUserExecutor extends Executor {
     }
     return new MessageResponse.Builder().setContentTypeJson().setEventData(eventBuilder.build()).setStatusNoOutput().successful().build();
   };
-  
+
   private ActionResponseDTO<AJEntityUser> updateUserValidator(final String userId, final UserDTO userDTO) {
     final AJEntityUser user = getUserRepo().getUser(userId);
     rejectIfNull(user, MessageCodeConstants.AU0026, HttpConstants.HttpStatus.NOT_FOUND.getCode(), ParameterConstants.PARAM_USER);

@@ -14,7 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class AuthVerticle extends AbstractVerticle {
-  static final Logger LOG = LoggerFactory.getLogger(AuthVerticle.class);
+  private static final Logger LOG = LoggerFactory.getLogger(AuthVerticle.class);
 
   @Override
   public void start(Future<Void> voidFuture) throws Exception {

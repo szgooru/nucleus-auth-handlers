@@ -52,7 +52,7 @@ public final class UpdateUserPrefsExecutor extends Executor {
     return update.userPrefs(accessToken, userId, userPrefsDTO);
   }
 
-  Update update = (String token, String userId, UserPrefsDTO userPrefsDTO) -> {
+  private Update update = (String token, String userId, UserPrefsDTO userPrefsDTO) -> {
     final AJEntityUserIdentity userIdentity = getUserIdentityRepo().getUserIdentityById(userId);
     rejectIfNull(userIdentity, MessageCodeConstants.AU0026, HttpConstants.HttpStatus.NOT_FOUND.getCode(), ParameterConstants.PARAM_USER);
     reject(userIdentity.getStatus().equalsIgnoreCase(ParameterConstants.PARAM_STATUS_DEACTIVTED), MessageCodeConstants.AU0009,

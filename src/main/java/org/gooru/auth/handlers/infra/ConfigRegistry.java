@@ -29,7 +29,7 @@ public class ConfigRegistry implements Initializer {
     return prefs.getJsonArray(STANDARD_PREFERENCE);
   }
 
-  public void setDefaultUserPrefs(JsonObject defaultStandardPrefs) {
+  private void setDefaultUserPrefs(JsonObject defaultStandardPrefs) {
     this.prefs = defaultStandardPrefs;
   }
 

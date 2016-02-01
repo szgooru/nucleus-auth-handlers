@@ -46,7 +46,7 @@ public class ConfirmUserEmailExecutor extends Executor {
     return confirm.userEmail(token);
   }
 
-  Confirm confirm = (String token) -> {
+  private Confirm confirm = (String token) -> {
     final String tokenData = getRedisClient().get(token);
     rejectIfNull(tokenData, MessageCodeConstants.AU0028, HttpConstants.HttpStatus.UNAUTHORIZED.getCode());
     JsonObject tokenJsonData = new JsonObject(tokenData);

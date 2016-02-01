@@ -34,7 +34,7 @@ public final class FetchUserPrefsExecutor extends Executor {
     return fetch.userPrefs(userId);
   }
 
-  Fetch fetch = (String userId) -> {
+  private Fetch fetch = (String userId) -> {
     final AJEntityUserPreference userPreference = getUserPreferenceRepo().getUserPreference(userId);
     JsonObject result = null;
     if (userPreference != null) {

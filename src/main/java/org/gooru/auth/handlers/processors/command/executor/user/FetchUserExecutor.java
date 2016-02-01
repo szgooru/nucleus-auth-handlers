@@ -37,7 +37,7 @@ public final class FetchUserExecutor extends Executor {
     return fetch.user(userId);
   }
 
-  Fetch fetch = (userId) -> {
+  private Fetch fetch = (userId) -> {
     final Map<String, Object> user = getUserRepo().findUser(userId);
     rejectIfNull(user, MessageCodeConstants.AU0026, HttpConstants.HttpStatus.NOT_FOUND.getCode(), ParameterConstants.PARAM_USER);
     return new MessageResponse.Builder().setResponseBody(AJResponseJsonTransformer.transform(user)).setContentTypeJson().setStatusOkay().successful()

@@ -31,7 +31,7 @@ public final class FindUserExecutor extends Executor {
     return find.user(username, email);
   }
 
-  Find find = (String username, String email) -> {
+  private Find find = (String username, String email) -> {
     AJEntityUserIdentity userIdentity = null;
     if (username != null) {
       userIdentity = getUserIdentityRepo().getUserIdentityByUsername(username);

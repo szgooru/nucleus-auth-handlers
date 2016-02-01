@@ -17,23 +17,23 @@ import org.gooru.auth.handlers.utils.InternalHelper;
 public class ResetAuthenticateUserPasswordExecutor extends Executor {
 
   private UserIdentityRepo userIdentityRepo;
-  
-  interface Reset { 
+
+  interface Reset {
     MessageResponse authenticateUserPassword(String userId, String oldPassword, String newPassword);
   }
-  
+
   public ResetAuthenticateUserPasswordExecutor() {
     setUserIdentityRepo(UserIdentityRepo.instance());
   }
-  
+
   @Override
   public MessageResponse execute(MessageContext messageContext) {
     final String newPassword = messageContext.requestBody().getString(ParameterConstants.PARAM_USER_NEW_PASSWORD);
     final String oldPassword = messageContext.requestBody().getString(ParameterConstants.PARAM_USER_OLD_PASSWORD);
     return reset.authenticateUserPassword(messageContext.user().getUserId(), oldPassword, newPassword);
   }
-  
-  Reset reset = (String userId, String oldPassword, String newPassword) -> {
+
+  private Reset reset = (String userId, String oldPassword, String newPassword) -> {
     rejectIfNull(oldPassword, MessageCodeConstants.AU0041, HttpConstants.HttpStatus.BAD_REQUEST.getCode());
     rejectIfNull(newPassword, MessageCodeConstants.AU0042, HttpConstants.HttpStatus.BAD_REQUEST.getCode());
     final AJEntityUserIdentity userIdentity =
