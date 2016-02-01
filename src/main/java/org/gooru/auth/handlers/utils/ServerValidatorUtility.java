@@ -17,7 +17,7 @@ import org.gooru.auth.handlers.processors.exceptions.UnauthorizedException;
 
 public class ServerValidatorUtility {
 
-  private static ResourceBundle message = ResourceBundle.getBundle("message");
+  private static final ResourceBundle message = ResourceBundle.getBundle("message");
 
   public static void addValidatorIfNullError(Errors errors, String fieldName, Object data, String code, String... placeHolderRepalcer) {
     if (data == null) {

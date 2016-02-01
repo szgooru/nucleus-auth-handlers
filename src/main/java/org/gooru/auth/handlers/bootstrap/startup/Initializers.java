@@ -9,7 +9,7 @@ import org.gooru.auth.handlers.infra.DataSourceRegistry;
 import org.gooru.auth.handlers.infra.RedisClient;
 
 public class Initializers implements Iterable<Initializer> {
-  private Iterator<Initializer> internalIterator;
+  private final Iterator<Initializer> internalIterator;
 
   public Initializers() {
     final List<Initializer> initializers = new ArrayList<Initializer>();
@@ -21,7 +21,7 @@ public class Initializers implements Iterable<Initializer> {
 
   @Override
   public Iterator<Initializer> iterator() {
-    Iterator<Initializer> iterator = new Iterator<Initializer>() {
+    return new Iterator<Initializer>() {
 
       @Override
       public boolean hasNext() {
@@ -34,7 +34,6 @@ public class Initializers implements Iterable<Initializer> {
       }
 
     };
-    return iterator;
   }
 
 }

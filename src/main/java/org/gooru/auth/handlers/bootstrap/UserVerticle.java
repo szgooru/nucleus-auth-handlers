@@ -13,7 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class UserVerticle extends AbstractVerticle {
-  static final Logger LOG = LoggerFactory.getLogger(UserVerticle.class);
+  private static final Logger LOG = LoggerFactory.getLogger(UserVerticle.class);
 
   @Override
   public void start(Future<Void> voidFuture) throws Exception {

@@ -37,7 +37,7 @@ public class ResetUnAuthenticateUserPasswordExecutor extends Executor {
     return reset.unAuthenticateUserPassword(token, newPassword);
   }
 
-  Reset reset = (String token, String password) -> {
+  private final Reset reset = (String token, String password) -> {
     String emailId = getRedisClient().get(token);
     rejectIfNull(emailId, MessageCodeConstants.AU0028, HttpConstants.HttpStatus.UNAUTHORIZED.getCode());
     rejectIfNull(password, MessageCodeConstants.AU0042, HttpConstants.HttpStatus.BAD_REQUEST.getCode());

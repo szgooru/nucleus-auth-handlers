@@ -15,7 +15,7 @@ public final class DeleteAccessTokenExecutor extends Executor {
   }
 
   interface Delete {
-    MessageResponse accessToken(String token);;
+    MessageResponse accessToken(String token);
   }
 
   @Override
@@ -24,7 +24,7 @@ public final class DeleteAccessTokenExecutor extends Executor {
     return delete.accessToken(token);
   }
 
-  Delete delete = (String token) -> {
+  private final Delete delete = (String token) -> {
     getRedisClient().del(token);
     return new MessageResponse.Builder().setContentTypeJson().setStatusNoOutput().successful().build();
   };

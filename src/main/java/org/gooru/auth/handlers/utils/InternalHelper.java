@@ -14,7 +14,7 @@ import org.gooru.auth.handlers.processors.exceptions.InvalidRequestException;
 
 public class InternalHelper {
 
-  private static String CLIENT_KEY_HASH = "$GooruCLIENTKeyHash$";
+  private static final String CLIENT_KEY_HASH = "$GooruCLIENTKeyHash$";
 
   private static final String COLON = ":";
 
@@ -23,10 +23,7 @@ public class InternalHelper {
   public static final String EMAIL_CONFIRM_TOKEN = "EMAIL_CONFIRM_TOKEN";
 
   public static String generateToken(String name) {
-    final StringBuilder sourceInfo = new StringBuilder();
-    sourceInfo.append(name).append(COLON).append(new Date().toString()).append(COLON).append(System.currentTimeMillis());
-    final String token = Base64.getEncoder().encodeToString(sourceInfo.toString().getBytes());
-    return token;
+    return Base64.getEncoder().encodeToString((name + COLON + new Date().toString() + COLON + System.currentTimeMillis()).getBytes());
   }
 
   public static String encryptPassword(final String password) {
@@ -34,9 +31,7 @@ public class InternalHelper {
   }
 
   public static String encryptClientKey(final String key) {
-    final StringBuilder text = new StringBuilder(CLIENT_KEY_HASH);
-    text.append(key);
-    return encrypt(text.toString());
+    return encrypt(CLIENT_KEY_HASH + key);
   }
 
   public static String encrypt(final String text) {
@@ -68,6 +63,7 @@ public class InternalHelper {
     try {
       date = dateFormat.parse(dateAsString.trim());
     } catch (ParseException pe) {
+      // FIXME: 1/2/16 AM: Should we do something here
     }
     return date;
   }

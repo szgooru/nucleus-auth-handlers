@@ -7,10 +7,10 @@ import org.gooru.auth.handlers.processors.messageProcessor.MessageProcessor;
 import org.gooru.auth.handlers.processors.messageProcessor.Processor;
 
 public class ProcessorBuilder {
-  private Message<Object> message;
+  private final Message<Object> message;
 
-  private Class<?> handlerClass;
-  
+  private final Class<?> handlerClass;
+
   public ProcessorBuilder(Class<?> handlerClass, Message<Object> message) {
     this.message = message;
     this.handlerClass = handlerClass;

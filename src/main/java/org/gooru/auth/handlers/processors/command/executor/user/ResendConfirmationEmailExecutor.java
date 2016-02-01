@@ -44,7 +44,7 @@ public class ResendConfirmationEmailExecutor extends Executor {
     return resend.confirmationEmail(messageContext.user().getUserId());
   }
 
-  Resend resend = (String userId) -> {
+  private final Resend resend = (String userId) -> {
     final AJEntityUser user = getUserRepo().getUser(userId);
     rejectIfNull(user, MessageCodeConstants.AU0026, HttpConstants.HttpStatus.NOT_FOUND.getCode(), ParameterConstants.PARAM_USER);
     final AJEntityUserIdentity userIdentity = getUserIdentityRepo().getUserIdentityByEmailId(user.getEmailId());

@@ -51,7 +51,7 @@ public final class CreateUserExecutor extends Executor {
     return create.user(userDTO, messageContext.user());
   }
 
-  Create create = (UserDTO userDTO, UserContext userContext) -> {
+  private final Create create = (UserDTO userDTO, UserContext userContext) -> {
     rejectIfNullOrEmpty(userDTO.getBirthDate(), MessageCodeConstants.AU0015, 400, ParameterConstants.PARAM_USER_BIRTH_DATE);
     Date dob = InternalHelper.isValidDate(userDTO.getBirthDate());
     rejectIfNull(dob, MessageCodeConstants.AU0022, 400, ParameterConstants.PARAM_USER_BIRTH_DATE);
@@ -75,10 +75,9 @@ public final class CreateUserExecutor extends Executor {
     final String token = InternalHelper.generateToken(userIdentity.getUserId());
     saveAccessToken(token, accessToken, userContext.getAccessTokenValidity());
     accessToken.put(ParameterConstants.PARAM_ACCESS_TOKEN, token);
-    StringBuilder uri = new StringBuilder(HelperConstants.USER_ENTITY_URI).append(userIdentity.getUserId());
     EventBuilder eventBuilder = responseDTO.getEventBuilder().setEventName(Event.CREATE_USER.getName());
     return new MessageResponse.Builder().setResponseBody(accessToken).setEventData(eventBuilder.build())
-            .setHeader(HelperConstants.LOCATION, uri.toString()).setContentTypeJson().setStatusCreated().successful().build();
+                                        .setHeader(HelperConstants.LOCATION, HelperConstants.USER_ENTITY_URI + userIdentity.getUserId()).setContentTypeJson().setStatusCreated().successful().build();
   };
 
   private ActionResponseDTO<AJEntityUserIdentity> createUser(final UserDTO userDTO, final String clientId, final Date dob) {

@@ -28,7 +28,7 @@ public final class FetchAccessTokenExecutor extends Executor {
     return fetch.accessToken(token);
   }
 
-  Fetch fetch = (String token) -> {
+  private final Fetch fetch = (String token) -> {
     JsonObject accessToken = getRedisClient().getJsonObject(token);
     reject(accessToken == null, MessageCodeConstants.AU0040, 400);
     if (accessToken.containsKey(MessageConstants.MSG_KEY_PREFS)) {

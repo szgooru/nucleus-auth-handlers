@@ -55,7 +55,7 @@ public class AuthorizeUserExecutor extends Executor {
   }
 
   interface Authorize {
-    MessageResponse user(AuthorizeDTO authorizeDTO, String requestDomain);;
+    MessageResponse user(AuthorizeDTO authorizeDTO, String requestDomain);
   }
 
   @Override
@@ -65,7 +65,7 @@ public class AuthorizeUserExecutor extends Executor {
     return authorize.user(authorizeDTO, requestDomain);
   }
 
-  Authorize authorize =
+  private final Authorize authorize =
           (AuthorizeDTO authorizeDTO, String requestDomain) -> {
             reject((HelperConstants.SSO_CONNECT_GRANT_TYPES.get(authorizeDTO.getGrantType()) == null), MessageCodeConstants.AU0003,
                     HttpConstants.HttpStatus.UNAUTHORIZED.getCode());

@@ -17,7 +17,7 @@ import org.slf4j.LoggerFactory;
 
 public class BootstrapVerticle extends AbstractVerticle {
 
-  static final Logger LOG = LoggerFactory.getLogger(BootstrapVerticle.class);
+  private static final Logger LOG = LoggerFactory.getLogger(BootstrapVerticle.class);
 
   @Override
   public void start(Future<Void> voidFuture) throws Exception {

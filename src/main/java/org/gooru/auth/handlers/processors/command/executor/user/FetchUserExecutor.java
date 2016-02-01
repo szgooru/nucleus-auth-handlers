@@ -1,7 +1,5 @@
 package org.gooru.auth.handlers.processors.command.executor.user;
 
-import io.vertx.core.json.JsonObject;
-
 import java.util.Map;
 
 import org.gooru.auth.handlers.constants.HttpConstants;
@@ -39,7 +37,7 @@ public final class FetchUserExecutor extends Executor {
     return fetch.user(userId);
   }
 
-  Fetch fetch = (userId) -> {
+  private final Fetch fetch = (userId) -> {
     final Map<String, Object> user = getUserRepo().findUser(userId);
     rejectIfNull(user, MessageCodeConstants.AU0026, HttpConstants.HttpStatus.NOT_FOUND.getCode(), ParameterConstants.PARAM_USER);
     return new MessageResponse.Builder().setResponseBody(AJResponseJsonTransformer.transform(user)).setContentTypeJson().setStatusOkay().successful()

@@ -12,9 +12,9 @@ public class MessageProcessor implements Processor {
 
   private static final Logger LOG = LoggerFactory.getLogger(MessageProcessorHandler.class);
 
-  private Message<Object> message;
+  private final Message<Object> message;
 
-  private MessageProcessorHandler handler;
+  private final MessageProcessorHandler handler;
 
   public MessageProcessor(MessageProcessorHandler handler, Message<Object> message) {
     this.message = message;

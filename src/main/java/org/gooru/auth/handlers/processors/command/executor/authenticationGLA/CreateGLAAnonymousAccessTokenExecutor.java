@@ -28,7 +28,7 @@ public class CreateGLAAnonymousAccessTokenExecutor extends Executor {
   }
 
   interface Create {
-    MessageResponse accessToken(String clientKey, String requestDomain);;
+    MessageResponse accessToken(String clientKey, String requestDomain);
   }
 
   @Override
@@ -41,7 +41,7 @@ public class CreateGLAAnonymousAccessTokenExecutor extends Executor {
     return create.accessToken(clientKey, requestDomain);
   }
 
-  Create create = (String clientKey, String requestDomain) -> {
+  private final Create create = (String clientKey, String requestDomain) -> {
     final AJEntityAuthClient authClient = validateAuthClient(InternalHelper.encryptClientKey(clientKey));
     verifyClientkeyDomains(requestDomain, authClient.getRefererDomains());
     final JsonObject accessToken = new JsonObject();

@@ -13,7 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class AuthenticationVerticle extends AbstractVerticle {
-  static final Logger LOG = LoggerFactory.getLogger(AuthenticationVerticle.class);
+  private static final Logger LOG = LoggerFactory.getLogger(AuthenticationVerticle.class);
 
   @Override
   public void start(Future<Void> voidFuture) throws Exception {
@@ -34,7 +34,6 @@ public class AuthenticationVerticle extends AbstractVerticle {
         }
 
       });
-      ;
 
     }).completionHandler(result -> {
       if (result.succeeded()) {

@@ -15,7 +15,7 @@ public class EventBuilder extends JsonObject {
   private JsonObject metrics;
   private JsonObject context;
   private JsonObject version;
-  private JsonObject payLoadObject;
+  private final JsonObject payLoadObject;
 
   public EventBuilder() {
     this.payLoadObject = new JsonObject();

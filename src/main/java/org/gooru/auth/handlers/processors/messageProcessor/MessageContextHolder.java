@@ -8,9 +8,9 @@ import org.gooru.auth.handlers.constants.MessageConstants;
 
 public class MessageContextHolder implements MessageContext {
 
-  private Message<Object> message;
+  private final Message<Object> message;
 
-  private JsonObject data;
+  private final JsonObject data;
 
   public MessageContextHolder(Message<Object> message) {
     this.message = message;

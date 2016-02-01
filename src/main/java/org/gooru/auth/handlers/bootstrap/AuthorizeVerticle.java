@@ -13,7 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class AuthorizeVerticle extends AbstractVerticle {
-  static final Logger LOG = LoggerFactory.getLogger(AuthorizeVerticle.class);
+  private static final Logger LOG = LoggerFactory.getLogger(AuthorizeVerticle.class);
 
   @Override
   public void start(Future<Void> voidFuture) throws Exception {

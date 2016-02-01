@@ -6,7 +6,7 @@ import java.util.Map;
 import org.gooru.auth.handlers.processors.command.executor.Executor;
 
 public class UserExecutorFactory {
-  private static Map<Class<?>, Executor> instances = new HashMap<>();
+  private static final Map<Class<?>, Executor> instances = new HashMap<>();
 
   public static Executor getInstance(Class<?> classz) {
     Executor executor = instances.get(classz);

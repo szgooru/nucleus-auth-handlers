@@ -9,7 +9,7 @@ import org.gooru.auth.handlers.infra.RedisClient;
 
 public class Finalizers implements Iterable<Finalizer> {
 
-  private Iterator<Finalizer> internalIterator;
+  private final Iterator<Finalizer> internalIterator;
 
   public Finalizers() {
     final List<Finalizer> finalizers = new ArrayList<Finalizer>();
@@ -20,7 +20,7 @@ public class Finalizers implements Iterable<Finalizer> {
 
   @Override
   public Iterator<Finalizer> iterator() {
-    Iterator<Finalizer> iterator = new Iterator<Finalizer>() {
+    return new Iterator<Finalizer>() {
 
       @Override
       public boolean hasNext() {
@@ -33,7 +33,6 @@ public class Finalizers implements Iterable<Finalizer> {
       }
 
     };
-    return iterator;
   }
 
 }

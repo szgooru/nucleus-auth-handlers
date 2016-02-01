@@ -98,7 +98,7 @@ final public class AJResponseJsonTransformer {
     } else if (value instanceof Timestamp) {
       value = ((Timestamp) value).getTime();
     } else if (value instanceof UUID) {
-      value = ((UUID) value).toString();
+      value = value.toString();
     }
     return value;
   }
