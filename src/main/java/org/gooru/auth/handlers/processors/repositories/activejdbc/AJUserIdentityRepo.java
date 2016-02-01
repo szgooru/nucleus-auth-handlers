@@ -67,7 +67,7 @@ public class AJUserIdentityRepo extends AJAbstractRepo implements UserIdentityRe
       LazyList<AJEntityUserIdentity> results = AJEntityUserIdentity.where(whereClause, params);
       userIdentity = results.size() > 0 ? results.get(0) : null;
     } catch (Exception e) {
-      LOG.error("Exception while marking connetion to be read", e);
+      LOG.error("Exception while marking connection to be read", e);
       ServerValidatorUtility.throwASInternalServerError();
     } finally {
       Base.close();

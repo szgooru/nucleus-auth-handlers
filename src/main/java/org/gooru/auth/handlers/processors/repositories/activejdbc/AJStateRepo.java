@@ -52,7 +52,7 @@ public class AJStateRepo extends AJAbstractRepo implements StateRepo {
       LazyList<AJEntityState> results = AJEntityState.where(whereClause, params);
       state = results.size() > 0 ? results.get(0) : null;
     } catch (Exception e) {
-      LOG.error("Exception while marking connetion to be read", e);
+      LOG.error("Exception while marking connection to be read", e);
       ServerValidatorUtility.throwASInternalServerError();
     } finally {
       Base.close();

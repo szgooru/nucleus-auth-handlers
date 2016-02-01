@@ -49,7 +49,7 @@ public class AJSchoolDistrictRepo extends AJAbstractRepo implements SchoolDistri
       LazyList<AJEntitySchoolDistrict> results = AJEntitySchoolDistrict.where(whereClause, params);
       schoolDistrict = results.size() > 0 ? results.get(0) : null;
     } catch (Exception e) {
-      LOG.error("Exception while marking connetion to be read", e);
+      LOG.error("Exception while marking connection to be read", e);
       ServerValidatorUtility.throwASInternalServerError();
     } finally {
       Base.close();

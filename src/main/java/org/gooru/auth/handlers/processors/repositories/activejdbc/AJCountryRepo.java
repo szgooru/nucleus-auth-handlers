@@ -13,7 +13,7 @@ import org.slf4j.LoggerFactory;
 public class AJCountryRepo extends AJAbstractRepo implements CountryRepo {
 
   private static final Logger LOG = LoggerFactory.getLogger(AJCountryRepo.class);
-  
+
   private static final String GET_COUNTRY_BY_NAME = "name = ?";
 
   private static final String GET_COUNTRY_BY_ID = "id = ?::uuid";
@@ -49,7 +49,7 @@ public class AJCountryRepo extends AJAbstractRepo implements CountryRepo {
       LazyList<AJEntityCountry> results = AJEntityCountry.where(whereClause, params);
       country = results.size() > 0 ? results.get(0) : null;
     } catch (Exception e) {
-      LOG.error("Exception while marking connetion to be read", e);
+      LOG.error("Exception while marking connection to be read", e);
       ServerValidatorUtility.throwASInternalServerError();
     } finally {
       Base.close();

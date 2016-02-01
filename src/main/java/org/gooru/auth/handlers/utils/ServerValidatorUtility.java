@@ -19,57 +19,57 @@ public class ServerValidatorUtility {
 
   private static final ResourceBundle message = ResourceBundle.getBundle("message");
 
-  public static void addValidatorIfNullError(Errors errors, String fieldName, Object data, String code, String... placeHolderRepalcer) {
+  public static void addValidatorIfNullError(Errors errors, String fieldName, Object data, String code, String... placeHolderReplacer) {
     if (data == null) {
-      addError(errors, fieldName, code, placeHolderRepalcer);
+      addError(errors, fieldName, code, placeHolderReplacer);
     }
   }
 
-  public static void addValidatorIfNullError(Errors errors, Object data, String code, String... placeHolderRepalcer) {
+  public static void addValidatorIfNullError(Errors errors, Object data, String code, String... placeHolderReplacer) {
     if (data == null) {
-      addError(errors, code, placeHolderRepalcer);
+      addError(errors, code, placeHolderReplacer);
     }
   }
 
-  public static void addValidatorIfNullOrEmptyError(Errors errors, String fieldName, String data, String code, String... placeHolderRepalcer) {
+  public static void addValidatorIfNullOrEmptyError(Errors errors, String fieldName, String data, String code, String... placeHolderReplacer) {
     if (data == null || data.trim().length() == 0) {
-      addError(errors, fieldName, code, placeHolderRepalcer);
+      addError(errors, fieldName, code, placeHolderReplacer);
     }
   }
 
-  public static void addValidator(Errors errors, Boolean data, String fieldName, String code, String... placeHolderRepalcer) {
+  public static void addValidator(Errors errors, Boolean data, String fieldName, String code, String... placeHolderReplacer) {
     if (data) {
-      addError(errors, fieldName, code, placeHolderRepalcer);
+      addError(errors, fieldName, code, placeHolderReplacer);
     }
   }
 
-  public static void rejectIfNull(Object data, String code, int errorCode, String... placeHolderRepalcer) {
+  public static void rejectIfNull(Object data, String code, int errorCode, String... placeHolderReplacer) {
     if (data == null) {
-      exceptionHandler(errorCode, code, placeHolderRepalcer);
+      exceptionHandler(errorCode, code, placeHolderReplacer);
     }
   }
 
-  public static void rejectIfNullOrEmpty(String data, String code, int errorCode, String... placeHolderRepalcer) {
+  public static void rejectIfNullOrEmpty(String data, String code, int errorCode, String... placeHolderReplacer) {
     if (data == null || data.trim().length() == 0) {
-      exceptionHandler(errorCode, code, placeHolderRepalcer);
+      exceptionHandler(errorCode, code, placeHolderReplacer);
     }
   }
 
-  public static void reject(Boolean data, String code, int errorCode, String... placeHolderRepalcer) {
+  public static void reject(Boolean data, String code, int errorCode, String... placeHolderReplacer) {
     if (data) {
-      exceptionHandler(errorCode, code, placeHolderRepalcer);
+      exceptionHandler(errorCode, code, placeHolderReplacer);
     }
   }
 
-  private static void exceptionHandler(int errorCode, String code, String... placeHolderRepalcer) {
+  private static void exceptionHandler(int errorCode, String code, String... placeHolderReplacer) {
     if (errorCode == NOT_FOUND.getCode()) {
-      throw new NotFoundException(generateErrorMessage(code, placeHolderRepalcer));
+      throw new NotFoundException(generateErrorMessage(code, placeHolderReplacer));
     } else if (errorCode == FORBIDDEN.getCode()) {
-      throw new AccessDeniedException(generateErrorMessage(code, placeHolderRepalcer));
+      throw new AccessDeniedException(generateErrorMessage(code, placeHolderReplacer));
     } else if (errorCode == UNAUTHORIZED.getCode()) {
-      throw new UnauthorizedException(generateErrorMessage(code, placeHolderRepalcer));
+      throw new UnauthorizedException(generateErrorMessage(code, placeHolderReplacer));
     } else if (errorCode == BAD_REQUEST.getCode()) {
-      throw new BadRequestException(generateErrorMessage(code, placeHolderRepalcer));
+      throw new BadRequestException(generateErrorMessage(code, placeHolderReplacer));
     }
   }
 
@@ -118,19 +118,19 @@ public class ServerValidatorUtility {
     throw new RuntimeException("internal api error");
   }
 
-  public static void addError(Errors errors, String fieldName, String code, String... placeHolderRepalcer) {
+  public static void addError(Errors errors, String fieldName, String code, String... placeHolderReplacer) {
     org.gooru.auth.handlers.processors.error.Error error = new org.gooru.auth.handlers.processors.error.Error();
     error.setCode(code);
-    error.setMessage(generateErrorMessage(code, placeHolderRepalcer));
+    error.setMessage(generateErrorMessage(code, placeHolderReplacer));
     error.setFieldName(fieldName);
     error.setType(ErrorType.PARAMS_INVALID.getName());
     errors.add(error);
   }
 
-  public static void addError(Errors errors, String code, String... placeHolderRepalcer) {
+  public static void addError(Errors errors, String code, String... placeHolderReplacer) {
     org.gooru.auth.handlers.processors.error.Error error = new org.gooru.auth.handlers.processors.error.Error();
     error.setCode(code);
-    error.setMessage(generateErrorMessage(code, placeHolderRepalcer));
+    error.setMessage(generateErrorMessage(code, placeHolderReplacer));
     errors.add(error);
   }
 }

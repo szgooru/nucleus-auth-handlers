@@ -26,7 +26,7 @@ public abstract class AJAbstractRepo {
       model.saveIt();
       Base.commitTransaction();
     } catch (Throwable e) {
-      LOG.error("Exception while marking connetion to be write", e);
+      LOG.error("Exception while marking connection to be write", e);
       Base.rollbackTransaction();
       ServerValidatorUtility.throwASInternalServerError();
     } finally {
@@ -41,7 +41,7 @@ public abstract class AJAbstractRepo {
       model.toUpdate();
       Base.commitTransaction();
     } catch (Throwable e) {
-      LOG.error("Exception while marking connetion to be write", e);
+      LOG.error("Exception while marking connection to be write", e);
       Base.rollbackTransaction();
       ServerValidatorUtility.throwASInternalServerError();
     } finally {
@@ -58,7 +58,7 @@ public abstract class AJAbstractRepo {
       List<Map> results = Base.findAll(sql, params);
       result = results.size() > 0 ? results.get(0) : null;
     } catch (Throwable e) {
-      LOG.error("Exception while marking connetion to be read", e);
+      LOG.error("Exception while marking connection to be read", e);
       ServerValidatorUtility.throwASInternalServerError();
     } finally {
       Base.close();

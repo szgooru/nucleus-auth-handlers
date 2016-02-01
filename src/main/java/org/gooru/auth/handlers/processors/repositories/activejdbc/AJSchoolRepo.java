@@ -52,7 +52,7 @@ public class AJSchoolRepo extends AJAbstractRepo implements SchoolRepo {
       LazyList<AJEntitySchool> results = AJEntitySchool.where(whereClause, params);
       school = results.size() > 0 ? results.get(0) : null;
     } catch (Exception e) {
-      LOG.error("Exception while marking connetion to be read", e);
+      LOG.error("Exception while marking connection to be read", e);
       ServerValidatorUtility.throwASInternalServerError();
     } finally {
       Base.close();
