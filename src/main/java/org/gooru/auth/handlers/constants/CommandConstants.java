@@ -20,7 +20,7 @@ public class CommandConstants {
   public static final String RESET_PASSWORD = "reset.password";
   public static final String UPDATE_PASSWORD = "update.password";
   public static final String RESET_EMAIL_ADDRESS = "reset.email";
-  public static final String RESEND_CONFIRMATION_EMAIL = "resend.confimation.email";
+  public static final String RESEND_CONFIRMATION_EMAIL = "resend.confirmation.email";
   public static final String CONFIRMATION_EMAIL = "confirm.email";
 
 }
