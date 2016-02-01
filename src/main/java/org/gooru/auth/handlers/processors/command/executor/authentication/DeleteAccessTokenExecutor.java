@@ -15,7 +15,7 @@ public final class DeleteAccessTokenExecutor extends Executor {
   }
 
   interface Delete {
-    MessageResponse accessToken(String token);;
+    MessageResponse accessToken(String token);
   }
 
   @Override

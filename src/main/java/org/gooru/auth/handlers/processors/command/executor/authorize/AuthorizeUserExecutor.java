@@ -55,7 +55,7 @@ public class AuthorizeUserExecutor extends Executor {
   }
 
   interface Authorize {
-    MessageResponse user(AuthorizeDTO authorizeDTO, String requestDomain);;
+    MessageResponse user(AuthorizeDTO authorizeDTO, String requestDomain);
   }
 
   @Override

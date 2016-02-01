@@ -28,7 +28,7 @@ public class CreateGLAAnonymousAccessTokenExecutor extends Executor {
   }
 
   interface Create {
-    MessageResponse accessToken(String clientKey, String requestDomain);;
+    MessageResponse accessToken(String clientKey, String requestDomain);
   }
 
   @Override

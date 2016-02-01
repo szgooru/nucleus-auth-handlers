@@ -34,7 +34,6 @@ public class AuthenticationVerticle extends AbstractVerticle {
         }
 
       });
-      ;
 
     }).completionHandler(result -> {
       if (result.succeeded()) {

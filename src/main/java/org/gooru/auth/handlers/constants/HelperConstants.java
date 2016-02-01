@@ -11,15 +11,15 @@ public class HelperConstants {
   public static final Map<String, String> USER_CATEGORY;
 
   public static final Map<String, String> SSO_CONNECT_GRANT_TYPES;
-  
+
   public static final String LOCATION = "Location";
-  
+
   public static final String USER_ENTITY_URI = "/users/";
-  
+
   public static final String USERS_JSON_FIELDS [] = {"course", "grade"};
-  
+
   public static final String USERS_PREFS_JSON_FIELDS [] = {"standard_preference"};
-  
+
 
   static {
     Map<String, String> gender = new HashMap<String, String>();
@@ -51,7 +51,7 @@ public class HelperConstants {
 
     public String type;
 
-    private UserIdentityProvisionType(String type) {
+    UserIdentityProvisionType(String type) {
       this.type = type;
     }
 
@@ -65,7 +65,7 @@ public class HelperConstants {
 
     public String type;
 
-    private UserIdentityLoginType(String type) {
+    UserIdentityLoginType(String type) {
       this.type = type;
     }
 
@@ -79,7 +79,7 @@ public class HelperConstants {
 
     public String status;
 
-    private UserIdentityStatus(String status) {
+    UserIdentityStatus(String status) {
       this.status = status;
     }
 
@@ -93,7 +93,7 @@ public class HelperConstants {
 
     public String type;
 
-    private GrantType(String type) {
+    GrantType(String type) {
       this.type = type;
     }
 
