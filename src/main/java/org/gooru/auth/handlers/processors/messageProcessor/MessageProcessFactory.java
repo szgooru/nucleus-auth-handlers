@@ -3,30 +3,37 @@ package org.gooru.auth.handlers.processors.messageProcessor;
 import java.util.HashMap;
 import java.util.Map;
 
-public class MessageProcessFactory {
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-  private static final Map<Class<?>, MessageProcessorHandler> instances = new HashMap<>();
+public final class MessageProcessFactory {
 
-  public static MessageProcessorHandler getInstance(Class<?> classz) {
-    MessageProcessorHandler cmd = instances.get(classz);
-    if (cmd == null) {
+  private static final Map<ProcessorHandlerType, MessageProcessorHandler> instances = new HashMap<>();
+
+  private static final Logger LOG = LoggerFactory.getLogger(MessageProcessFactory.class);
+
+  public static MessageProcessorHandler getInstance(ProcessorHandlerType handlerType) {
+    MessageProcessorHandler handler = instances.get(handlerType);
+    if (handler == null) {
       synchronized (MessageProcessFactory.class) {
-        if (classz.equals(AuthenticationMessageProcessor.class)) {
-          cmd = new AuthenticationMessageProcessor();
-        } else if (classz.equals(AuthorizeMessageProcessor.class)) {
-          cmd = new AuthorizeMessageProcessor();
-        } else if (classz.equals(UserMessageProcessor.class)) {
-          cmd = new UserMessageProcessor();
-        } else if (classz.equals(UserPrefsMessageProcessor.class)) {
-          cmd = new UserPrefsMessageProcessor();
-        } else if (classz.equals(AuthenticationGLAVersionMessageProcessor.class)) {
-          cmd = new AuthenticationGLAVersionMessageProcessor();
+        if (handlerType.equals(ProcessorHandlerType.AUTHENTICATION)) {
+          handler = new AuthenticationMessageProcessor();
+        } else if (handlerType.equals(ProcessorHandlerType.AUTHORIZE)) {
+          handler = new AuthorizeMessageProcessor();
+        } else if (handlerType.equals(ProcessorHandlerType.USER)) {
+          handler = new UserMessageProcessor();
+        } else if (handlerType.equals(ProcessorHandlerType.USER_PREFS)) {
+          handler = new UserPrefsMessageProcessor();
+        } else if (handlerType.equals(ProcessorHandlerType.AUTHENTICATION_GLA_VERSION)) {
+          handler = new AuthenticationGLAVersionMessageProcessor();
+        } else {
+          LOG.debug("None of the handlers matched, looks like invalid handler type.");
         }
       }
-      instances.put(classz, cmd);
+      instances.put(handlerType, handler);
     }
 
-    return cmd;
+    return handler;
 
   }
 }

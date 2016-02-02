@@ -4,22 +4,29 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.gooru.auth.handlers.processors.command.executor.Executor;
+import org.gooru.auth.handlers.processors.command.executor.ExecutorType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-public class AuthenticationGLAExecutorFactory {
+public final class AuthenticationGLAExecutorFactory {
 
-  private static final Map<Class<?>, Executor> instances = new HashMap<>();
+  private static final Map<ExecutorType.AuthenticationGLAVersion, Executor> instances = new HashMap<>();
 
-  public static Executor getInstance(Class<?> classz) {
-    Executor executor = instances.get(classz);
+  private static final Logger LOG = LoggerFactory.getLogger(AuthenticationGLAExecutorFactory.class);
+  
+  public static Executor getInstance(ExecutorType.AuthenticationGLAVersion executorType) {
+    Executor executor = instances.get(executorType);
     if (executor == null) {
       synchronized (AuthenticationGLAExecutorFactory.class) {
-        if (classz.equals(CreateGLAAnonymousAccessTokenExecutor.class)) {
+        if (executorType.equals(ExecutorType.AuthenticationGLAVersion.CREATE_ANONYMOUS_ACCESS_TOKEN)) {
           executor = new CreateGLAAnonymousAccessTokenExecutor();
-        } else if (classz.equals(CreateGLABasicAuthAccessTokenExecutor.class)) {
+        } else if (executorType.equals(ExecutorType.AuthenticationGLAVersion.CREATE_AUTHENTICATE_ACCESS_TOKEN)) {
           executor = new CreateGLABasicAuthAccessTokenExecutor();
+        } else {
+          LOG.debug("None of the authentication GLA version executor matched, looks like invalid executor type.");
         }
       }
-      instances.put(classz, executor);
+      instances.put(executorType, executor);
     }
 
     return executor;

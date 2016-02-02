@@ -4,37 +4,44 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.gooru.auth.handlers.processors.command.executor.Executor;
+import org.gooru.auth.handlers.processors.command.executor.ExecutorType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-public class UserExecutorFactory {
-  private static final Map<Class<?>, Executor> instances = new HashMap<>();
+public final class UserExecutorFactory {
+  private static final Map<ExecutorType.User, Executor> instances = new HashMap<>();
 
-  public static Executor getInstance(Class<?> classz) {
-    Executor executor = instances.get(classz);
+  private static final Logger LOG = LoggerFactory.getLogger(UserExecutorFactory.class);
+
+  public static Executor getInstance(ExecutorType.User executorType) {
+    Executor executor = instances.get(executorType);
     if (executor == null) {
       synchronized (UserExecutorFactory.class) {
-        if (classz.equals(CreateUserExecutor.class)) {
+        if (executorType.equals(ExecutorType.User.CREATE_USER)) {
           executor = new CreateUserExecutor();
-        } else if (classz.equals(UpdateUserExecutor.class)) {
+        } else if (executorType.equals(ExecutorType.User.UPDATE_USER)) {
           executor = new UpdateUserExecutor();
-        } else if (classz.equals(FetchUserExecutor.class)) {
+        } else if (executorType.equals(ExecutorType.User.FETCH_USER)) {
           executor = new FetchUserExecutor();
-        } else if (classz.equals(FindUserExecutor.class)) {
+        } else if (executorType.equals(ExecutorType.User.FIND_USER)) {
           executor = new FindUserExecutor();
-        } else if (classz.equals(ResendConfirmationEmailExecutor.class)) {
+        } else if (executorType.equals(ExecutorType.User.RESEND_CONFIRMATION_MAIL)) {
           executor = new ResendConfirmationEmailExecutor();
-        } else if (classz.equals(ResetAuthenticateUserPasswordExecutor.class)) {
+        } else if (executorType.equals(ExecutorType.User.RESET_AUTHENTICATE_USER_PASSWORD)) {
           executor = new ResetAuthenticateUserPasswordExecutor();
-        } else if (classz.equals(ResetUnAuthenticateUserPasswordExecutor.class)) {
+        } else if (executorType.equals(ExecutorType.User.RESET_UNAUTHENTICATE_USER_PASSWORD)) {
           executor = new ResetUnAuthenticateUserPasswordExecutor();
-        } else if (classz.equals(UpdateUserEmailExecutor.class)) {
+        } else if (executorType.equals(ExecutorType.User.UPDATE_USER_EMAIL)) {
           executor = new UpdateUserEmailExecutor();
-        } else if (classz.equals(ResetPasswordExecutor.class)) {
+        } else if (executorType.equals(ExecutorType.User.RESET_PASSWORD)) {
           executor = new ResetPasswordExecutor();
-        } else if (classz.equals(ConfirmUserEmailExecutor.class)) {
+        } else if (executorType.equals(ExecutorType.User.RESEND_CONFIRMATION_MAIL)) {
           executor = new ConfirmUserEmailExecutor();
+        } else {
+          LOG.debug("None of the user executor matched, looks like invalid executor type.");
         }
       }
-      instances.put(classz, executor);
+      instances.put(executorType, executor);
     }
 
     return executor;

@@ -4,22 +4,29 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.gooru.auth.handlers.processors.command.executor.Executor;
+import org.gooru.auth.handlers.processors.command.executor.ExecutorType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-public class UserPrefsExecutorFactory {
+public final class UserPrefsExecutorFactory {
 
-  private static final Map<Class<?>, Executor> instances = new HashMap<>();
+  private static final Map<ExecutorType.UserPrefs, Executor> instances = new HashMap<>();
 
-  public static Executor getInstance(Class<?> classz) {
-    Executor executor = instances.get(classz);
+  private static final Logger LOG = LoggerFactory.getLogger(UserPrefsExecutorFactory.class);
+
+  public static Executor getInstance(ExecutorType.UserPrefs executorType) {
+    Executor executor = instances.get(executorType);
     if (executor == null) {
       synchronized (UserPrefsExecutorFactory.class) {
-        if (classz.equals(UpdateUserPrefsExecutor.class)) {
+        if (executorType.equals(ExecutorType.UserPrefs.UPDATE_USER_PREFS)) {
           executor = new UpdateUserPrefsExecutor();
-        } else if (classz.equals(FetchUserPrefsExecutor.class)) {
+        } else if (executorType.equals(ExecutorType.UserPrefs.FETCH_USER_PREFS)) {
           executor = new FetchUserPrefsExecutor();
+        } else {
+          LOG.debug("None of the user executor matched, looks like invalid executor type.");
         }
       }
-      instances.put(classz, executor);
+      instances.put(executorType, executor);
     }
 
     return executor;

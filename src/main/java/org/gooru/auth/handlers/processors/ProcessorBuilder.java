@@ -5,18 +5,19 @@ import io.vertx.core.eventbus.Message;
 import org.gooru.auth.handlers.processors.messageProcessor.MessageProcessFactory;
 import org.gooru.auth.handlers.processors.messageProcessor.MessageProcessor;
 import org.gooru.auth.handlers.processors.messageProcessor.Processor;
+import org.gooru.auth.handlers.processors.messageProcessor.ProcessorHandlerType;
 
 public class ProcessorBuilder {
   private final Message<Object> message;
 
-  private final Class<?> handlerClass;
+  private final ProcessorHandlerType handlerType;
 
-  public ProcessorBuilder(Class<?> handlerClass, Message<Object> message) {
+  public ProcessorBuilder(ProcessorHandlerType handlerType, Message<Object> message) {
     this.message = message;
-    this.handlerClass = handlerClass;
+    this.handlerType = handlerType;
   }
 
   public Processor build() {
-    return new MessageProcessor(MessageProcessFactory.getInstance(handlerClass), message);
+    return new MessageProcessor(MessageProcessFactory.getInstance(handlerType), message);
   }
 }

@@ -8,7 +8,7 @@ import io.vertx.core.json.JsonObject;
 import org.gooru.auth.handlers.constants.MessagebusEndpoints;
 import org.gooru.auth.handlers.processors.ProcessorBuilder;
 import org.gooru.auth.handlers.processors.command.executor.MessageResponse;
-import org.gooru.auth.handlers.processors.messageProcessor.UserPrefsMessageProcessor;
+import org.gooru.auth.handlers.processors.messageProcessor.ProcessorHandlerType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,7 +22,7 @@ public class UserPrefsVerticle extends AbstractVerticle {
     eb.consumer(MessagebusEndpoints.MBEP_USER_PREFS, message -> {
       LOG.debug("Received message: " + message.body());
       vertx.executeBlocking(future -> {
-        MessageResponse result = new ProcessorBuilder(UserPrefsMessageProcessor.class, message).build().process();
+        MessageResponse result = new ProcessorBuilder(ProcessorHandlerType.USER_PREFS, message).build().process();
         future.complete(result);
       }, res -> {
         MessageResponse result = (MessageResponse) res.result();
