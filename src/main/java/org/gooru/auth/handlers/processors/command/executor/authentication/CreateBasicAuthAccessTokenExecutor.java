@@ -1,5 +1,8 @@
 package org.gooru.auth.handlers.processors.command.executor.authentication;
 
+import static org.gooru.auth.handlers.utils.ServerValidatorUtility.reject;
+import static org.gooru.auth.handlers.utils.ServerValidatorUtility.rejectIfNull;
+import static org.gooru.auth.handlers.utils.ServerValidatorUtility.rejectIfNullOrEmpty;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
@@ -23,9 +26,8 @@ import org.gooru.auth.handlers.processors.repositories.activejdbc.entities.AJEnt
 import org.gooru.auth.handlers.processors.repositories.activejdbc.entities.AJEntityUserIdentity;
 import org.gooru.auth.handlers.processors.repositories.activejdbc.entities.AJEntityUserPreference;
 import org.gooru.auth.handlers.utils.InternalHelper;
-import org.gooru.auth.handlers.utils.ServerValidatorUtility;
 
-public class CreateBasicAuthAccessTokenExecutor extends Executor {
+public final class CreateBasicAuthAccessTokenExecutor extends Executor {
 
   private UserIdentityRepo userIdentityRepo;
 
@@ -42,19 +44,15 @@ public class CreateBasicAuthAccessTokenExecutor extends Executor {
     setRedisClient(RedisClient.instance());
   }
 
-  interface Create {
-    MessageResponse accessToken(AuthClientDTO authClientDTO, String requestDomain, String basicAuthCredentials);
-  }
-
   @Override
   public MessageResponse execute(MessageContext messageContext) {
     String basicAuthCredentials = messageContext.headers().get(MessageConstants.MSG_HEADER_BASIC_AUTH);
     String requestDomain = messageContext.headers().get(MessageConstants.MSG_HEADER_REQUEST_DOMAIN);
-    AuthClientDTO authClientDTO = new AuthClientDTO(messageContext.requestBody().getMap());
-    return create.accessToken(authClientDTO, requestDomain, basicAuthCredentials);
+    AuthClientDTO authClientDTO = new AuthClientDTO(messageContext.requestBody());
+    return createAccessToken(authClientDTO, requestDomain, basicAuthCredentials);
   }
 
-  private final Create create = (AuthClientDTO authClientDTO, String requestDomain, String basicAuthCredentials) -> {
+  private MessageResponse createAccessToken(AuthClientDTO authClientDTO, String requestDomain, String basicAuthCredentials) {
     reject(!(GrantType.CREDENTIAL.getType().equalsIgnoreCase(authClientDTO.getGrantType())), MessageCodeConstants.AU0003,
             HttpConstants.HttpStatus.UNAUTHORIZED.getCode());
     rejectIfNullOrEmpty(basicAuthCredentials, MessageCodeConstants.AU0006, HttpConstants.HttpStatus.UNAUTHORIZED.getCode());
@@ -72,7 +70,7 @@ public class CreateBasicAuthAccessTokenExecutor extends Executor {
       userIdentity = getUserIdentityRepo().getUserIdentityByUsernameAndPassword(username, password);
     }
     rejectIfNull(userIdentity, MessageCodeConstants.AU0008, HttpConstants.HttpStatus.UNAUTHORIZED.getCode());
-    reject(userIdentity.getStatus().equalsIgnoreCase(ParameterConstants.PARAM_STATUS_DEACTIVTED), MessageCodeConstants.AU0009,
+    reject(userIdentity.getStatus().equalsIgnoreCase(ParameterConstants.PARAM_STATUS_DEACTIVATED), MessageCodeConstants.AU0009,
             HttpConstants.HttpStatus.FORBIDDEN.getCode());
 
     final JsonObject accessToken = new JsonObject();
@@ -100,7 +98,7 @@ public class CreateBasicAuthAccessTokenExecutor extends Executor {
     return new MessageResponse.Builder().setResponseBody(accessToken).setEventData(eventBuilder.build()).setContentTypeJson().setStatusOkay()
             .successful().build();
 
-  };
+  }
 
   private AJEntityAuthClient validateAuthClient(String clientId, String clientKey, String grantType) {
     rejectIfNullOrEmpty(clientId, MessageCodeConstants.AU0001, HttpConstants.HttpStatus.UNAUTHORIZED.getCode());
@@ -121,7 +119,7 @@ public class CreateBasicAuthAccessTokenExecutor extends Executor {
           break;
         }
       }
-      ServerValidatorUtility.reject(!isValidReferrer, MessageCodeConstants.AU0009, HttpConstants.HttpStatus.FORBIDDEN.getCode());
+      reject(!isValidReferrer, MessageCodeConstants.AU0009, HttpConstants.HttpStatus.FORBIDDEN.getCode());
     }
   }
 

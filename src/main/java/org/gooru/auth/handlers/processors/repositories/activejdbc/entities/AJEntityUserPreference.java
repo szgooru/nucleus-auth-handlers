@@ -35,11 +35,11 @@ public class AJEntityUserPreference extends Model {
   }
 
   public Boolean getProfileVisiblity(Boolean profileVisiblity) {
-    return getBoolean(ParameterConstants.PARAM_PROFILE_VISIBLITY);
+    return getBoolean(ParameterConstants.PARAM_PROFILE_VISIBILITY);
   }
 
   public void setProfileVisiblity(Boolean profileVisiblity) {
-    set(ParameterConstants.PARAM_PROFILE_VISIBLITY, profileVisiblity);
+    set(ParameterConstants.PARAM_PROFILE_VISIBILITY, profileVisiblity);
   }
 
 }

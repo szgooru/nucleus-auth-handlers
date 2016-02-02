@@ -12,16 +12,13 @@ import org.gooru.auth.handlers.processors.command.executor.MessageResponse;
 import org.gooru.auth.handlers.processors.messageProcessor.MessageContext;
 import org.gooru.auth.handlers.processors.repositories.UserIdentityRepo;
 import org.gooru.auth.handlers.processors.repositories.UserRepo;
+import org.gooru.auth.handlers.utils.ServerValidatorUtility;
 
 public final class FetchUserExecutor extends Executor {
 
   private UserIdentityRepo userIdentityRepo;
 
   private UserRepo userRepo;
-
-  interface Fetch {
-    MessageResponse user(String userId);
-  }
 
   public FetchUserExecutor() {
     setUserIdentityRepo(UserIdentityRepo.instance());
@@ -34,12 +31,13 @@ public final class FetchUserExecutor extends Executor {
     if (userId.equalsIgnoreCase(ParameterConstants.PARAM_ME)) {
       userId = messageContext.user().getString(ParameterConstants.PARAM_USER_ID);
     }
-    return fetch.user(userId);
+    return fetchUser(userId);
   }
 
-  private final Fetch fetch = (userId) -> {
+  private MessageResponse fetchUser(String userId) {
     final Map<String, Object> user = getUserRepo().findUser(userId);
-    rejectIfNull(user, MessageCodeConstants.AU0026, HttpConstants.HttpStatus.NOT_FOUND.getCode(), ParameterConstants.PARAM_USER);
+    ServerValidatorUtility.rejectIfNull(user, MessageCodeConstants.AU0026, HttpConstants.HttpStatus.NOT_FOUND.getCode(),
+            ParameterConstants.PARAM_USER);
     return new MessageResponse.Builder().setResponseBody(AJResponseJsonTransformer.transform(user)).setContentTypeJson().setStatusOkay().successful()
             .build();
   };

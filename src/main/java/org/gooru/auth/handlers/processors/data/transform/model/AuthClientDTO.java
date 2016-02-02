@@ -2,30 +2,26 @@ package org.gooru.auth.handlers.processors.data.transform.model;
 
 import io.vertx.core.json.JsonObject;
 
-import java.util.Map;
-
 import org.gooru.auth.handlers.constants.ParameterConstants;
 
-public class AuthClientDTO extends JsonObject {
+public class AuthClientDTO {
 
-  public AuthClientDTO() {
-    super();
-  }
+  private JsonObject requestBody;
 
-  public AuthClientDTO(Map<String, Object> map) {
-    super(map);
+  public AuthClientDTO(JsonObject requestBody) {
+    this.requestBody = requestBody;
   }
 
   public String getClientId() {
-    return getString(ParameterConstants.PARAM_CLIENT_ID);
+    return this.requestBody.getString(ParameterConstants.PARAM_CLIENT_ID);
   }
 
   public String getClientKey() {
-    return getString(ParameterConstants.PARAM_CLIENT_KEY);
+    return this.requestBody.getString(ParameterConstants.PARAM_CLIENT_KEY);
   }
 
   public String getGrantType() {
-    return getString(ParameterConstants.PARAM_GRANT_TYPE);
+    return this.requestBody.getString(ParameterConstants.PARAM_GRANT_TYPE);
   }
 
 }

@@ -1,5 +1,7 @@
 package org.gooru.auth.handlers.processors.command.executor.userPrefs;
 
+import static org.gooru.auth.handlers.utils.ServerValidatorUtility.reject;
+import static org.gooru.auth.handlers.utils.ServerValidatorUtility.rejectIfNull;
 import io.vertx.core.json.JsonObject;
 
 import org.gooru.auth.handlers.constants.HelperConstants;
@@ -30,10 +32,6 @@ public final class UpdateUserPrefsExecutor extends Executor {
 
   private RedisClient redisClient;
 
-  interface Update {
-    MessageResponse userPrefs(String accesstoken, String userId, UserPrefsDTO userPrefsDTO);
-  }
-
   public UpdateUserPrefsExecutor() {
     setUserIdentityRepo(UserIdentityRepo.instance());
     setUserPreferenceRepo(UserPreferenceRepo.instance());
@@ -46,16 +44,16 @@ public final class UpdateUserPrefsExecutor extends Executor {
     if (userId.equalsIgnoreCase(ParameterConstants.PARAM_ME)) {
       userId = messageContext.user().getUserId();
     }
-    UserPrefsDTO userPrefsDTO = new UserPrefsDTO(messageContext.requestBody().getMap());
+    UserPrefsDTO userPrefsDTO = new UserPrefsDTO(messageContext.requestBody());
     String accessToken = messageContext.headers().get(MessageConstants.MSG_HEADER_TOKEN);
 
-    return update.userPrefs(accessToken, userId, userPrefsDTO);
+    return userPrefs(accessToken, userId, userPrefsDTO);
   }
 
-  private final Update update = (String token, String userId, UserPrefsDTO userPrefsDTO) -> {
+  private MessageResponse userPrefs(String token, String userId, UserPrefsDTO userPrefsDTO) {
     final AJEntityUserIdentity userIdentity = getUserIdentityRepo().getUserIdentityById(userId);
     rejectIfNull(userIdentity, MessageCodeConstants.AU0026, HttpConstants.HttpStatus.NOT_FOUND.getCode(), ParameterConstants.PARAM_USER);
-    reject(userIdentity.getStatus().equalsIgnoreCase(ParameterConstants.PARAM_STATUS_DEACTIVTED), MessageCodeConstants.AU0009,
+    reject(userIdentity.getStatus().equalsIgnoreCase(ParameterConstants.PARAM_STATUS_DEACTIVATED), MessageCodeConstants.AU0009,
             HttpConstants.HttpStatus.FORBIDDEN.getCode());
     AJEntityUserPreference userPreference = getUserPreferenceRepo().getUserPreference(userId);
     boolean isNew = false;
@@ -74,8 +72,8 @@ public final class UpdateUserPrefsExecutor extends Executor {
       getRedisClient().set(token, accessToken.toString());
     }
 
-    if (userPrefsDTO.getProfileVisiblity() != null) {
-      userPreference.setProfileVisiblity(userPrefsDTO.getProfileVisiblity());
+    if (userPrefsDTO.getProfileVisibility() != null) {
+      userPreference.setProfileVisiblity(userPrefsDTO.getProfileVisibility());
     }
     if (isNew) {
       getUserPreferenceRepo().createPreference(userPreference);
@@ -87,7 +85,7 @@ public final class UpdateUserPrefsExecutor extends Executor {
             AJResponseJsonTransformer.transform(userPreference.toJson(false), HelperConstants.USERS_PREFS_JSON_FIELDS)).setEventName(
             Event.UPDATE_USER_PREFS.getName());
     return new MessageResponse.Builder().setContentTypeJson().setEventData(eventBuilder.build()).setStatusNoOutput().successful().build();
-  };
+  }
 
   public UserPreferenceRepo getUserPreferenceRepo() {
     return userPreferenceRepo;

@@ -14,6 +14,7 @@ import org.gooru.auth.handlers.processors.messageProcessor.MessageContext;
 import org.gooru.auth.handlers.processors.repositories.UserIdentityRepo;
 import org.gooru.auth.handlers.processors.repositories.activejdbc.entities.AJEntityUserIdentity;
 import org.gooru.auth.handlers.utils.InternalHelper;
+import org.gooru.auth.handlers.utils.ServerValidatorUtility;
 
 public final class ResetPasswordExecutor extends Executor {
 
@@ -23,10 +24,6 @@ public final class ResetPasswordExecutor extends Executor {
 
   private static final int EXPIRE_IN_SECONDS = 86400;
 
-  interface Reset {
-    MessageResponse password(String emailId);
-  }
-
   public ResetPasswordExecutor() {
     setUserIdentityRepo(UserIdentityRepo.instance());
     setRedisClient(RedisClient.instance());
@@ -35,12 +32,13 @@ public final class ResetPasswordExecutor extends Executor {
   @Override
   public MessageResponse execute(MessageContext messageContext) {
     final String emailId = messageContext.requestBody().getString(ParameterConstants.PARAM_USER_EMAIL_ID);
-    return reset.password(emailId);
+    return resetPassword(emailId);
   }
 
-  private final Reset reset = (emailId) -> {
+  private MessageResponse resetPassword(final String emailId) {
     final AJEntityUserIdentity userIdentity = getUserIdentityRepo().getUserIdentityByEmailId(emailId);
-    rejectIfNull(userIdentity, MessageCodeConstants.AU0026, HttpConstants.HttpStatus.NOT_FOUND.getCode(), ParameterConstants.PARAM_USER);
+    ServerValidatorUtility.rejectIfNull(userIdentity, MessageCodeConstants.AU0026, HttpConstants.HttpStatus.NOT_FOUND.getCode(),
+            ParameterConstants.PARAM_USER);
     final String token = InternalHelper.generateToken(InternalHelper.RESET_PASSWORD_TOKEN);
     getRedisClient().set(token, userIdentity.getEmailId(), EXPIRE_IN_SECONDS);
     EventBuilder eventBuilder = new EventBuilder();
@@ -48,7 +46,7 @@ public final class ResetPasswordExecutor extends Executor {
     eventBuilder.putPayLoadObject(SchemaConstants.USER_IDENTITY, AJResponseJsonTransformer.transform(userIdentity.toJson(false)));
     eventBuilder.putPayLoadObject(ParameterConstants.PARAM_TOKEN, token);
     return new MessageResponse.Builder().setEventData(eventBuilder.build()).setContentTypeJson().setStatusOkay().successful().build();
-  };
+  }
 
   public UserIdentityRepo getUserIdentityRepo() {
     return userIdentityRepo;

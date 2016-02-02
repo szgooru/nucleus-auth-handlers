@@ -9,6 +9,7 @@ import org.gooru.auth.handlers.infra.RedisClient;
 import org.gooru.auth.handlers.processors.command.executor.Executor;
 import org.gooru.auth.handlers.processors.command.executor.MessageResponse;
 import org.gooru.auth.handlers.processors.messageProcessor.MessageContext;
+import org.gooru.auth.handlers.utils.ServerValidatorUtility;
 
 public final class FetchAccessTokenExecutor extends Executor {
 
@@ -18,19 +19,15 @@ public final class FetchAccessTokenExecutor extends Executor {
     setRedisClient(RedisClient.instance());
   }
 
-  interface Fetch {
-    MessageResponse accessToken(String token);
-  }
-
   @Override
   public MessageResponse execute(MessageContext messageContext) {
     final String token = messageContext.headers().get(MessageConstants.MSG_HEADER_TOKEN);
-    return fetch.accessToken(token);
+    return fetchAccessToken(token);
   }
 
-  private final Fetch fetch = (String token) -> {
+  private MessageResponse fetchAccessToken(String token) {
     JsonObject accessToken = getRedisClient().getJsonObject(token);
-    reject(accessToken == null, MessageCodeConstants.AU0040, 400);
+    ServerValidatorUtility.reject(accessToken == null, MessageCodeConstants.AU0040, 400);
     if (accessToken.containsKey(MessageConstants.MSG_KEY_PREFS)) {
       accessToken.remove(MessageConstants.MSG_KEY_PREFS);
     }

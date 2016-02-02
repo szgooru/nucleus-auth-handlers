@@ -1,5 +1,10 @@
 package org.gooru.auth.handlers.processors.command.executor.user;
 
+import static org.gooru.auth.handlers.utils.ServerValidatorUtility.addValidator;
+import static org.gooru.auth.handlers.utils.ServerValidatorUtility.reject;
+import static org.gooru.auth.handlers.utils.ServerValidatorUtility.rejectError;
+import static org.gooru.auth.handlers.utils.ServerValidatorUtility.rejectIfNull;
+
 import org.gooru.auth.handlers.constants.HelperConstants;
 import org.gooru.auth.handlers.constants.HttpConstants;
 import org.gooru.auth.handlers.constants.MessageCodeConstants;
@@ -42,10 +47,6 @@ public final class UpdateUserExecutor extends Executor {
 
   private SchoolDistrictRepo schoolDistrictRepo;
 
-  interface Update {
-    MessageResponse user(String userId, UserDTO userDTO);
-  }
-
   public UpdateUserExecutor() {
     setUserIdentityRepo(UserIdentityRepo.instance());
     setUserRepo(UserRepo.instance());
@@ -62,12 +63,12 @@ public final class UpdateUserExecutor extends Executor {
     if (userId.equalsIgnoreCase(ParameterConstants.PARAM_ME)) {
       userId = messageContext.user().getString(ParameterConstants.PARAM_USER_ID);
     }
-    UserDTO userDTO = new UserDTO(messageContext.requestBody().getMap());
+    UserDTO userDTO = new UserDTO(messageContext.requestBody());
 
-    return update.user(userId, userDTO);
+    return updateUser(userId, userDTO);
   }
 
-  private final Update update = (String userId, UserDTO userDTO) -> {
+  private MessageResponse updateUser(String userId, UserDTO userDTO) {
     ActionResponseDTO<AJEntityUser> userValidator = updateUserValidator(userId, userDTO);
     rejectError(userValidator.getErrors(), HttpConstants.HttpStatus.BAD_REQUEST.getCode());
     AJEntityUser user = userValidator.getModel();
@@ -82,14 +83,14 @@ public final class UpdateUserExecutor extends Executor {
       eventBuilder.putPayLoadObject(SchemaConstants.USER_IDENTITY, AJResponseJsonTransformer.transform(userIdentity.toJson(false)));
     }
     return new MessageResponse.Builder().setContentTypeJson().setEventData(eventBuilder.build()).setStatusNoOutput().successful().build();
-  };
+  }
 
   private ActionResponseDTO<AJEntityUser> updateUserValidator(final String userId, final UserDTO userDTO) {
     final AJEntityUser user = getUserRepo().getUser(userId);
     rejectIfNull(user, MessageCodeConstants.AU0026, HttpConstants.HttpStatus.NOT_FOUND.getCode(), ParameterConstants.PARAM_USER);
     final AJEntityUserIdentity userIdentity = getUserIdentityRepo().getUserIdentityById(userId);
     rejectIfNull(userIdentity, MessageCodeConstants.AU0026, HttpConstants.HttpStatus.NOT_FOUND.getCode(), ParameterConstants.PARAM_USER);
-    reject(userIdentity.getStatus().equalsIgnoreCase(ParameterConstants.PARAM_STATUS_DEACTIVTED), MessageCodeConstants.AU0009,
+    reject(userIdentity.getStatus().equalsIgnoreCase(ParameterConstants.PARAM_STATUS_DEACTIVATED), MessageCodeConstants.AU0009,
             HttpConstants.HttpStatus.FORBIDDEN.getCode());
     final Errors errors = new Errors();
     final String username = userDTO.getUsername();
@@ -193,7 +194,6 @@ public final class UpdateUserExecutor extends Executor {
     return new ActionResponseDTO<>(user, eventBuilder, errors);
 
   }
-
 
   public UserIdentityRepo getUserIdentityRepo() {
     return userIdentityRepo;

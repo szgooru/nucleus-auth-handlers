@@ -14,20 +14,16 @@ public final class DeleteAccessTokenExecutor extends Executor {
     setRedisClient(RedisClient.instance());
   }
 
-  interface Delete {
-    MessageResponse accessToken(String token);
-  }
-
   @Override
   public MessageResponse execute(MessageContext messageContext) {
     String token = messageContext.headers().get(MessageConstants.MSG_HEADER_TOKEN);
-    return delete.accessToken(token);
+    return deleteAccessToken(token);
   }
 
-  private final Delete delete = (String token) -> {
+  private MessageResponse deleteAccessToken(String token) {
     getRedisClient().del(token);
     return new MessageResponse.Builder().setContentTypeJson().setStatusNoOutput().successful().build();
-  };
+  }
 
   public RedisClient getRedisClient() {
     return redisClient;

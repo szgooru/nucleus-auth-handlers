@@ -16,10 +16,6 @@ public final class FindUserExecutor extends Executor {
 
   private final static String[] RESPONSE_FIELDS = { "user_id", "username", "email_id" };
 
-  interface Find {
-    MessageResponse user(String username, String email);
-  }
-
   public FindUserExecutor() {
     setUserIdentityRepo(UserIdentityRepo.instance());
   }
@@ -28,10 +24,10 @@ public final class FindUserExecutor extends Executor {
   public MessageResponse execute(MessageContext messageContext) {
     final String username = messageContext.requestParams().getString(ParameterConstants.PARAM_USER_USERNAME);
     final String email = messageContext.requestParams().getString(ParameterConstants.PARAM_USER_EMAIL);
-    return find.user(username, email);
+    return findUser(username, email);
   }
 
-  private final Find find = (String username, String email) -> {
+  private MessageResponse findUser(String username, String email) {
     AJEntityUserIdentity userIdentity = null;
     if (username != null) {
       userIdentity = getUserIdentityRepo().getUserIdentityByUsername(username);
@@ -42,7 +38,7 @@ public final class FindUserExecutor extends Executor {
     }
     JsonObject result = userIdentity != null ? new JsonObject(userIdentity.toJson(false, RESPONSE_FIELDS)) : new JsonObject();
     return new MessageResponse.Builder().setResponseBody(result).setContentTypeJson().setStatusOkay().successful().build();
-  };
+  }
 
   public UserIdentityRepo getUserIdentityRepo() {
     return userIdentityRepo;

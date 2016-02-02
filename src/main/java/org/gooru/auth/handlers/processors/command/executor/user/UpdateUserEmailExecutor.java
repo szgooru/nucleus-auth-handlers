@@ -1,5 +1,7 @@
 package org.gooru.auth.handlers.processors.command.executor.user;
 
+import static org.gooru.auth.handlers.utils.ServerValidatorUtility.reject;
+import static org.gooru.auth.handlers.utils.ServerValidatorUtility.rejectIfNull;
 import io.vertx.core.json.JsonObject;
 
 import org.gooru.auth.handlers.constants.HttpConstants;
@@ -19,7 +21,8 @@ import org.gooru.auth.handlers.processors.repositories.activejdbc.entities.AJEnt
 import org.gooru.auth.handlers.processors.repositories.activejdbc.entities.AJEntityUserIdentity;
 import org.gooru.auth.handlers.utils.InternalHelper;
 
-public class UpdateUserEmailExecutor extends Executor {
+
+public final class UpdateUserEmailExecutor extends Executor {
 
   private UserIdentityRepo userIdentityRepo;
 
@@ -35,20 +38,16 @@ public class UpdateUserEmailExecutor extends Executor {
     setUserRepo(UserRepo.instance());
   }
 
-  interface Update {
-    MessageResponse userEmail(String userId, String newEmailId);
-  }
-
   @Override
   public MessageResponse execute(MessageContext messageContext) {
     String newEmailId = null;
     if (messageContext.requestBody() != null) {
       newEmailId = messageContext.requestBody().getString(ParameterConstants.PARAM_USER_EMAIL_ID);
     }
-    return update.userEmail(messageContext.user().getUserId(), newEmailId);
+    return updateUserEmail(messageContext.user().getUserId(), newEmailId);
   }
 
-  private final Update update = (String userId, String emailId) -> {
+  private MessageResponse updateUserEmail(String userId, String emailId)  {
     rejectIfNull(emailId, MessageCodeConstants.AU0014, HttpConstants.HttpStatus.BAD_REQUEST.getCode(), ParameterConstants.PARAM_USER_EMAIL_ID);
     AJEntityUserIdentity userIdentityEmail = getUserIdentityRepo().getUserIdentityByEmailId(emailId);
     reject(userIdentityEmail != null, MessageCodeConstants.AU0023, HttpConstants.HttpStatus.BAD_REQUEST.getCode(), emailId,
@@ -66,7 +65,7 @@ public class UpdateUserEmailExecutor extends Executor {
     eventBuilder.putPayLoadObject(SchemaConstants.USER_DEMOGRAPHIC, AJResponseJsonTransformer.transform(user.toJson(false)));
     eventBuilder.putPayLoadObject(ParameterConstants.PARAM_USER_NEW_EMAIL_ID, emailId).putPayLoadObject(ParameterConstants.PARAM_TOKEN, token);
     return new MessageResponse.Builder().setContentTypeJson().setEventData(eventBuilder.build()).setStatusOkay().successful().build();
-  };
+  }
 
   public UserIdentityRepo getUserIdentityRepo() {
     return userIdentityRepo;

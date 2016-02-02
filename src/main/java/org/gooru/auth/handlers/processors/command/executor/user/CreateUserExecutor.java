@@ -1,5 +1,10 @@
 package org.gooru.auth.handlers.processors.command.executor.user;
 
+import static org.gooru.auth.handlers.utils.ServerValidatorUtility.addValidator;
+import static org.gooru.auth.handlers.utils.ServerValidatorUtility.addValidatorIfNullOrEmptyError;
+import static org.gooru.auth.handlers.utils.ServerValidatorUtility.rejectError;
+import static org.gooru.auth.handlers.utils.ServerValidatorUtility.rejectIfNull;
+import static org.gooru.auth.handlers.utils.ServerValidatorUtility.rejectIfNullOrEmpty;
 import io.vertx.core.json.JsonObject;
 
 import java.util.Date;
@@ -35,10 +40,6 @@ public final class CreateUserExecutor extends Executor {
 
   private RedisClient redisClient;
 
-  interface Create {
-    MessageResponse user(UserDTO userDTO, UserContext userContext);
-  }
-
   public CreateUserExecutor() {
     setUserIdentityRepo(UserIdentityRepo.instance());
     setUserRepo(UserRepo.instance());
@@ -47,11 +48,11 @@ public final class CreateUserExecutor extends Executor {
 
   @Override
   public MessageResponse execute(MessageContext messageContext) {
-    UserDTO userDTO = new UserDTO(messageContext.requestBody().getMap());
-    return create.user(userDTO, messageContext.user());
+    UserDTO userDTO = new UserDTO(messageContext.requestBody());
+    return createUser(userDTO, messageContext.user());
   }
 
-  private final Create create = (UserDTO userDTO, UserContext userContext) -> {
+  private MessageResponse createUser(UserDTO userDTO, UserContext userContext) {
     rejectIfNullOrEmpty(userDTO.getBirthDate(), MessageCodeConstants.AU0015, 400, ParameterConstants.PARAM_USER_BIRTH_DATE);
     Date dob = InternalHelper.isValidDate(userDTO.getBirthDate());
     rejectIfNull(dob, MessageCodeConstants.AU0022, 400, ParameterConstants.PARAM_USER_BIRTH_DATE);
@@ -77,8 +78,9 @@ public final class CreateUserExecutor extends Executor {
     accessToken.put(ParameterConstants.PARAM_ACCESS_TOKEN, token);
     EventBuilder eventBuilder = responseDTO.getEventBuilder().setEventName(Event.CREATE_USER.getName());
     return new MessageResponse.Builder().setResponseBody(accessToken).setEventData(eventBuilder.build())
-                                        .setHeader(HelperConstants.LOCATION, HelperConstants.USER_ENTITY_URI + userIdentity.getUserId()).setContentTypeJson().setStatusCreated().successful().build();
-  };
+            .setHeader(HelperConstants.LOCATION, HelperConstants.USER_ENTITY_URI + userIdentity.getUserId()).setContentTypeJson().setStatusCreated()
+            .successful().build();
+  }
 
   private ActionResponseDTO<AJEntityUserIdentity> createUser(final UserDTO userDTO, final String clientId, final Date dob) {
     ActionResponseDTO<AJEntityUser> userValidator = createUserValidator(userDTO);
@@ -96,8 +98,8 @@ public final class CreateUserExecutor extends Executor {
 
   private ActionResponseDTO<AJEntityUserIdentity> createChildUser(final UserDTO userDTO, final String clientId, final Date dob) {
     ActionResponseDTO<AJEntityUser> userValidator = createChildUserValidator(userDTO);
-    userValidator.getModel().setBirthDate(dob);
     rejectError(userValidator.getErrors(), HttpConstants.HttpStatus.BAD_REQUEST.getCode());
+    userValidator.getModel().setBirthDate(dob);
     AJEntityUser user = getUserRepo().create(userValidator.getModel());
     AJEntityUserIdentity userIdentity = createUserIdentityValue(userDTO, userValidator.getModel(), clientId);
     getUserIdentityRepo().createOrUpdate(userIdentity);
@@ -136,7 +138,9 @@ public final class CreateUserExecutor extends Executor {
     if (parentUserEmailId != null) {
       AJEntityUserIdentity userIdentity = getUserIdentityRepo().getUserIdentityByEmailId(parentUserEmailId);
       addValidator(errors, (userIdentity == null), ParameterConstants.PARAM_USER_PARENT_EMAIL_ID, MessageCodeConstants.AU0032);
-      user.setParentUserId(userIdentity.getUserId());
+      if (userIdentity != null) { 
+        user.setParentUserId(userIdentity.getUserId());
+      }
     }
 
     return new ActionResponseDTO<>(user, errors);

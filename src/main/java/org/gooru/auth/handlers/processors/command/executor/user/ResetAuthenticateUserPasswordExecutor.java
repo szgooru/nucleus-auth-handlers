@@ -1,5 +1,7 @@
 package org.gooru.auth.handlers.processors.command.executor.user;
 
+import static org.gooru.auth.handlers.utils.ServerValidatorUtility.rejectIfNull;
+
 import org.gooru.auth.handlers.constants.HttpConstants;
 import org.gooru.auth.handlers.constants.MessageCodeConstants;
 import org.gooru.auth.handlers.constants.ParameterConstants;
@@ -14,13 +16,9 @@ import org.gooru.auth.handlers.processors.repositories.UserIdentityRepo;
 import org.gooru.auth.handlers.processors.repositories.activejdbc.entities.AJEntityUserIdentity;
 import org.gooru.auth.handlers.utils.InternalHelper;
 
-public class ResetAuthenticateUserPasswordExecutor extends Executor {
+public final class ResetAuthenticateUserPasswordExecutor extends Executor {
 
   private UserIdentityRepo userIdentityRepo;
-
-  interface Reset {
-    MessageResponse authenticateUserPassword(String userId, String oldPassword, String newPassword);
-  }
 
   public ResetAuthenticateUserPasswordExecutor() {
     setUserIdentityRepo(UserIdentityRepo.instance());
@@ -30,10 +28,10 @@ public class ResetAuthenticateUserPasswordExecutor extends Executor {
   public MessageResponse execute(MessageContext messageContext) {
     final String newPassword = messageContext.requestBody().getString(ParameterConstants.PARAM_USER_NEW_PASSWORD);
     final String oldPassword = messageContext.requestBody().getString(ParameterConstants.PARAM_USER_OLD_PASSWORD);
-    return reset.authenticateUserPassword(messageContext.user().getUserId(), oldPassword, newPassword);
+    return resetAuthenticateUserPassword(messageContext.user().getUserId(), oldPassword, newPassword);
   }
 
-  private final Reset reset = (String userId, String oldPassword, String newPassword) -> {
+  private MessageResponse resetAuthenticateUserPassword(String userId, String oldPassword, String newPassword) {
     rejectIfNull(oldPassword, MessageCodeConstants.AU0041, HttpConstants.HttpStatus.BAD_REQUEST.getCode());
     rejectIfNull(newPassword, MessageCodeConstants.AU0042, HttpConstants.HttpStatus.BAD_REQUEST.getCode());
     final AJEntityUserIdentity userIdentity =
@@ -45,7 +43,7 @@ public class ResetAuthenticateUserPasswordExecutor extends Executor {
     eventBuilder.setEventName(Event.UPDATE_USER_PASSWORD.getName());
     eventBuilder.putPayLoadObject(SchemaConstants.USER_IDENTITY, AJResponseJsonTransformer.transform(userIdentity.toJson(false)));
     return new MessageResponse.Builder().setEventData(eventBuilder.build()).setContentTypeJson().setStatusNoOutput().successful().build();
-  };
+  }
 
   public UserIdentityRepo getUserIdentityRepo() {
     return userIdentityRepo;

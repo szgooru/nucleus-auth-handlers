@@ -1,5 +1,6 @@
 package org.gooru.auth.handlers.processors.command.executor.user;
 
+import static org.gooru.auth.handlers.utils.ServerValidatorUtility.rejectIfNull;
 import io.vertx.core.json.JsonObject;
 
 import org.gooru.auth.handlers.constants.HelperConstants;
@@ -19,7 +20,7 @@ import org.gooru.auth.handlers.processors.repositories.UserRepo;
 import org.gooru.auth.handlers.processors.repositories.activejdbc.entities.AJEntityUser;
 import org.gooru.auth.handlers.processors.repositories.activejdbc.entities.AJEntityUserIdentity;
 
-public class ConfirmUserEmailExecutor extends Executor {
+public final class ConfirmUserEmailExecutor extends Executor {
 
   private UserIdentityRepo userIdentityRepo;
 
@@ -33,20 +34,16 @@ public class ConfirmUserEmailExecutor extends Executor {
     setUserRepo(UserRepo.instance());
   }
 
-  interface Confirm {
-    MessageResponse userEmail(String token);
-  }
-
   @Override
   public MessageResponse execute(MessageContext messageContext) {
     String token = null;
     if (messageContext.requestBody() != null) {
       token = messageContext.requestBody().getString(ParameterConstants.PARAM_USER_TOKEN);
     }
-    return confirm.userEmail(token);
+    return confirmUserEmail(token);
   }
 
-  private final Confirm confirm = (String token) -> {
+  private MessageResponse confirmUserEmail(String token) {
     final String tokenData = getRedisClient().get(token);
     rejectIfNull(tokenData, MessageCodeConstants.AU0028, HttpConstants.HttpStatus.UNAUTHORIZED.getCode());
     JsonObject tokenJsonData = new JsonObject(tokenData);
@@ -68,7 +65,7 @@ public class ConfirmUserEmailExecutor extends Executor {
     getRedisClient().del(token);
     eventBuilder.put(SchemaConstants.USER_IDENTITY, AJResponseJsonTransformer.transform(userIdentity.toJson(false)));
     return new MessageResponse.Builder().setEventData(eventBuilder.build()).setContentTypeJson().setStatusNoOutput().successful().build();
-  };
+  }
 
   public UserIdentityRepo getUserIdentityRepo() {
     return userIdentityRepo;

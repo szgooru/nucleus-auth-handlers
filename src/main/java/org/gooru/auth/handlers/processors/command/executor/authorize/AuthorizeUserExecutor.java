@@ -1,5 +1,10 @@
 package org.gooru.auth.handlers.processors.command.executor.authorize;
 
+import static org.gooru.auth.handlers.utils.ServerValidatorUtility.addValidator;
+import static org.gooru.auth.handlers.utils.ServerValidatorUtility.reject;
+import static org.gooru.auth.handlers.utils.ServerValidatorUtility.rejectError;
+import static org.gooru.auth.handlers.utils.ServerValidatorUtility.rejectIfNull;
+import static org.gooru.auth.handlers.utils.ServerValidatorUtility.rejectIfNullOrEmpty;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
@@ -32,7 +37,6 @@ import org.gooru.auth.handlers.processors.repositories.activejdbc.entities.AJEnt
 import org.gooru.auth.handlers.processors.repositories.activejdbc.entities.AJEntityUserIdentity;
 import org.gooru.auth.handlers.processors.repositories.activejdbc.entities.AJEntityUserPreference;
 import org.gooru.auth.handlers.utils.InternalHelper;
-import org.gooru.auth.handlers.utils.ServerValidatorUtility;
 
 public class AuthorizeUserExecutor extends Executor {
 
@@ -54,68 +58,61 @@ public class AuthorizeUserExecutor extends Executor {
     setUserRepo(UserRepo.instance());
   }
 
-  interface Authorize {
-    MessageResponse user(AuthorizeDTO authorizeDTO, String requestDomain);
-  }
-
   @Override
   public MessageResponse execute(MessageContext messageContext) {
-    AuthorizeDTO authorizeDTO = new AuthorizeDTO(messageContext.requestBody().getMap());
+    AuthorizeDTO authorizeDTO = new AuthorizeDTO(messageContext.requestBody());
     String requestDomain = messageContext.headers().get(MessageConstants.MSG_HEADER_REQUEST_DOMAIN);
-    return authorize.user(authorizeDTO, requestDomain);
+    return authorizeUser(authorizeDTO, requestDomain);
   }
 
-  private final Authorize authorize =
-          (AuthorizeDTO authorizeDTO, String requestDomain) -> {
-            reject((HelperConstants.SSO_CONNECT_GRANT_TYPES.get(authorizeDTO.getGrantType()) == null), MessageCodeConstants.AU0003,
-                    HttpConstants.HttpStatus.UNAUTHORIZED.getCode());
-            final AJEntityAuthClient authClient =
-                    validateAuthClient(authorizeDTO.getClientId(), InternalHelper.encryptClientKey(authorizeDTO.getClientKey()),
-                            authorizeDTO.getGrantType());
-            verifyClientkeyDomains(requestDomain, authClient.getRefererDomains());
-            authorizeValidator(authorizeDTO);
-            String identityId = authorizeDTO.getUser().getIdentityId();
-            boolean isEmailIdentity = false;
-            AJEntityUserIdentity userIdentity = null;
-            EventBuilder eventBuilder = new EventBuilder();
-            if (identityId.indexOf("@") > 1) {
-              isEmailIdentity = true;
-              userIdentity = getUserIdentityRepo().getUserIdentityByEmailId(identityId);
-            } else {
-              userIdentity = getUserIdentityRepo().getUserIdentityByReferenceId(identityId);
-            }
-            if (userIdentity == null) {
-              ActionResponseDTO<AJEntityUserIdentity> responseDTO =
-                      createUserWithIdentity(authorizeDTO.getUser(), authorizeDTO.getGrantType(), authorizeDTO.getClientId(), isEmailIdentity,
-                              eventBuilder);
-              userIdentity = responseDTO.getModel();
-              eventBuilder = responseDTO.getEventBuilder();
-            }
+  private MessageResponse authorizeUser(AuthorizeDTO authorizeDTO, String requestDomain) {
+    reject((HelperConstants.SSO_CONNECT_GRANT_TYPES.get(authorizeDTO.getGrantType()) == null), MessageCodeConstants.AU0003,
+            HttpConstants.HttpStatus.UNAUTHORIZED.getCode());
+    final AJEntityAuthClient authClient =
+            validateAuthClient(authorizeDTO.getClientId(), InternalHelper.encryptClientKey(authorizeDTO.getClientKey()), authorizeDTO.getGrantType());
+    verifyClientkeyDomains(requestDomain, authClient.getRefererDomains());
+    authorizeValidator(authorizeDTO);
+    String identityId = authorizeDTO.getUser().getIdentityId();
+    boolean isEmailIdentity = false;
+    AJEntityUserIdentity userIdentity = null;
+    EventBuilder eventBuilder = new EventBuilder();
+    if (identityId.indexOf("@") > 1) {
+      isEmailIdentity = true;
+      userIdentity = getUserIdentityRepo().getUserIdentityByEmailId(identityId);
+    } else {
+      userIdentity = getUserIdentityRepo().getUserIdentityByReferenceId(identityId);
+    }
+    if (userIdentity == null) {
+      ActionResponseDTO<AJEntityUserIdentity> responseDTO =
+              createUserWithIdentity(authorizeDTO.getUser(), authorizeDTO.getGrantType(), authorizeDTO.getClientId(), isEmailIdentity, eventBuilder);
+      userIdentity = responseDTO.getModel();
+      eventBuilder = responseDTO.getEventBuilder();
+    }
 
-            final JsonObject accessToken = new JsonObject();
-            accessToken.put(ParameterConstants.PARAM_USER_ID, userIdentity.getUserId());
-            accessToken.put(ParameterConstants.PARAM_USER_USERNAME, userIdentity.getUsername());
-            accessToken.put(ParameterConstants.PARAM_CLIENT_ID, authClient.getClientId());
-            accessToken.put(ParameterConstants.PARAM_PROVIDED_AT, System.currentTimeMillis());
-            final String token = InternalHelper.generateToken(userIdentity.getUserId());
-            final AJEntityUserPreference userPreference = getUserPreferenceRepo().getUserPreference(userIdentity.getUserId());
-            JsonObject prefs = new JsonObject();
-            if (userPreference != null) {
-              prefs.put(ParameterConstants.PARAM_TAXONOMY, userPreference.getStandardPreference());
-            } else {
-              prefs.put(ParameterConstants.PARAM_TAXONOMY, ConfigRegistry.instance().getDefaultUserStandardPrefs());
-            }
-            accessToken.put(ParameterConstants.PARAM_CDN_URLS, authClient.getCdnUrls());
-            accessToken.put(ParameterConstants.PARAM_USER_PREFERENCE, prefs);
-            saveAccessToken(token, accessToken, authClient.getAccessTokenValidity());
-            accessToken.put(ParameterConstants.PARAM_ACCESS_TOKEN, token);
-            eventBuilder.setEventName(Event.AUTHORIZE_USER.getName()).putPayLoadObject(ParameterConstants.PARAM_ACCESS_TOKEN, token)
-                    .putPayLoadObject(ParameterConstants.PARAM_CLIENT_ID, authClient.getClientId())
-                    .putPayLoadObject(ParameterConstants.PARAM_USER_ID, userIdentity.getUserId())
-                    .putPayLoadObject(ParameterConstants.PARAM_GRANT_TYPE, authorizeDTO.getGrantType());
-            return new MessageResponse.Builder().setResponseBody(accessToken).setEventData(eventBuilder.build()).setContentTypeJson().setStatusOkay().successful()
-                    .build();
-          };
+    final JsonObject accessToken = new JsonObject();
+    accessToken.put(ParameterConstants.PARAM_USER_ID, userIdentity.getUserId());
+    accessToken.put(ParameterConstants.PARAM_USER_USERNAME, userIdentity.getUsername());
+    accessToken.put(ParameterConstants.PARAM_CLIENT_ID, authClient.getClientId());
+    accessToken.put(ParameterConstants.PARAM_PROVIDED_AT, System.currentTimeMillis());
+    final String token = InternalHelper.generateToken(userIdentity.getUserId());
+    final AJEntityUserPreference userPreference = getUserPreferenceRepo().getUserPreference(userIdentity.getUserId());
+    JsonObject prefs = new JsonObject();
+    if (userPreference != null) {
+      prefs.put(ParameterConstants.PARAM_TAXONOMY, userPreference.getStandardPreference());
+    } else {
+      prefs.put(ParameterConstants.PARAM_TAXONOMY, ConfigRegistry.instance().getDefaultUserStandardPrefs());
+    }
+    accessToken.put(ParameterConstants.PARAM_CDN_URLS, authClient.getCdnUrls());
+    accessToken.put(ParameterConstants.PARAM_USER_PREFERENCE, prefs);
+    saveAccessToken(token, accessToken, authClient.getAccessTokenValidity());
+    accessToken.put(ParameterConstants.PARAM_ACCESS_TOKEN, token);
+    eventBuilder.setEventName(Event.AUTHORIZE_USER.getName()).putPayLoadObject(ParameterConstants.PARAM_ACCESS_TOKEN, token)
+            .putPayLoadObject(ParameterConstants.PARAM_CLIENT_ID, authClient.getClientId())
+            .putPayLoadObject(ParameterConstants.PARAM_USER_ID, userIdentity.getUserId())
+            .putPayLoadObject(ParameterConstants.PARAM_GRANT_TYPE, authorizeDTO.getGrantType());
+    return new MessageResponse.Builder().setResponseBody(accessToken).setEventData(eventBuilder.build()).setContentTypeJson().setStatusOkay()
+            .successful().build();
+  }
 
   private ActionResponseDTO<AJEntityUserIdentity> createUserWithIdentity(final UserDTO userDTO, final String grantType, final String clientId,
           final boolean isEmailIdentity, final EventBuilder eventBuilder) {
@@ -175,7 +172,7 @@ public class AuthorizeUserExecutor extends Executor {
           break;
         }
       }
-      ServerValidatorUtility.reject(!isValidReferrer, MessageCodeConstants.AU0009, HttpConstants.HttpStatus.FORBIDDEN.getCode());
+      reject(!isValidReferrer, MessageCodeConstants.AU0009, HttpConstants.HttpStatus.FORBIDDEN.getCode());
     }
   }
 

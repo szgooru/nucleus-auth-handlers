@@ -14,30 +14,28 @@ import org.gooru.auth.handlers.processors.messageProcessor.MessageContext;
 import org.gooru.auth.handlers.processors.repositories.UserIdentityRepo;
 import org.gooru.auth.handlers.processors.repositories.activejdbc.entities.AJEntityUserIdentity;
 import org.gooru.auth.handlers.utils.InternalHelper;
+import static org.gooru.auth.handlers.utils.ServerValidatorUtility.*;
 
-public class ResetUnAuthenticateUserPasswordExecutor extends Executor {
+public final class ResetUnAuthenticateUserPasswordExecutor extends Executor {
 
   private UserIdentityRepo userIdentityRepo;
 
   private RedisClient redisClient;
 
   public ResetUnAuthenticateUserPasswordExecutor() {
+
     setUserIdentityRepo(UserIdentityRepo.instance());
     setRedisClient(RedisClient.instance());
-  }
-
-  interface Reset {
-    MessageResponse unAuthenticateUserPassword(String token, String password);
   }
 
   @Override
   public MessageResponse execute(MessageContext messageContext) {
     final String token = messageContext.requestBody().getString(ParameterConstants.PARAM_USER_TOKEN);
     final String newPassword = messageContext.requestBody().getString(ParameterConstants.PARAM_USER_NEW_PASSWORD);
-    return reset.unAuthenticateUserPassword(token, newPassword);
+    return resetUnAuthenticateUserPassword(token, newPassword);
   }
 
-  private final Reset reset = (String token, String password) -> {
+  private MessageResponse resetUnAuthenticateUserPassword(String token, String password) {
     String emailId = getRedisClient().get(token);
     rejectIfNull(emailId, MessageCodeConstants.AU0028, HttpConstants.HttpStatus.UNAUTHORIZED.getCode());
     rejectIfNull(password, MessageCodeConstants.AU0042, HttpConstants.HttpStatus.BAD_REQUEST.getCode());
@@ -49,7 +47,7 @@ public class ResetUnAuthenticateUserPasswordExecutor extends Executor {
     eventBuilder.setEventName(Event.UPDATE_USER_PASSWORD.getName());
     eventBuilder.putPayLoadObject(SchemaConstants.USER_IDENTITY, AJResponseJsonTransformer.transform(userIdentity.toJson(false)));
     return new MessageResponse.Builder().setEventData(eventBuilder.build()).setContentTypeJson().setStatusNoOutput().successful().build();
-  };
+  }
 
   public UserIdentityRepo getUserIdentityRepo() {
     return userIdentityRepo;

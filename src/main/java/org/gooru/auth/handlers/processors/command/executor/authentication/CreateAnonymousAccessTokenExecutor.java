@@ -1,5 +1,8 @@
 package org.gooru.auth.handlers.processors.command.executor.authentication;
 
+import static org.gooru.auth.handlers.utils.ServerValidatorUtility.reject;
+import static org.gooru.auth.handlers.utils.ServerValidatorUtility.rejectIfNull;
+import static org.gooru.auth.handlers.utils.ServerValidatorUtility.rejectIfNullOrEmpty;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
@@ -17,7 +20,6 @@ import org.gooru.auth.handlers.processors.messageProcessor.MessageContext;
 import org.gooru.auth.handlers.processors.repositories.AuthClientRepo;
 import org.gooru.auth.handlers.processors.repositories.activejdbc.entities.AJEntityAuthClient;
 import org.gooru.auth.handlers.utils.InternalHelper;
-import org.gooru.auth.handlers.utils.ServerValidatorUtility;
 
 public final class CreateAnonymousAccessTokenExecutor extends Executor {
 
@@ -30,18 +32,14 @@ public final class CreateAnonymousAccessTokenExecutor extends Executor {
     setRedisClient(RedisClient.instance());
   }
 
-  interface Create {
-    MessageResponse accessToken(AuthClientDTO authClientDTO, String requestDomain);
-  }
-
   @Override
   public MessageResponse execute(MessageContext messageContext) {
     String requestDomain = messageContext.headers().get(MessageConstants.MSG_HEADER_REQUEST_DOMAIN);
-    AuthClientDTO authClientDTO = new AuthClientDTO(messageContext.requestBody().getMap());
-    return create.accessToken(authClientDTO, requestDomain);
+    AuthClientDTO authClientDTO = new AuthClientDTO(messageContext.requestBody());
+    return createAccessToken(authClientDTO, requestDomain);
   }
 
-  private final Create create = (AuthClientDTO authClientDTO, String requestDomain) -> {
+  private MessageResponse createAccessToken(AuthClientDTO authClientDTO, String requestDomain) {
     reject(!(GrantType.ANONYMOUS.getType().equalsIgnoreCase(authClientDTO.getGrantType())), MessageCodeConstants.AU0003,
             HttpConstants.HttpStatus.UNAUTHORIZED.getCode());
     final AJEntityAuthClient authClient =
@@ -60,7 +58,7 @@ public final class CreateAnonymousAccessTokenExecutor extends Executor {
     saveAccessToken(token, accessToken, authClient.getAccessTokenValidity());
     accessToken.put(ParameterConstants.PARAM_ACCESS_TOKEN, token);
     return new MessageResponse.Builder().setResponseBody(accessToken).setContentTypeJson().setStatusOkay().successful().build();
-  };
+  }
 
   private void verifyClientkeyDomains(String requestDomain, JsonArray registeredRefererDomains) {
     if (requestDomain != null && registeredRefererDomains != null) {
@@ -71,7 +69,7 @@ public final class CreateAnonymousAccessTokenExecutor extends Executor {
           break;
         }
       }
-      ServerValidatorUtility.reject(!isValidReferrer, MessageCodeConstants.AU0009, HttpConstants.HttpStatus.FORBIDDEN.getCode());
+      reject(!isValidReferrer, MessageCodeConstants.AU0009, HttpConstants.HttpStatus.FORBIDDEN.getCode());
     }
   }
 

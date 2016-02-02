@@ -1,5 +1,7 @@
 package org.gooru.auth.handlers.processors.command.executor.authenticationGLA;
 
+import static org.gooru.auth.handlers.utils.ServerValidatorUtility.reject;
+import static org.gooru.auth.handlers.utils.ServerValidatorUtility.rejectIfNull;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
@@ -15,8 +17,9 @@ import org.gooru.auth.handlers.processors.messageProcessor.MessageContext;
 import org.gooru.auth.handlers.processors.repositories.AuthClientRepo;
 import org.gooru.auth.handlers.processors.repositories.activejdbc.entities.AJEntityAuthClient;
 import org.gooru.auth.handlers.utils.InternalHelper;
+import static org.gooru.auth.handlers.utils.ServerValidatorUtility.rejectIfNullOrEmpty;
 
-public class CreateGLAAnonymousAccessTokenExecutor extends Executor {
+public final class CreateGLAAnonymousAccessTokenExecutor extends Executor {
 
   private AuthClientRepo authClientRepo;
 
@@ -27,10 +30,6 @@ public class CreateGLAAnonymousAccessTokenExecutor extends Executor {
     setRedisClient(RedisClient.instance());
   }
 
-  interface Create {
-    MessageResponse accessToken(String clientKey, String requestDomain);
-  }
-
   @Override
   public MessageResponse execute(MessageContext messageContext) {
     String clientKey = messageContext.headers().get(MessageConstants.MSG_HEADER_API_KEY);
@@ -38,10 +37,10 @@ public class CreateGLAAnonymousAccessTokenExecutor extends Executor {
       clientKey = messageContext.requestParams().getString(ParameterConstants.PARAM_API_KEY);
     }
     final String requestDomain = messageContext.headers().get(MessageConstants.MSG_HEADER_REQUEST_DOMAIN);
-    return create.accessToken(clientKey, requestDomain);
+    return createAccessToken(clientKey, requestDomain);
   }
 
-  private final Create create = (String clientKey, String requestDomain) -> {
+  private MessageResponse createAccessToken(String clientKey, String requestDomain) {
     final AJEntityAuthClient authClient = validateAuthClient(InternalHelper.encryptClientKey(clientKey));
     verifyClientkeyDomains(requestDomain, authClient.getRefererDomains());
     final JsonObject accessToken = new JsonObject();
@@ -56,7 +55,7 @@ public class CreateGLAAnonymousAccessTokenExecutor extends Executor {
     saveAccessToken(token, accessToken, authClient.getAccessTokenValidity());
     accessToken.put(ParameterConstants.PARAM_ACCESS_TOKEN, token);
     return new MessageResponse.Builder().setResponseBody(accessToken).setContentTypeJson().setStatusOkay().successful().build();
-  };
+  }
 
   private AJEntityAuthClient validateAuthClient(String clientKey) {
     rejectIfNullOrEmpty(clientKey, MessageCodeConstants.AU0034, HttpConstants.HttpStatus.UNAUTHORIZED.getCode());

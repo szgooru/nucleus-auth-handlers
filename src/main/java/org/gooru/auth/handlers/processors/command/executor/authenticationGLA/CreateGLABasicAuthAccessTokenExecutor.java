@@ -1,5 +1,8 @@
 package org.gooru.auth.handlers.processors.command.executor.authenticationGLA;
 
+import static org.gooru.auth.handlers.utils.ServerValidatorUtility.reject;
+import static org.gooru.auth.handlers.utils.ServerValidatorUtility.rejectIfNull;
+import static org.gooru.auth.handlers.utils.ServerValidatorUtility.rejectIfNullOrEmpty;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
@@ -40,10 +43,6 @@ public class CreateGLABasicAuthAccessTokenExecutor extends Executor {
     setUserIdentityRepo(UserIdentityRepo.instance());
   }
 
-  interface Create {
-    MessageResponse accessToken(String clientKey, String requestDomain, String username, String password);
-  }
-
   @Override
   public MessageResponse execute(MessageContext messageContext) {
     final String password = messageContext.requestBody().getString(ParameterConstants.PARAM_USER_PASSWORD);
@@ -53,10 +52,10 @@ public class CreateGLABasicAuthAccessTokenExecutor extends Executor {
       clientKey = messageContext.requestParams().getString(ParameterConstants.PARAM_API_KEY);
     }
     final String requestDomain = messageContext.headers().get(MessageConstants.MSG_HEADER_REQUEST_DOMAIN);
-    return create.accessToken(clientKey, requestDomain, username, password);
+    return createAccessToken(clientKey, requestDomain, username, password);
   }
 
-  private final Create create = (String clientKey, String requestDomain, String username, String password) -> {
+  private MessageResponse createAccessToken(String clientKey, String requestDomain, String username, String password) {
     rejectIfNullOrEmpty(username, MessageCodeConstants.AU0036, HttpConstants.HttpStatus.UNAUTHORIZED.getCode());
     rejectIfNullOrEmpty(password, MessageCodeConstants.AU0037, HttpConstants.HttpStatus.UNAUTHORIZED.getCode());
     final AJEntityAuthClient authClient = validateAuthClient(InternalHelper.encryptClientKey(clientKey));
@@ -68,7 +67,7 @@ public class CreateGLABasicAuthAccessTokenExecutor extends Executor {
       userIdentity = getUserIdentityRepo().getUserIdentityByUsernameAndPassword(username, InternalHelper.encryptPassword(password));
     }
     rejectIfNull(userIdentity, MessageCodeConstants.AU0008, HttpConstants.HttpStatus.UNAUTHORIZED.getCode());
-    reject(userIdentity.getStatus().equalsIgnoreCase(ParameterConstants.PARAM_STATUS_DEACTIVTED), MessageCodeConstants.AU0009,
+    reject(userIdentity.getStatus().equalsIgnoreCase(ParameterConstants.PARAM_STATUS_DEACTIVATED), MessageCodeConstants.AU0009,
             HttpConstants.HttpStatus.FORBIDDEN.getCode());
     final JsonObject accessToken = new JsonObject();
     accessToken.put(ParameterConstants.PARAM_USER_ID, userIdentity.getUserId());
@@ -95,7 +94,7 @@ public class CreateGLABasicAuthAccessTokenExecutor extends Executor {
 
     return new MessageResponse.Builder().setResponseBody(accessToken).setEventData(eventBuilder.build()).setContentTypeJson().setStatusOkay()
             .successful().build();
-  };
+  }
 
   private AJEntityAuthClient validateAuthClient(String clientKey) {
     rejectIfNullOrEmpty(clientKey, MessageCodeConstants.AU0034, HttpConstants.HttpStatus.UNAUTHORIZED.getCode());

@@ -31,10 +31,10 @@ public final class FetchUserPrefsExecutor extends Executor {
     if (userId.equalsIgnoreCase(ParameterConstants.PARAM_ME)) {
       userId = messageContext.user().getUserId();
     }
-    return fetch.userPrefs(userId);
+    return fetchUserPrefs(userId);
   }
 
-  private final Fetch fetch = (String userId) -> {
+  private MessageResponse fetchUserPrefs(String userId) {
     final AJEntityUserPreference userPreference = getUserPreferenceRepo().getUserPreference(userId);
     JsonObject result = null;
     if (userPreference != null) {
@@ -44,7 +44,7 @@ public final class FetchUserPrefsExecutor extends Executor {
     }
 
     return new MessageResponse.Builder().setResponseBody(result).setContentTypeJson().setStatusOkay().successful().build();
-  };
+  }
 
   public UserPreferenceRepo getUserPreferenceRepo() {
     return userPreferenceRepo;

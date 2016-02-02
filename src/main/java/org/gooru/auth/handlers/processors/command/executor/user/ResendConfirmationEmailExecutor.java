@@ -1,5 +1,7 @@
 package org.gooru.auth.handlers.processors.command.executor.user;
 
+import static org.gooru.auth.handlers.utils.ServerValidatorUtility.reject;
+import static org.gooru.auth.handlers.utils.ServerValidatorUtility.rejectIfNull;
 import io.vertx.core.json.JsonObject;
 
 import org.gooru.auth.handlers.constants.HttpConstants;
@@ -19,7 +21,7 @@ import org.gooru.auth.handlers.processors.repositories.activejdbc.entities.AJEnt
 import org.gooru.auth.handlers.processors.repositories.activejdbc.entities.AJEntityUserIdentity;
 import org.gooru.auth.handlers.utils.InternalHelper;
 
-public class ResendConfirmationEmailExecutor extends Executor {
+public final class ResendConfirmationEmailExecutor extends Executor {
 
   private UserIdentityRepo userIdentityRepo;
 
@@ -35,21 +37,17 @@ public class ResendConfirmationEmailExecutor extends Executor {
     setUserRepo(UserRepo.instance());
   }
 
-  interface Resend {
-    MessageResponse confirmationEmail(String userId);
-  }
-
   @Override
   public MessageResponse execute(MessageContext messageContext) {
-    return resend.confirmationEmail(messageContext.user().getUserId());
+    return resendConfirmationEmail(messageContext.user().getUserId());
   }
 
-  private final Resend resend = (String userId) -> {
+  private MessageResponse resendConfirmationEmail(String userId) {
     final AJEntityUser user = getUserRepo().getUser(userId);
     rejectIfNull(user, MessageCodeConstants.AU0026, HttpConstants.HttpStatus.NOT_FOUND.getCode(), ParameterConstants.PARAM_USER);
     final AJEntityUserIdentity userIdentity = getUserIdentityRepo().getUserIdentityByEmailId(user.getEmailId());
     rejectIfNull(userIdentity, MessageCodeConstants.AU0026, HttpConstants.HttpStatus.NOT_FOUND.getCode(), ParameterConstants.PARAM_USER);
-    reject(userIdentity.getStatus().equalsIgnoreCase(ParameterConstants.PARAM_STATUS_DEACTIVTED), MessageCodeConstants.AU0009,
+    reject(userIdentity.getStatus().equalsIgnoreCase(ParameterConstants.PARAM_STATUS_DEACTIVATED), MessageCodeConstants.AU0009,
             HttpConstants.HttpStatus.FORBIDDEN.getCode());
     final String token = InternalHelper.generateToken(InternalHelper.EMAIL_CONFIRM_TOKEN);
     JsonObject tokenData = new JsonObject();
@@ -62,7 +60,7 @@ public class ResendConfirmationEmailExecutor extends Executor {
     eventBuilder.putPayLoadObject(SchemaConstants.USER_IDENTITY, AJResponseJsonTransformer.transform(userIdentity.toJson(false)));
     eventBuilder.putPayLoadObject(ParameterConstants.PARAM_USER_EMAIL_ID, user.getEmailId()).putPayLoadObject(ParameterConstants.PARAM_TOKEN, token);
     return new MessageResponse.Builder().setEventData(eventBuilder.build()).setContentTypeJson().setStatusOkay().successful().build();
-  };
+  }
 
   public UserIdentityRepo getUserIdentityRepo() {
     return userIdentityRepo;
