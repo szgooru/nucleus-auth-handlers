@@ -22,6 +22,7 @@ public class MessageResponse {
   private final DeliveryOptions deliveryOptions;
   private final JsonObject reply;
   private final JsonObject event;
+  private final static String ERRORS = "errors";
 
   // Private constructor
   private MessageResponse(JsonObject response) {
@@ -222,6 +223,7 @@ public class MessageResponse {
     }
 
     private Error exceptionResolver() {
+      String message = throwable.getMessage();
       if (throwable instanceof BadRequestException) {
         setStatusBadRequest().setInternalErrorCode(MessageCodeConstants.AUE400).setInternalErrorType(ErrorType.PARAMS_INVALID.getName())
                 .validationFailed();
@@ -233,18 +235,17 @@ public class MessageResponse {
         setStatusUnauthorized().setInternalErrorCode(MessageCodeConstants.AUE401).setInternalErrorType(ErrorType.UNAUTHORIZE_ERROR.getName())
                 .failed();
       } else {
+        message = ErrorType.API_ERROR.getDescription();
         setStatusInternalError().setInternalErrorCode(MessageCodeConstants.AUE500).setInternalErrorType(ErrorType.API_ERROR.getName()).failed();
       }
       Errors errors = null;
-      if (throwable.getMessage() != null && throwable.getMessage().startsWith("[")) {
-        errors = new Errors(throwable.getMessage());
+      if (message != null && message.startsWith("[")) {
+        errors = new Errors(message);
       } else {
-        errors =
-                new Errors(throwable.getMessage() != null ? throwable.getMessage() : ErrorType.API_ERROR.getDescription(), this.errorCode,
-                        this.errorType);
+        errors = new Errors(message, this.errorCode, this.errorType);
       }
       Error error = new Error();
-      error.put("errors", errors);
+      error.put(ERRORS, errors);
       return error;
     }
   }
