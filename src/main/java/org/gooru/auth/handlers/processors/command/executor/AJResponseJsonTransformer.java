@@ -3,6 +3,7 @@ package org.gooru.auth.handlers.processors.command.executor;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
+import java.sql.Date;
 import java.sql.Timestamp;
 import java.util.Iterator;
 import java.util.Map;
@@ -98,6 +99,8 @@ final public class AJResponseJsonTransformer {
     } else if (value instanceof Timestamp) {
       value = ((Timestamp) value).getTime();
     } else if (value instanceof UUID) {
+      value = value.toString();
+    } else if (value instanceof Date) {
       value = value.toString();
     }
     return value;
