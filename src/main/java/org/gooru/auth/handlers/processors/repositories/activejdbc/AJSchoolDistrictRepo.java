@@ -28,7 +28,7 @@ public class AJSchoolDistrictRepo extends AJAbstractRepo implements SchoolDistri
     AJEntitySchoolDistrict schoolDistrict = new AJEntitySchoolDistrict();
     schoolDistrict.setName(name);
     schoolDistrict.setCode(UUID.randomUUID().toString());
-    schoolDistrict.setCreatorId(creatorId);
+    schoolDistrict.setCreatorId(UUID.fromString(creatorId));
     return createSchoolDistrict(schoolDistrict);
   }
 

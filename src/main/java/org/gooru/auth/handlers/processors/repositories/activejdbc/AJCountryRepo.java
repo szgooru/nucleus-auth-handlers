@@ -38,7 +38,7 @@ public class AJCountryRepo extends AJAbstractRepo implements CountryRepo {
     AJEntityCountry country = new AJEntityCountry();
     country.setName(name);
     country.setCode(UUID.randomUUID().toString());
-    country.setCreatorId(creatorId);
+    country.setCreatorId(UUID.fromString(creatorId));
     return createCountry(country);
   }
 

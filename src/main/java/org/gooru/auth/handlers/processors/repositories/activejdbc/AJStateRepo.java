@@ -28,9 +28,9 @@ public class AJStateRepo extends AJAbstractRepo implements StateRepo {
     AJEntityState state = new AJEntityState();
     state.setName(name);
     state.setCode(UUID.randomUUID().toString());
-    state.setCreatorId(creatorId);
+    state.setCreatorId(UUID.fromString(creatorId));
     if (countryId != null) {
-      state.setCountryId(countryId);
+      state.setCountryId(UUID.fromString(countryId));
     }
     return createState(state);
   }

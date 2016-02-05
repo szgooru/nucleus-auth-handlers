@@ -28,7 +28,7 @@ public class AJSchoolRepo extends AJAbstractRepo implements SchoolRepo {
     AJEntitySchool school = new AJEntitySchool();
     school.setName(name);
     school.setCode(UUID.randomUUID().toString());
-    school.setCreatorId(creatorId);
+    school.setCreatorId(UUID.fromString(creatorId));
     if (schoolDistrictId != null) {
       school.setSchoolDistrictId(schoolDistrictId);
     }

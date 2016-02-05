@@ -27,8 +27,6 @@ import org.gooru.auth.handlers.processors.repositories.activejdbc.entities.AJEnt
 import org.gooru.auth.handlers.processors.repositories.activejdbc.entities.AJEntityUserPreference;
 import org.gooru.auth.handlers.utils.InternalHelper;
 
-import com.hazelcast.util.Base64;
-
 public final class CreateBasicAuthAccessTokenExecutor extends Executor {
 
   private UserIdentityRepo userIdentityRepo;
