@@ -31,7 +31,7 @@ public class AJAuthClientRepo extends AJAbstractRepo implements AuthClientRepo {
       Base.open(dataSource());
       LazyList<AJEntityAuthClient> results = AJEntityAuthClient.where(whereClause, params);
       authClient = results.size() > 0 ? results.get(0) : null;
-    } catch (Exception e) {
+    } catch (Throwable e) {
       LOG.error("Exception while marking connection to be read", e);
       ServerValidatorUtility.throwASInternalServerError();
     } finally {

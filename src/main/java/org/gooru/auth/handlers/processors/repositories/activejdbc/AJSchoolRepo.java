@@ -51,7 +51,7 @@ public class AJSchoolRepo extends AJAbstractRepo implements SchoolRepo {
       Base.open(dataSource());
       LazyList<AJEntitySchool> results = AJEntitySchool.where(whereClause, params);
       school = results.size() > 0 ? results.get(0) : null;
-    } catch (Exception e) {
+    } catch (Throwable e) {
       LOG.error("Exception while marking connection to be read", e);
       ServerValidatorUtility.throwASInternalServerError();
     } finally {

@@ -46,7 +46,7 @@ public class AJUserRepo extends AJAbstractRepo implements UserRepo {
       Base.open(dataSource());
       LazyList<AJEntityUser> results = AJEntityUser.where(whereClause, params);
       user = results.size() > 0 ? results.get(0) : null;
-    } catch (Exception e) {
+    } catch (Throwable e) {
       LOG.error("Exception while marking connection to be read", e);
       ServerValidatorUtility.throwASInternalServerError();
     } finally {

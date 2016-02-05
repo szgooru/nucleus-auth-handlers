@@ -35,7 +35,7 @@ public class AJUserPreferenceRepo extends AJAbstractRepo implements UserPreferen
       Base.open(dataSource());
       LazyList<AJEntityUserPreference> results = AJEntityUserPreference.where(whereClause, params);
       userPreference = results.size() > 0 ? results.get(0) : null;
-    } catch (Exception e) {
+    } catch (Throwable e) {
       LOG.error("Exception while marking connection to be read", e);
       ServerValidatorUtility.throwASInternalServerError();
     } finally {
