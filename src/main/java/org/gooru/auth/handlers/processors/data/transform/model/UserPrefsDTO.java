@@ -1,6 +1,5 @@
 package org.gooru.auth.handlers.processors.data.transform.model;
 
-import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
 import org.gooru.auth.handlers.constants.ParameterConstants;
@@ -13,8 +12,8 @@ public class UserPrefsDTO  {
     this.requestBody = requestBody;
   }
 
-  public JsonArray getStandardPreference() {
-    return this.requestBody.getJsonArray(ParameterConstants.PARAM_STANDARD_PREFERENCE);
+  public JsonObject getStandardPreference() {
+    return this.requestBody.getJsonObject(ParameterConstants.PARAM_STANDARD_PREFERENCE);
   }
 
   public Boolean getProfileVisibility() {

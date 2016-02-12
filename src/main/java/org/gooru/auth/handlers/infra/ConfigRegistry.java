@@ -1,7 +1,6 @@
 package org.gooru.auth.handlers.infra;
 
 import io.vertx.core.Vertx;
-import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
 import org.gooru.auth.handlers.bootstrap.startup.Initializer;
@@ -25,8 +24,8 @@ public class ConfigRegistry implements Initializer {
     return prefs;
   }
 
-  public JsonArray getDefaultUserStandardPrefs() {
-    return prefs.getJsonArray(STANDARD_PREFERENCE);
+  public JsonObject getDefaultUserStandardPrefs() {
+    return prefs.getJsonObject(STANDARD_PREFERENCE);
   }
 
   private void setDefaultUserPrefs(JsonObject defaultStandardPrefs) {

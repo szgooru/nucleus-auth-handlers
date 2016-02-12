@@ -1,6 +1,6 @@
 package org.gooru.auth.handlers.processors.repositories.activejdbc.entities;
 
-import io.vertx.core.json.JsonArray;
+import io.vertx.core.json.JsonObject;
 
 import org.gooru.auth.handlers.constants.ParameterConstants;
 import org.gooru.auth.handlers.constants.SchemaConstants;
@@ -21,17 +21,17 @@ public class AJEntityUserPreference extends Model {
     set(ParameterConstants.PARAM_USER_ID, userId);
   }
 
-  public JsonArray getStandardPreference() {
+  public JsonObject getStandardPreference() {
     String json = getString(ParameterConstants.PARAM_STANDARD_PREFERENCE);
-    JsonArray prefs = null;
+    JsonObject prefs = null;
     if (json != null) {
-      prefs = new JsonArray(json);
+      prefs = new JsonObject(json);
     }
     return prefs;
   }
 
-  public void setStandardPreference(JsonArray standardPreference) {
-    set(ParameterConstants.PARAM_STANDARD_PREFERENCE, DBEnums.jsonArray(standardPreference));
+  public void setStandardPreference(JsonObject standardPreference) {
+    set(ParameterConstants.PARAM_STANDARD_PREFERENCE, DBEnums.jsonObject(standardPreference));
   }
 
   public Boolean getProfileVisiblity(Boolean profileVisiblity) {

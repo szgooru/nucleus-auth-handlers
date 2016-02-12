@@ -2,6 +2,9 @@ package org.gooru.auth.handlers.processors.command.executor.userPrefs;
 
 import static org.gooru.auth.handlers.utils.ServerValidatorUtility.reject;
 import static org.gooru.auth.handlers.utils.ServerValidatorUtility.rejectIfNull;
+
+import java.util.UUID;
+
 import io.vertx.core.json.JsonObject;
 
 import org.gooru.auth.handlers.constants.HelperConstants;
@@ -59,7 +62,7 @@ public final class UpdateUserPrefsExecutor extends Executor {
     boolean isNew = false;
     if (userPreference == null) {
       userPreference = new AJEntityUserPreference();
-      userPreference.setUserId(userId);
+      userPreference.setUserId(UUID.fromString(userId));
       if (userPrefsDTO.getStandardPreference() == null) {
         userPreference.setStandardPreference(ConfigRegistry.instance().getDefaultUserStandardPrefs());
       }
