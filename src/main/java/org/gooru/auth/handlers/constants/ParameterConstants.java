@@ -12,7 +12,6 @@ public class ParameterConstants {
   public static final String PARAM_STATUS_DEACTIVATED = "deactivated";
   public static final String PARAM_USER_PREFERENCE = "prefs";
   public static final String PARAM_ACCESS_TOKEN_VALIDITY = "access_token_validity";
-  public static final String PARAM_TAXONOMY = "taxonomy";
   public static final String PARAM_RETURN_URL = "return_url";
   public static final String PARAM_CDN_URLS = "cdn_urls";
   public static final String PARAM_API_KEY = "apiKey";

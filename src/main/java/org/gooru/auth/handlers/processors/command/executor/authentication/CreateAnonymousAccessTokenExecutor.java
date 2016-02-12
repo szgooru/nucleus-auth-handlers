@@ -52,7 +52,7 @@ public final class CreateAnonymousAccessTokenExecutor extends Executor {
     accessToken.put(ParameterConstants.PARAM_PROVIDED_AT, System.currentTimeMillis());
     accessToken.put(ParameterConstants.PARAM_CDN_URLS, authClient.getCdnUrls());
     JsonObject prefs = new JsonObject();
-    prefs.put(ParameterConstants.PARAM_TAXONOMY, ConfigRegistry.instance().getDefaultUserStandardPrefs());
+    prefs.put(ParameterConstants.PARAM_STANDARD_PREFERENCE, ConfigRegistry.instance().getDefaultUserStandardPrefs());
     accessToken.put(ParameterConstants.PARAM_USER_PREFERENCE, prefs);
     final String token = InternalHelper.generateToken(MessageConstants.MSG_USER_ANONYMOUS);
     saveAccessToken(token, accessToken, authClient.getAccessTokenValidity());

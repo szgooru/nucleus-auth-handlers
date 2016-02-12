@@ -98,9 +98,9 @@ public class AuthorizeUserExecutor extends Executor {
     final AJEntityUserPreference userPreference = getUserPreferenceRepo().getUserPreference(userIdentity.getUserId());
     JsonObject prefs = new JsonObject();
     if (userPreference != null) {
-      prefs.put(ParameterConstants.PARAM_TAXONOMY, userPreference.getStandardPreference());
+      prefs.put(ParameterConstants.PARAM_STANDARD_PREFERENCE, userPreference.getStandardPreference());
     } else {
-      prefs.put(ParameterConstants.PARAM_TAXONOMY, ConfigRegistry.instance().getDefaultUserStandardPrefs());
+      prefs.put(ParameterConstants.PARAM_STANDARD_PREFERENCE, ConfigRegistry.instance().getDefaultUserStandardPrefs());
     }
     accessToken.put(ParameterConstants.PARAM_CDN_URLS, authClient.getCdnUrls());
     accessToken.put(ParameterConstants.PARAM_USER_PREFERENCE, prefs);

@@ -71,7 +71,7 @@ public final class UpdateUserPrefsExecutor extends Executor {
     if (userPrefsDTO.getStandardPreference() != null) {
       userPreference.setStandardPreference(userPrefsDTO.getStandardPreference());
       JsonObject accessToken = getRedisClient().getJsonObject(token);
-      accessToken.put(ParameterConstants.PARAM_TAXONOMY, userPreference.getStandardPreference());
+      accessToken.put(ParameterConstants.PARAM_STANDARD_PREFERENCE, userPreference.getStandardPreference());
       getRedisClient().set(token, accessToken.toString());
     }
 
