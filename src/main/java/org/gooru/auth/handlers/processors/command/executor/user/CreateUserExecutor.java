@@ -73,7 +73,7 @@ public final class CreateUserExecutor extends Executor {
     JsonObject prefs = new JsonObject();
     prefs.put(ParameterConstants.PARAM_STANDARD_PREFERENCE, ConfigRegistry.instance().getDefaultUserStandardPrefs());
     accessToken.put(ParameterConstants.PARAM_USER_PREFERENCE, prefs);
-    final String token = InternalHelper.generateToken(userIdentity.getUserId());
+    final String token = InternalHelper.generateToken(userContext.getClientId(), userIdentity.getUserId());
     saveAccessToken(token, accessToken, userContext.getAccessTokenValidity());
     accessToken.put(ParameterConstants.PARAM_ACCESS_TOKEN, token);
     EventBuilder eventBuilder = responseDTO.getEventBuilder().setEventName(Event.CREATE_USER.getName());

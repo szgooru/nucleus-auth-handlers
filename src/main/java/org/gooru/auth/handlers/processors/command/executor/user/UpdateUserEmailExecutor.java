@@ -52,7 +52,7 @@ public final class UpdateUserEmailExecutor extends Executor {
     AJEntityUserIdentity userIdentityEmail = getUserIdentityRepo().getUserIdentityByEmailId(emailId);
     reject(userIdentityEmail != null, MessageCodeConstants.AU0023, HttpConstants.HttpStatus.BAD_REQUEST.getCode(), emailId,
             ParameterConstants.EMAIL_ADDRESS);
-    final String token = InternalHelper.generateToken(InternalHelper.EMAIL_CONFIRM_TOKEN);
+    final String token = InternalHelper.generateEmailConfirmToken(userId);
     JsonObject tokenData = new JsonObject();
     tokenData.put(ParameterConstants.PARAM_USER_EMAIL_ID, emailId);
     tokenData.put(ParameterConstants.PARAM_USER_ID, userId);

@@ -48,7 +48,7 @@ public final class CreateGLAAnonymousAccessTokenExecutor extends Executor {
     accessToken.put(ParameterConstants.PARAM_CLIENT_ID, authClient.getClientId());
     accessToken.put(ParameterConstants.PARAM_PROVIDED_AT, System.currentTimeMillis());
     accessToken.put(ParameterConstants.PARAM_CDN_URLS, authClient.getCdnUrls());
-    final String token = InternalHelper.generateToken(MessageConstants.MSG_USER_ANONYMOUS);
+    final String token = InternalHelper.generateToken(authClient.getClientId(), MessageConstants.MSG_USER_ANONYMOUS);
     JsonObject prefs = new JsonObject();
     prefs.put(ParameterConstants.PARAM_STANDARD_PREFERENCE, ConfigRegistry.instance().getDefaultUserStandardPrefs());
     accessToken.put(ParameterConstants.PARAM_USER_PREFERENCE, prefs);

@@ -54,7 +54,7 @@ public final class CreateAnonymousAccessTokenExecutor extends Executor {
     JsonObject prefs = new JsonObject();
     prefs.put(ParameterConstants.PARAM_STANDARD_PREFERENCE, ConfigRegistry.instance().getDefaultUserStandardPrefs());
     accessToken.put(ParameterConstants.PARAM_USER_PREFERENCE, prefs);
-    final String token = InternalHelper.generateToken(MessageConstants.MSG_USER_ANONYMOUS);
+    final String token = InternalHelper.generateToken(authClient.getClientId(), MessageConstants.MSG_USER_ANONYMOUS);
     saveAccessToken(token, accessToken, authClient.getAccessTokenValidity());
     accessToken.put(ParameterConstants.PARAM_ACCESS_TOKEN, token);
     return new MessageResponse.Builder().setResponseBody(accessToken).setContentTypeJson().setStatusOkay().successful().build();

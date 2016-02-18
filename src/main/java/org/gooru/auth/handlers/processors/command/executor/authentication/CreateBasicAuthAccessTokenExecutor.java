@@ -78,7 +78,7 @@ public final class CreateBasicAuthAccessTokenExecutor extends Executor {
     accessToken.put(ParameterConstants.PARAM_USER_USERNAME, userIdentity.getUsername());
     accessToken.put(ParameterConstants.PARAM_CLIENT_ID, authClient.getClientId());
     accessToken.put(ParameterConstants.PARAM_PROVIDED_AT, System.currentTimeMillis());
-    final String token = InternalHelper.generateToken(userIdentity.getUserId());
+    final String token = InternalHelper.generateToken(authClient.getClientId(), userIdentity.getUserId());
     final AJEntityUserPreference userPreference = getUserPreferenceRepo().getUserPreference(userIdentity.getUserId());
     JsonObject prefs = new JsonObject();
     if (userPreference != null) {

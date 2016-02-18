@@ -39,7 +39,7 @@ public final class ResetPasswordExecutor extends Executor {
     final AJEntityUserIdentity userIdentity = getUserIdentityRepo().getUserIdentityByEmailId(emailId);
     ServerValidatorUtility.rejectIfNull(userIdentity, MessageCodeConstants.AU0026, HttpConstants.HttpStatus.NOT_FOUND.getCode(),
             ParameterConstants.PARAM_USER);
-    final String token = InternalHelper.generateToken(InternalHelper.RESET_PASSWORD_TOKEN);
+    final String token = InternalHelper.generatePasswordResetToken(userIdentity.getUserId());
     getRedisClient().set(token, userIdentity.getEmailId(), EXPIRE_IN_SECONDS);
     EventBuilder eventBuilder = new EventBuilder();
     eventBuilder.setEventName(Event.RESET_USER_PASSWORD.getName());

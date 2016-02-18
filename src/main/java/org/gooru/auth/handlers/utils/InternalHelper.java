@@ -22,10 +22,18 @@ public class InternalHelper {
 
   public static final String EMAIL_CONFIRM_TOKEN = "EMAIL_CONFIRM_TOKEN";
 
-  public static String generateToken(String name) {
-    return Base64.getEncoder().encodeToString((name + COLON + new Date().toString() + COLON + System.currentTimeMillis()).getBytes());
+  public static String generateToken(String clientId, String userId) {
+    return Base64.getEncoder().encodeToString((System.currentTimeMillis() + COLON + userId + COLON + clientId).getBytes());
   }
 
+  public static String generateEmailConfirmToken(String userId) {
+    return Base64.getEncoder().encodeToString((System.currentTimeMillis() + COLON + userId + COLON + EMAIL_CONFIRM_TOKEN).getBytes());
+  }
+  
+  public static String generatePasswordResetToken(String userId) {
+    return Base64.getEncoder().encodeToString((System.currentTimeMillis() + COLON + userId + COLON + RESET_PASSWORD_TOKEN).getBytes());
+  }
+  
   public static String encryptPassword(final String password) {
     return encrypt(password);
   }

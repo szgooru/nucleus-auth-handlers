@@ -49,7 +49,7 @@ public final class ResendConfirmationEmailExecutor extends Executor {
     rejectIfNull(userIdentity, MessageCodeConstants.AU0026, HttpConstants.HttpStatus.NOT_FOUND.getCode(), ParameterConstants.PARAM_USER);
     reject(userIdentity.getStatus().equalsIgnoreCase(ParameterConstants.PARAM_STATUS_DEACTIVATED), MessageCodeConstants.AU0009,
             HttpConstants.HttpStatus.FORBIDDEN.getCode());
-    final String token = InternalHelper.generateToken(InternalHelper.EMAIL_CONFIRM_TOKEN);
+    final String token = InternalHelper.generateEmailConfirmToken(userId);
     JsonObject tokenData = new JsonObject();
     tokenData.put(ParameterConstants.PARAM_USER_EMAIL_ID, userIdentity.getEmailId());
     tokenData.put(ParameterConstants.PARAM_USER_ID, userId);
