@@ -21,7 +21,6 @@ import org.gooru.auth.handlers.processors.command.executor.ActionResponseDTO;
 import org.gooru.auth.handlers.processors.command.executor.Executor;
 import org.gooru.auth.handlers.processors.command.executor.MessageResponse;
 import org.gooru.auth.handlers.processors.data.transform.model.UserDTO;
-import org.gooru.auth.handlers.processors.error.Errors;
 import org.gooru.auth.handlers.processors.event.Event;
 import org.gooru.auth.handlers.processors.event.EventBuilder;
 import org.gooru.auth.handlers.processors.messageProcessor.MessageContext;
@@ -114,7 +113,7 @@ public final class CreateUserExecutor extends Executor {
     final String username = userDTO.getUsername();
     final String userCategory = userDTO.getUserCategory();
     final String parentUserEmailId = userDTO.getParentEmailId();
-    final Errors errors = new Errors();
+    final JsonObject errors = new JsonObject();
     addValidatorIfNullOrEmptyError(errors, ParameterConstants.PARAM_USER_PARENT_EMAIL_ID, parentUserEmailId, MessageCodeConstants.AU0031);
     addValidatorIfNullOrEmptyError(errors, ParameterConstants.PARAM_USER_USERNAME, username, MessageCodeConstants.AU0013);
     addValidatorIfNullOrEmptyError(errors, ParameterConstants.PARAM_USER_CATEGORY, userCategory, MessageCodeConstants.AU0016);
@@ -147,7 +146,7 @@ public final class CreateUserExecutor extends Executor {
   }
 
   private ActionResponseDTO<AJEntityUser> createUserValidator(final UserDTO userDTO) {
-    final Errors errors = new Errors();
+    final JsonObject errors = new JsonObject();
     final AJEntityUser user = new AJEntityUser();
     final String firstname = userDTO.getFirstname();
     addValidatorIfNullOrEmptyError(errors, ParameterConstants.PARAM_USER_FIRSTNAME, firstname, MessageCodeConstants.AU0011);

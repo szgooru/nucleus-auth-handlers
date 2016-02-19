@@ -4,12 +4,11 @@ import static org.gooru.auth.handlers.constants.HttpConstants.HttpStatus.BAD_REQ
 import static org.gooru.auth.handlers.constants.HttpConstants.HttpStatus.FORBIDDEN;
 import static org.gooru.auth.handlers.constants.HttpConstants.HttpStatus.NOT_FOUND;
 import static org.gooru.auth.handlers.constants.HttpConstants.HttpStatus.UNAUTHORIZED;
+import io.vertx.core.json.JsonObject;
 
 import java.util.Map;
 import java.util.ResourceBundle;
 
-import org.gooru.auth.handlers.processors.error.ErrorType;
-import org.gooru.auth.handlers.processors.error.Errors;
 import org.gooru.auth.handlers.processors.exceptions.AccessDeniedException;
 import org.gooru.auth.handlers.processors.exceptions.BadRequestException;
 import org.gooru.auth.handlers.processors.exceptions.NotFoundException;
@@ -19,25 +18,22 @@ public class ServerValidatorUtility {
 
   private static final ResourceBundle MESSAGE = ResourceBundle.getBundle("message");
 
-  public static void addValidatorIfNullError(final Errors errors, final String fieldName, final Object data, final String code, final String... placeHolderReplacer) {
+  public static void addValidatorIfNullError(final JsonObject errors, final String fieldName, final Object data, final String code,
+      final String... placeHolderReplacer) {
     if (data == null) {
       addError(errors, fieldName, code, placeHolderReplacer);
     }
   }
 
-  public static void addValidatorIfNullError(final Errors errors, final Object data, final String code, final String... placeHolderReplacer) {
-    if (data == null) {
-      addError(errors, code, placeHolderReplacer);
-    }
-  }
-
-  public static void addValidatorIfNullOrEmptyError(final Errors errors, final String fieldName, final String data, final String code, final String... placeHolderReplacer) {
+  public static void addValidatorIfNullOrEmptyError(final JsonObject errors, final String fieldName, final String data, final String code,
+      final String... placeHolderReplacer) {
     if (data == null || data.trim().length() == 0) {
       addError(errors, fieldName, code, placeHolderReplacer);
     }
   }
 
-  public static void addValidator(final Errors errors, final Boolean data, final String fieldName, final String code, final String... placeHolderReplacer) {
+  public static void addValidator(final JsonObject errors, final Boolean data, final String fieldName, final String code,
+      final String... placeHolderReplacer) {
     if (data) {
       addError(errors, fieldName, code, placeHolderReplacer);
     }
@@ -106,7 +102,7 @@ public class ServerValidatorUtility {
     return rawData;
   }
 
-  public static void rejectError(final Errors errors, final int errorCode) {
+  public static void rejectError(final JsonObject errors, final int errorCode) {
     if (errors != null && !errors.isEmpty()) {
       if (errorCode == BAD_REQUEST.getCode()) {
         throw new BadRequestException(errors.toString());
@@ -118,19 +114,8 @@ public class ServerValidatorUtility {
     throw new RuntimeException("internal api error");
   }
 
-  public static void addError(Errors errors, String fieldName, String code, String... placeHolderReplacer) {
-    org.gooru.auth.handlers.processors.error.Error error = new org.gooru.auth.handlers.processors.error.Error();
-    error.setCode(code);
-    error.setMessage(generateErrorMessage(code, placeHolderReplacer));
-    error.setFieldName(fieldName);
-    error.setType(ErrorType.PARAMS_INVALID.getName());
-    errors.add(error);
+  public static void addError(JsonObject errors, String fieldName, String code, String... placeHolderReplacer) {
+    errors.put(fieldName, generateErrorMessage(code, placeHolderReplacer));
   }
 
-  public static void addError(Errors errors, String code, String... placeHolderReplacer) {
-    org.gooru.auth.handlers.processors.error.Error error = new org.gooru.auth.handlers.processors.error.Error();
-    error.setCode(code);
-    error.setMessage(generateErrorMessage(code, placeHolderReplacer));
-    errors.add(error);
-  }
 }

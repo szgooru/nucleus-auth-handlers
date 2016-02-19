@@ -4,6 +4,7 @@ import static org.gooru.auth.handlers.utils.ServerValidatorUtility.addValidator;
 import static org.gooru.auth.handlers.utils.ServerValidatorUtility.reject;
 import static org.gooru.auth.handlers.utils.ServerValidatorUtility.rejectError;
 import static org.gooru.auth.handlers.utils.ServerValidatorUtility.rejectIfNull;
+import io.vertx.core.json.JsonObject;
 
 import org.gooru.auth.handlers.constants.HelperConstants;
 import org.gooru.auth.handlers.constants.HttpConstants;
@@ -16,7 +17,6 @@ import org.gooru.auth.handlers.processors.command.executor.ActionResponseDTO;
 import org.gooru.auth.handlers.processors.command.executor.Executor;
 import org.gooru.auth.handlers.processors.command.executor.MessageResponse;
 import org.gooru.auth.handlers.processors.data.transform.model.UserDTO;
-import org.gooru.auth.handlers.processors.error.Errors;
 import org.gooru.auth.handlers.processors.event.Event;
 import org.gooru.auth.handlers.processors.event.EventBuilder;
 import org.gooru.auth.handlers.processors.messageProcessor.MessageContext;
@@ -92,7 +92,7 @@ public final class UpdateUserExecutor extends Executor {
     rejectIfNull(userIdentity, MessageCodeConstants.AU0026, HttpConstants.HttpStatus.NOT_FOUND.getCode(), ParameterConstants.PARAM_USER);
     reject(userIdentity.getStatus().equalsIgnoreCase(ParameterConstants.PARAM_STATUS_DEACTIVATED), MessageCodeConstants.AU0009,
             HttpConstants.HttpStatus.FORBIDDEN.getCode());
-    final Errors errors = new Errors();
+    final JsonObject errors = new JsonObject();
     final String username = userDTO.getUsername();
     final EventBuilder eventBuilder = new EventBuilder();
 

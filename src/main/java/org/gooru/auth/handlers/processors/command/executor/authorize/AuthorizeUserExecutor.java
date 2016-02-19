@@ -24,7 +24,6 @@ import org.gooru.auth.handlers.processors.command.executor.Executor;
 import org.gooru.auth.handlers.processors.command.executor.MessageResponse;
 import org.gooru.auth.handlers.processors.data.transform.model.AuthorizeDTO;
 import org.gooru.auth.handlers.processors.data.transform.model.UserDTO;
-import org.gooru.auth.handlers.processors.error.Errors;
 import org.gooru.auth.handlers.processors.event.Event;
 import org.gooru.auth.handlers.processors.event.EventBuilder;
 import org.gooru.auth.handlers.processors.messageProcessor.MessageContext;
@@ -194,7 +193,7 @@ public class AuthorizeUserExecutor extends Executor {
 
   private void authorizeValidator(AuthorizeDTO authorizeDTO) {
     reject(authorizeDTO.getUser() == null, MessageCodeConstants.AU0038, 400);
-    Errors errors = new Errors();
+    JsonObject errors = new JsonObject();
     addValidator(errors, authorizeDTO.getUser().getIdentityId() == null, ParameterConstants.PARAM_AUTHORIZE_IDENTITY_ID, MessageCodeConstants.AU0033);
     rejectError(errors, HttpConstants.HttpStatus.BAD_REQUEST.getCode());
   }

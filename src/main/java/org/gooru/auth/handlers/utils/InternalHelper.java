@@ -29,11 +29,11 @@ public class InternalHelper {
   public static String generateEmailConfirmToken(String userId) {
     return Base64.getEncoder().encodeToString((System.currentTimeMillis() + COLON + userId + COLON + EMAIL_CONFIRM_TOKEN).getBytes());
   }
-  
+
   public static String generatePasswordResetToken(String userId) {
     return Base64.getEncoder().encodeToString((System.currentTimeMillis() + COLON + userId + COLON + RESET_PASSWORD_TOKEN).getBytes());
   }
-  
+
   public static String encryptPassword(final String password) {
     return encrypt(password);
   }

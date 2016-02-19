@@ -1,6 +1,7 @@
 package org.gooru.auth.handlers.processors.command.executor;
 
-import org.gooru.auth.handlers.processors.error.Errors;
+import io.vertx.core.json.JsonObject;
+
 import org.gooru.auth.handlers.processors.event.EventBuilder;
 import org.javalite.activejdbc.Model;
 
@@ -10,18 +11,18 @@ public class ActionResponseDTO<M extends Model> {
 
   private EventBuilder eventBuilder;
 
-  private Errors errors;
+  private JsonObject errors;
 
   public ActionResponseDTO() {
 
   }
 
-  public ActionResponseDTO(M model, Errors errors) {
+  public ActionResponseDTO(M model, JsonObject errors) {
     this.model = model;
     this.errors = errors;
   }
 
-  public ActionResponseDTO(M model, EventBuilder eventBuilder, Errors errors) {
+  public ActionResponseDTO(M model, EventBuilder eventBuilder, JsonObject errors) {
     this.model = model;
     this.errors = errors;
     this.eventBuilder = eventBuilder;
@@ -40,11 +41,11 @@ public class ActionResponseDTO<M extends Model> {
     this.model = model;
   }
 
-  public Errors getErrors() {
+  public JsonObject getErrors() {
     return errors;
   }
 
-  public void setErrors(Errors errors) {
+  public void setErrors(JsonObject errors) {
     this.errors = errors;
   }
 
