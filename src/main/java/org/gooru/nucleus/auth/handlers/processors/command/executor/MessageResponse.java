@@ -1,6 +1,7 @@
 package org.gooru.nucleus.auth.handlers.processors.command.executor;
 
 import io.vertx.core.eventbus.DeliveryOptions;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
 import org.gooru.nucleus.auth.handlers.constants.HttpConstants;
@@ -18,6 +19,7 @@ public class MessageResponse {
   private final DeliveryOptions deliveryOptions;
   private final JsonObject reply;
   private final JsonObject event;
+  private final JsonArray mailNotify;
   private static final String MESSAGE = "message";
 
   // Private constructor
@@ -25,6 +27,7 @@ public class MessageResponse {
     this.deliveryOptions = new DeliveryOptions().addHeader(MessageConstants.MSG_OP_STATUS, response.getString(MessageConstants.MSG_OP_STATUS));
     this.reply = response.getJsonObject(MessageConstants.RESP_CONTAINER_MBUS);
     this.event = response.getJsonObject(MessageConstants.RESP_CONTAINER_EVENT);
+    this.mailNotify = response.getJsonArray(MessageConstants.RESP_CONTAINER_MAIL_NOTIFY);
   }
 
   public DeliveryOptions deliveryOptions() {
@@ -39,6 +42,10 @@ public class MessageResponse {
     return this.event;
   }
 
+  public JsonArray mailNotify() {
+    return this.mailNotify;
+  }
+
   // Public builder with validations
   public static class Builder {
     private String status;
@@ -46,6 +53,7 @@ public class MessageResponse {
     private JsonObject responseBody = null;
     private JsonObject headers = null;
     private JsonObject eventData = null;
+    private JsonArray mailNotify = null;
     private Throwable throwable = null;
 
     public Builder() {
@@ -155,6 +163,16 @@ public class MessageResponse {
       return this;
     }
 
+    public Builder addMailNotify(JsonObject mailNoify) {
+      if (this.mailNotify == null && mailNoify != null && !mailNoify.isEmpty()) {
+        this.mailNotify = new JsonArray();
+      }
+      if (mailNoify != null && !mailNoify.isEmpty()) {
+        mailNotify.add(mailNoify);
+      }
+      return this;
+    }
+
     public MessageResponse build() {
       JsonObject result;
       if (this.httpStatus == null || this.status == null) {
@@ -166,6 +184,10 @@ public class MessageResponse {
 
         if (this.eventData != null && !this.eventData.isEmpty()) {
           result.put(MessageConstants.RESP_CONTAINER_EVENT, this.eventData);
+        }
+
+        if (this.mailNotify != null && !this.mailNotify.isEmpty()) {
+          result.put(MessageConstants.RESP_CONTAINER_MAIL_NOTIFY, this.mailNotify);
         }
       }
       return new MessageResponse(result);

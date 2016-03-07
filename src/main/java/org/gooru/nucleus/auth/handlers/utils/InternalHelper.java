@@ -8,7 +8,6 @@ import java.text.SimpleDateFormat;
 import java.util.Base64;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -16,6 +15,7 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.gooru.nucleus.auth.handlers.constants.HelperConstants;
 import org.gooru.nucleus.auth.handlers.constants.MessageCodeConstants;
 import org.gooru.nucleus.auth.handlers.processors.exceptions.InvalidRequestException;
 import org.slf4j.Logger;
@@ -32,7 +32,7 @@ public final class InternalHelper {
   public static final String EMAIL_CONFIRM_TOKEN = "EMAIL_CONFIRM_TOKEN";
 
   public final static ExecutorService EXECUTOR_SERVICE = Executors.newFixedThreadPool(1);
-  
+
   private static final Logger LOG = LoggerFactory.getLogger(InternalHelper.class);
 
   public static String generateToken(String clientId, String userId) {
@@ -113,17 +113,13 @@ public final class InternalHelper {
     return age;
   }
 
-  public static void executeHTTPClientPost(String url, String data, Map<String, String> headers) {
+  public static void executeHTTPClientPost(String url, String data, String authHeader) {
     EXECUTOR_SERVICE.execute(new Runnable() {
       public void run() {
         try {
           HttpClient httpclient = HttpClientBuilder.create().build();
           final HttpPost post = new HttpPost(url);
-          if (headers != null) {
-            headers.forEach((key, value) -> {
-              post.addHeader(key, value);
-            });
-          }
+          post.addHeader(HelperConstants.HEADER_AUTHORIZATION, authHeader);
           final StringEntity input = new StringEntity(data);
           post.setEntity(input);
           httpclient.execute(post);

@@ -12,6 +12,7 @@ import java.util.Random;
 
 import org.gooru.nucleus.auth.handlers.constants.HelperConstants;
 import org.gooru.nucleus.auth.handlers.constants.HttpConstants;
+import org.gooru.nucleus.auth.handlers.constants.MailTemplateConstants;
 import org.gooru.nucleus.auth.handlers.constants.MessageCodeConstants;
 import org.gooru.nucleus.auth.handlers.constants.MessageConstants;
 import org.gooru.nucleus.auth.handlers.constants.ParameterConstants;
@@ -24,6 +25,7 @@ import org.gooru.nucleus.auth.handlers.processors.command.executor.Executor;
 import org.gooru.nucleus.auth.handlers.processors.command.executor.MessageResponse;
 import org.gooru.nucleus.auth.handlers.processors.data.transform.model.AuthorizeDTO;
 import org.gooru.nucleus.auth.handlers.processors.data.transform.model.UserDTO;
+import org.gooru.nucleus.auth.handlers.processors.email.notify.MailNotifyBuilder;
 import org.gooru.nucleus.auth.handlers.processors.event.Event;
 import org.gooru.nucleus.auth.handlers.processors.event.EventBuilder;
 import org.gooru.nucleus.auth.handlers.processors.messageProcessor.MessageContext;
@@ -50,11 +52,11 @@ public class AuthorizeUserExecutor extends Executor {
   private UserRepo userRepo;
 
   public AuthorizeUserExecutor() {
-    setAuthClientRepo(AuthClientRepo.instance());
-    setRedisClient(RedisClient.instance());
-    setUserIdentityRepo(UserIdentityRepo.instance());
-    setUserPreferenceRepo(UserPreferenceRepo.instance());
-    setUserRepo(UserRepo.instance());
+    this.authClientRepo = AuthClientRepo.instance();
+    this.redisClient = RedisClient.instance();
+    this.userIdentityRepo = UserIdentityRepo.instance();
+    this.userPreferenceRepo = UserPreferenceRepo.instance();
+    this.userRepo = UserRepo.instance();
   }
 
   @Override
@@ -66,15 +68,16 @@ public class AuthorizeUserExecutor extends Executor {
 
   private MessageResponse authorizeUser(AuthorizeDTO authorizeDTO, String requestDomain) {
     reject((HelperConstants.SSO_CONNECT_GRANT_TYPES.get(authorizeDTO.getGrantType()) == null), MessageCodeConstants.AU0003,
-            HttpConstants.HttpStatus.UNAUTHORIZED.getCode());
+        HttpConstants.HttpStatus.UNAUTHORIZED.getCode());
     final AJEntityAuthClient authClient =
-            validateAuthClient(authorizeDTO.getClientId(), InternalHelper.encryptClientKey(authorizeDTO.getClientKey()), authorizeDTO.getGrantType());
+        validateAuthClient(authorizeDTO.getClientId(), InternalHelper.encryptClientKey(authorizeDTO.getClientKey()), authorizeDTO.getGrantType());
     verifyClientkeyDomains(requestDomain, authClient.getRefererDomains());
     authorizeValidator(authorizeDTO);
     String identityId = authorizeDTO.getUser().getIdentityId();
     boolean isEmailIdentity = false;
     AJEntityUserIdentity userIdentity = null;
     EventBuilder eventBuilder = new EventBuilder();
+    MailNotifyBuilder mailNotifyBuilder = new MailNotifyBuilder();
     if (identityId.indexOf("@") > 1) {
       isEmailIdentity = true;
       userIdentity = getUserIdentityRepo().getUserIdentityByEmailId(identityId);
@@ -83,9 +86,10 @@ public class AuthorizeUserExecutor extends Executor {
     }
     if (userIdentity == null) {
       ActionResponseDTO<AJEntityUserIdentity> responseDTO =
-              createUserWithIdentity(authorizeDTO.getUser(), authorizeDTO.getGrantType(), authorizeDTO.getClientId(), isEmailIdentity, eventBuilder);
+          createUserWithIdentity(authorizeDTO.getUser(), authorizeDTO.getGrantType(), authorizeDTO.getClientId(), isEmailIdentity, eventBuilder);
       userIdentity = responseDTO.getModel();
       eventBuilder = responseDTO.getEventBuilder();
+      mailNotifyBuilder.setTemplateName(MailTemplateConstants.WELCOME_MAIL).addToAddress(userIdentity.getEmailId());
     }
 
     final JsonObject accessToken = new JsonObject();
@@ -105,16 +109,17 @@ public class AuthorizeUserExecutor extends Executor {
     accessToken.put(ParameterConstants.PARAM_USER_PREFERENCE, prefs);
     saveAccessToken(token, accessToken, authClient.getAccessTokenValidity());
     accessToken.put(ParameterConstants.PARAM_ACCESS_TOKEN, token);
+    mailNotifyBuilder.setAuthAccessToken(token);
     eventBuilder.setEventName(Event.AUTHORIZE_USER.getName()).putPayLoadObject(ParameterConstants.PARAM_ACCESS_TOKEN, token)
-            .putPayLoadObject(ParameterConstants.PARAM_CLIENT_ID, authClient.getClientId())
-            .putPayLoadObject(ParameterConstants.PARAM_USER_ID, userIdentity.getUserId())
-            .putPayLoadObject(ParameterConstants.PARAM_GRANT_TYPE, authorizeDTO.getGrantType());
-    return new MessageResponse.Builder().setResponseBody(accessToken).setEventData(eventBuilder.build()).setContentTypeJson().setStatusOkay()
-            .successful().build();
+        .putPayLoadObject(ParameterConstants.PARAM_CLIENT_ID, authClient.getClientId())
+        .putPayLoadObject(ParameterConstants.PARAM_USER_ID, userIdentity.getUserId())
+        .putPayLoadObject(ParameterConstants.PARAM_GRANT_TYPE, authorizeDTO.getGrantType());
+    return new MessageResponse.Builder().setResponseBody(accessToken).setEventData(eventBuilder.build()).addMailNotify(mailNotifyBuilder.build())
+        .setContentTypeJson().setStatusOkay().successful().build();
   }
 
   private ActionResponseDTO<AJEntityUserIdentity> createUserWithIdentity(final UserDTO userDTO, final String grantType, final String clientId,
-          final boolean isEmailIdentity, final EventBuilder eventBuilder) {
+      final boolean isEmailIdentity, final EventBuilder eventBuilder) {
     final AJEntityUser user = new AJEntityUser();
     user.setFirstname(userDTO.getFirstname());
     if (userDTO.getLastname() != null) {
@@ -123,7 +128,7 @@ public class AuthorizeUserExecutor extends Executor {
 
     getUserRepo().create(user);
     eventBuilder.putPayLoadObject(SchemaConstants.USER_DEMOGRAPHIC,
-            AJResponseJsonTransformer.transform(user.toJson(false), HelperConstants.USERS_JSON_FIELDS));
+        AJResponseJsonTransformer.transform(user.toJson(false), HelperConstants.USERS_JSON_FIELDS));
 
     final AJEntityUserIdentity userIdentity = createUserIdentityValue(grantType, user, clientId);
     if (isEmailIdentity) {
@@ -158,7 +163,7 @@ public class AuthorizeUserExecutor extends Executor {
     AJEntityAuthClient authClient = getAuthClientRepo().getAuthClient(clientId, clientKey);
     rejectIfNull(authClient, MessageCodeConstants.AU0004, HttpConstants.HttpStatus.UNAUTHORIZED.getCode());
     reject((authClient.getGrantTypes() == null || !authClient.getGrantTypes().contains(grantType)), MessageCodeConstants.AU0005,
-            HttpConstants.HttpStatus.FORBIDDEN.getCode());
+        HttpConstants.HttpStatus.FORBIDDEN.getCode());
     return authClient;
   }
 
@@ -202,40 +207,20 @@ public class AuthorizeUserExecutor extends Executor {
     return authClientRepo;
   }
 
-  public void setAuthClientRepo(AuthClientRepo authClientRepo) {
-    this.authClientRepo = authClientRepo;
-  }
-
   public RedisClient getRedisClient() {
     return redisClient;
-  }
-
-  public void setRedisClient(RedisClient redisClient) {
-    this.redisClient = redisClient;
   }
 
   public UserIdentityRepo getUserIdentityRepo() {
     return userIdentityRepo;
   }
 
-  public void setUserIdentityRepo(UserIdentityRepo userIdentityRepo) {
-    this.userIdentityRepo = userIdentityRepo;
-  }
-
   public UserRepo getUserRepo() {
     return userRepo;
   }
 
-  public void setUserRepo(UserRepo userRepo) {
-    this.userRepo = userRepo;
-  }
-
   public UserPreferenceRepo getUserPreferenceRepo() {
     return userPreferenceRepo;
-  }
-
-  public void setUserPreferenceRepo(UserPreferenceRepo userPreferenceRepo) {
-    this.userPreferenceRepo = userPreferenceRepo;
   }
 
 }
