@@ -1,15 +1,18 @@
 package org.gooru.nucleus.auth.handlers.bootstrap;
 
-import java.util.stream.Stream;
-
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Future;
 import io.vertx.core.eventbus.EventBus;
+import io.vertx.core.eventbus.Message;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
+import java.util.stream.Stream;
+
 import org.gooru.nucleus.auth.handlers.constants.HelperConstants;
+import org.gooru.nucleus.auth.handlers.constants.MessageConstants;
 import org.gooru.nucleus.auth.handlers.constants.MessagebusEndpoints;
+import org.gooru.nucleus.auth.handlers.constants.ParameterConstants;
 import org.gooru.nucleus.auth.handlers.infra.ConfigRegistry;
 import org.gooru.nucleus.auth.handlers.processors.ProcessorBuilder;
 import org.gooru.nucleus.auth.handlers.processors.command.executor.MessageResponse;
@@ -20,11 +23,12 @@ import org.slf4j.LoggerFactory;
 
 public class UserVerticle extends AbstractVerticle {
   private static final Logger LOG = LoggerFactory.getLogger(UserVerticle.class);
-
+  
+  
   @Override
   public void start(Future<Void> voidFuture) throws Exception {
-    EventBus eb = vertx.eventBus();
-
+    final EventBus eb = vertx.eventBus();
+    final  ConfigRegistry configRegistry = ConfigRegistry.instance();
     eb.consumer(MessagebusEndpoints.MBEP_USER, message -> {
       LOG.debug("Received message: " + message.body());
       vertx.executeBlocking(future -> {
@@ -36,13 +40,15 @@ public class UserVerticle extends AbstractVerticle {
 
         JsonObject eventData = result.event();
         if (eventData != null) {
-          eb.publish(MessagebusEndpoints.MBEP_EVENT, eventData);
+          final String accessToken = getAccessToken(message, result);
+          InternalHelper.executeHTTPClientPost(configRegistry.getEventRestApiUrl(), eventData.toString(), accessToken);
         }
-        if (result.mailNotify() != null && result.mailNotify().size() > 0) { 
-          JsonArray mailNotifies = result.mailNotify();
+        if (result.mailNotify() != null && result.mailNotify().size() > 0) {
+          final String accessToken = getAccessToken(message, result);
+          final JsonArray mailNotifies = result.mailNotify();
           Stream<JsonObject> stream = mailNotifies.stream().map(mailNotify -> (JsonObject) mailNotify);
-          stream.forEach((JsonObject mailNotify) -> {             
-            InternalHelper.executeHTTPClientPost(ConfigRegistry.instance().getMailRestApiUrl(), mailNotify.toString(), mailNotify.getString(HelperConstants.HEADER_AUTHORIZATION));
+          stream.forEach((JsonObject mailNotify) -> {
+            InternalHelper.executeHTTPClientPost(configRegistry.getMailRestApiUrl(), mailNotify.toString(), accessToken);
           });
         }
       });
@@ -57,5 +63,17 @@ public class UserVerticle extends AbstractVerticle {
     });
   }
 
+  private String getAccessToken(Message<?> message, MessageResponse messageResponse) {
+    String accessToken = ((JsonObject) message.body()).getString(MessageConstants.MSG_HEADER_TOKEN);
+    if (accessToken == null || accessToken.isEmpty()) {
+      final JsonObject result = (JsonObject) messageResponse.reply();
+      final JsonObject resultHttpBody = result.getJsonObject(MessageConstants.MSG_HTTP_BODY);
+      final JsonObject resultHttpRes = resultHttpBody.getJsonObject(MessageConstants.MSG_HTTP_RESPONSE);
+      if (resultHttpRes != null) {
+        accessToken = resultHttpRes.getString(ParameterConstants.PARAM_ACCESS_TOKEN);
+      }
+    }
+    return (HelperConstants.HEADER_TOKEN + accessToken);
+  }
 
 }

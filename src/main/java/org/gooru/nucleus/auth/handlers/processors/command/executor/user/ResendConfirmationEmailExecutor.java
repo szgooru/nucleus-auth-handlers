@@ -32,9 +32,9 @@ public final class ResendConfirmationEmailExecutor extends Executor {
   private static final int EXPIRE_IN_SECONDS = 86400;
 
   public ResendConfirmationEmailExecutor() {
-    setRedisClient(RedisClient.instance());
-    setUserIdentityRepo(UserIdentityRepo.instance());
-    setUserRepo(UserRepo.instance());
+    this.redisClient = RedisClient.instance();
+    this.userIdentityRepo = UserIdentityRepo.instance();
+    this.userRepo = UserRepo.instance();
   }
 
   @Override
@@ -48,7 +48,7 @@ public final class ResendConfirmationEmailExecutor extends Executor {
     final AJEntityUserIdentity userIdentity = getUserIdentityRepo().getUserIdentityByEmailId(user.getEmailId());
     rejectIfNull(userIdentity, MessageCodeConstants.AU0026, HttpConstants.HttpStatus.NOT_FOUND.getCode(), ParameterConstants.PARAM_USER);
     reject(userIdentity.getStatus().equalsIgnoreCase(ParameterConstants.PARAM_STATUS_DEACTIVATED), MessageCodeConstants.AU0009,
-            HttpConstants.HttpStatus.FORBIDDEN.getCode());
+        HttpConstants.HttpStatus.FORBIDDEN.getCode());
     final String token = InternalHelper.generateEmailConfirmToken(userId);
     JsonObject tokenData = new JsonObject();
     tokenData.put(ParameterConstants.PARAM_USER_EMAIL_ID, userIdentity.getEmailId());
@@ -62,27 +62,16 @@ public final class ResendConfirmationEmailExecutor extends Executor {
     return new MessageResponse.Builder().setEventData(eventBuilder.build()).setContentTypeJson().setStatusOkay().successful().build();
   }
 
-  public UserIdentityRepo getUserIdentityRepo() {
+  private UserIdentityRepo getUserIdentityRepo() {
     return userIdentityRepo;
   }
 
-  public void setUserIdentityRepo(UserIdentityRepo userIdentityRepo) {
-    this.userIdentityRepo = userIdentityRepo;
-  }
-
-  public UserRepo getUserRepo() {
+  private UserRepo getUserRepo() {
     return userRepo;
   }
 
-  public void setUserRepo(UserRepo userRepo) {
-    this.userRepo = userRepo;
-  }
-
-  public RedisClient getRedisClient() {
+  private RedisClient getRedisClient() {
     return redisClient;
   }
 
-  public void setRedisClient(RedisClient redisClient) {
-    this.redisClient = redisClient;
-  }
 }

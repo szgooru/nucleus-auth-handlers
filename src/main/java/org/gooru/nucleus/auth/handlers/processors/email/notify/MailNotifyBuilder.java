@@ -3,7 +3,6 @@ package org.gooru.nucleus.auth.handlers.processors.email.notify;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
-import org.gooru.nucleus.auth.handlers.constants.HelperConstants;
 import org.gooru.nucleus.auth.handlers.constants.ParameterConstants;
 
 public final class MailNotifyBuilder {
@@ -16,7 +15,6 @@ public final class MailNotifyBuilder {
 
   private final JsonObject context;
 
-  private String authAccessToken;
 
   public MailNotifyBuilder() {
     this.toAddresses = new JsonArray();
@@ -36,10 +34,6 @@ public final class MailNotifyBuilder {
     return templateName;
   }
 
-  private String getAuthAccessToken() {
-    return authAccessToken;
-  }
-
   public MailNotifyBuilder addToAddress(String toAddress) {
     this.toAddresses.add(toAddress);
     return this;
@@ -55,11 +49,6 @@ public final class MailNotifyBuilder {
     return this;
   }
 
-  public MailNotifyBuilder setAuthAccessToken(String accessToken) {
-    this.authAccessToken = accessToken;
-    return this;
-  }
-
   public MailNotifyBuilder setTemplateName(String templateName) {
     this.templateName = templateName;
     return this;
@@ -72,7 +61,6 @@ public final class MailNotifyBuilder {
       data.put(ParameterConstants.MAIL_TEMPLATE_NAME, getTemplateName());
       data.put(ParameterConstants.MAIL_TEMPLATE_CONTEXT, getContext());
       data.put(ParameterConstants.MAIL_TO_ADDRESSES, getToAddresses());
-      data.put(HelperConstants.HEADER_AUTHORIZATION, (HelperConstants.HEADER_TOKEN + getAuthAccessToken()));
     }
     return data;
   }

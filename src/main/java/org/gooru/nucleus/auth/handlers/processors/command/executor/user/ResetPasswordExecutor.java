@@ -29,28 +29,27 @@ public final class ResetPasswordExecutor extends Executor {
   @Override
   public MessageResponse execute(MessageContext messageContext) {
     final String emailId = messageContext.requestBody().getString(ParameterConstants.PARAM_USER_EMAIL_ID);
-    final String accessToken = messageContext.accessToken();
-    return resetPassword(emailId, accessToken);
+    return resetPassword(emailId);
   }
 
-  private MessageResponse resetPassword(final String emailId, final String accessToken) {
+  private MessageResponse resetPassword(final String emailId) {
     final AJEntityUserIdentity userIdentity = getUserIdentityRepo().getUserIdentityByEmailId(emailId);
     ServerValidatorUtility.rejectIfNull(userIdentity, MessageCodeConstants.AU0026, HttpConstants.HttpStatus.NOT_FOUND.getCode(),
         ParameterConstants.PARAM_USER);
     final String token = InternalHelper.generatePasswordResetToken(userIdentity.getUserId());
     getRedisClient().set(token, userIdentity.getEmailId(), HelperConstants.EXPIRE_IN_SECONDS);
     MailNotifyBuilder  mailNotifyBuilder = new MailNotifyBuilder();
-    mailNotifyBuilder.setTemplateName(MailTemplateConstants.PASSWORD_CHANGE_REQUEST).setAuthAccessToken(accessToken).addToAddress(emailId).putContext(ParameterConstants.MAIL_TOKEN, token);
+    mailNotifyBuilder.setTemplateName(MailTemplateConstants.PASSWORD_CHANGE_REQUEST).addToAddress(emailId).putContext(ParameterConstants.MAIL_TOKEN, token);
     return new MessageResponse.Builder().setResponseBody(null).addMailNotify(mailNotifyBuilder.build()).setContentTypeJson().setStatusOkay().successful().build();
   }
 
   
 
-  public UserIdentityRepo getUserIdentityRepo() {
+  private UserIdentityRepo getUserIdentityRepo() {
     return userIdentityRepo;
   }
 
-  public RedisClient getRedisClient() {
+  private RedisClient getRedisClient() {
     return redisClient;
   }
 }

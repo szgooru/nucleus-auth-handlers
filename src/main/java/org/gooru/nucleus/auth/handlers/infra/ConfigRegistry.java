@@ -12,6 +12,8 @@ public class ConfigRegistry implements Initializer {
   private static final String STANDARD_PREFERENCE = "standard_preference";
 
   private static final String MAIL_REST_API_URL = "mail.rest.api.url";
+  
+  private static final String EVENT_REST_API_URL = "event.rest.api.url";
 
   private JsonObject config;
 
@@ -30,6 +32,10 @@ public class ConfigRegistry implements Initializer {
 
   public String getMailRestApiUrl() {
     return this.config.getString(MAIL_REST_API_URL);
+  }
+  
+  public String getEventRestApiUrl() {
+    return this.config.getString(EVENT_REST_API_URL);
   }
 
   public static ConfigRegistry instance() {

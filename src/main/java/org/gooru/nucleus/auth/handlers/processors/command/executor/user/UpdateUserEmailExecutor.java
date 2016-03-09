@@ -40,11 +40,10 @@ public final class UpdateUserEmailExecutor extends Executor {
     if (messageContext.requestBody() != null) {
       newEmailId = messageContext.requestBody().getString(ParameterConstants.PARAM_USER_EMAIL_ID);
     }
-    final String accessToken = messageContext.accessToken();
-    return updateUserEmail(messageContext.user().getUserId(), newEmailId, accessToken);
+    return updateUserEmail(messageContext.user().getUserId(), newEmailId);
   }
 
-  private MessageResponse updateUserEmail(String userId, String emailId, String accessToken) {
+  private MessageResponse updateUserEmail(final String userId, final String emailId) {
     rejectIfNull(emailId, MessageCodeConstants.AU0014, HttpConstants.HttpStatus.BAD_REQUEST.getCode(), ParameterConstants.PARAM_USER_EMAIL_ID);
     AJEntityUserIdentity userIdentityEmail = getUserIdentityRepo().getUserIdentityByEmailId(emailId);
     reject(userIdentityEmail != null, MessageCodeConstants.AU0023, HttpConstants.HttpStatus.BAD_REQUEST.getCode(), emailId,
@@ -56,7 +55,7 @@ public final class UpdateUserEmailExecutor extends Executor {
     tokenData.put(ParameterConstants.PARAM_USER_ID, userId);
     getRedisClient().set(token, tokenData.toString(), HelperConstants.EXPIRE_IN_SECONDS);
     MailNotifyBuilder mailNotifyBuilder = new MailNotifyBuilder();
-    mailNotifyBuilder.setTemplateName(MailTemplateConstants.EMAIL_ADDRESS_CHANGE_REQUEST).setAuthAccessToken(accessToken).addToAddress(emailId)
+    mailNotifyBuilder.setTemplateName(MailTemplateConstants.EMAIL_ADDRESS_CHANGE_REQUEST).addToAddress(emailId)
         .putContext(ParameterConstants.MAIL_TOKEN, token).putContext(ParameterConstants.OLD_EMAIL_ID, userIdentity.getEmailId())
         .putContext(ParameterConstants.NEW_EMAIL_ID, emailId);
     return new MessageResponse.Builder().setContentTypeJson().setResponseBody(null).addMailNotify(mailNotifyBuilder.build()).setStatusOkay()

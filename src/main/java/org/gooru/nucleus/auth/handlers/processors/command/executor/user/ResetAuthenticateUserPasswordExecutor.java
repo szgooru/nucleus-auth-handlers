@@ -31,11 +31,10 @@ public final class ResetAuthenticateUserPasswordExecutor extends Executor {
   public MessageResponse execute(MessageContext messageContext) {
     final String newPassword = messageContext.requestBody().getString(ParameterConstants.PARAM_USER_NEW_PASSWORD);
     final String oldPassword = messageContext.requestBody().getString(ParameterConstants.PARAM_USER_OLD_PASSWORD);
-    final String accessToken = messageContext.accessToken();
-    return resetAuthenticateUserPassword(messageContext.user().getUserId(), oldPassword, newPassword, accessToken);
+    return resetAuthenticateUserPassword(messageContext.user().getUserId(), oldPassword, newPassword);
   }
 
-  private MessageResponse resetAuthenticateUserPassword(String userId, String oldPassword, String newPassword, String accessToken) {
+  private MessageResponse resetAuthenticateUserPassword(String userId, String oldPassword, String newPassword) {
     rejectIfNull(oldPassword, MessageCodeConstants.AU0041, HttpConstants.HttpStatus.BAD_REQUEST.getCode());
     rejectIfNull(newPassword, MessageCodeConstants.AU0042, HttpConstants.HttpStatus.BAD_REQUEST.getCode());
     final AJEntityUserIdentity userIdentity =
@@ -46,16 +45,16 @@ public final class ResetAuthenticateUserPasswordExecutor extends Executor {
     final String token = InternalHelper.generatePasswordResetToken(userIdentity.getUserId());
     getRedisClient().set(token, userIdentity.getEmailId(), HelperConstants.EXPIRE_IN_SECONDS);
     MailNotifyBuilder  mailNotifyBuilder = new MailNotifyBuilder();
-    mailNotifyBuilder.setTemplateName(MailTemplateConstants.PASSWORD_CHANGED).setAuthAccessToken(accessToken).addToAddress(userIdentity.getEmailId()).putContext(ParameterConstants.MAIL_TOKEN, token).putContext(ParameterConstants.PARAM_USER_USERNAME, userIdentity.getUsername());
+    mailNotifyBuilder.setTemplateName(MailTemplateConstants.PASSWORD_CHANGED).addToAddress(userIdentity.getEmailId()).putContext(ParameterConstants.MAIL_TOKEN, token).putContext(ParameterConstants.PARAM_USER_USERNAME, userIdentity.getUsername());
     return new MessageResponse.Builder().setResponseBody(null).addMailNotify(mailNotifyBuilder.build()).setContentTypeJson().setStatusNoOutput().successful().build();
   }
 
 
-  public UserIdentityRepo getUserIdentityRepo() {
+  private UserIdentityRepo getUserIdentityRepo() {
     return userIdentityRepo;
   }
 
-  public RedisClient getRedisClient() {
+  private RedisClient getRedisClient() {
     return redisClient;
   }
 

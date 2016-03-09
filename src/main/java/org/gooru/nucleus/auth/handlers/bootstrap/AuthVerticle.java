@@ -18,7 +18,7 @@ public class AuthVerticle extends AbstractVerticle {
 
   @Override
   public void start(Future<Void> voidFuture) throws Exception {
-    EventBus eb = vertx.eventBus();
+    final EventBus eb = vertx.eventBus();
     eb.consumer(MessagebusEndpoints.MBEP_AUTH, message -> {
       LOG.debug("Received message: " + message.body());
       vertx.executeBlocking(future -> {
@@ -45,7 +45,6 @@ public class AuthVerticle extends AbstractVerticle {
   }
 
   private JsonObject getAccessToken(String token) {
-
     JsonObject accessToken = RedisClient.instance().getJsonObject(token);
     if (accessToken != null) {
       int expireAtInSeconds = accessToken.getInteger(ParameterConstants.PARAM_ACCESS_TOKEN_VALIDITY);

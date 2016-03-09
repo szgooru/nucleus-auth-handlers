@@ -28,13 +28,12 @@ public final class ResetUnAuthenticateUserPasswordExecutor extends Executor {
 
   @Override
   public MessageResponse execute(MessageContext messageContext) {
-    final String accessToken = messageContext.accessToken();
     final String token = messageContext.requestBody().getString(ParameterConstants.PARAM_USER_TOKEN);
     final String newPassword = messageContext.requestBody().getString(ParameterConstants.PARAM_USER_NEW_PASSWORD);
-    return resetUnAuthenticateUserPassword(token, newPassword, accessToken);
+    return resetUnAuthenticateUserPassword(token, newPassword);
   }
 
-  private MessageResponse resetUnAuthenticateUserPassword(String token, String password, String accessToken) {
+  private MessageResponse resetUnAuthenticateUserPassword(String token, String password) {
     String emailId = getRedisClient().get(token);
     rejectIfNull(emailId, MessageCodeConstants.AU0028, HttpConstants.HttpStatus.UNAUTHORIZED.getCode());
     rejectIfNull(password, MessageCodeConstants.AU0042, HttpConstants.HttpStatus.BAD_REQUEST.getCode());
@@ -43,7 +42,7 @@ public final class ResetUnAuthenticateUserPasswordExecutor extends Executor {
     getUserIdentityRepo().createOrUpdate(userIdentity);
     getRedisClient().del(token);
     MailNotifyBuilder  mailNotifyBuilder = new MailNotifyBuilder();
-    mailNotifyBuilder.setTemplateName(MailTemplateConstants.PASSWORD_CHANGED).setAuthAccessToken(accessToken).addToAddress(userIdentity.getEmailId()).putContext(ParameterConstants.MAIL_TOKEN, token).putContext(ParameterConstants.PARAM_USER_USERNAME, userIdentity.getUsername());
+    mailNotifyBuilder.setTemplateName(MailTemplateConstants.PASSWORD_CHANGED).addToAddress(userIdentity.getEmailId()).putContext(ParameterConstants.MAIL_TOKEN, token).putContext(ParameterConstants.PARAM_USER_USERNAME, userIdentity.getUsername());
     return new MessageResponse.Builder().addMailNotify(mailNotifyBuilder.build()).setContentTypeJson().setStatusNoOutput().successful().build();
   }
 

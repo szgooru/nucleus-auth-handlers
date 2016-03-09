@@ -74,7 +74,7 @@ public final class CreateUserExecutor extends Executor {
     EventBuilder eventBuilder = responseDTO.getEventBuilder().setEventName(Event.CREATE_USER.getName());
     // build the mail notify for welcome email.
     MailNotifyBuilder mailNotifyBuilder = new MailNotifyBuilder();
-    mailNotifyBuilder.setTemplateName(MailTemplateConstants.WELCOME_MAIL).setAuthAccessToken(token).addToAddress(userIdentity.getEmailId());
+    mailNotifyBuilder.setTemplateName(MailTemplateConstants.WELCOME_MAIL).addToAddress(userIdentity.getEmailId());
     // generate email confirmation token and build the mail notify.
     final String emailToken = InternalHelper.generateEmailConfirmToken(userIdentity.getUserId());
     JsonObject tokenData = new JsonObject();
@@ -82,7 +82,7 @@ public final class CreateUserExecutor extends Executor {
     tokenData.put(ParameterConstants.PARAM_USER_ID, userIdentity.getUserId());
     getRedisClient().set(emailToken, tokenData.toString(), HelperConstants.EXPIRE_IN_SECONDS);
     MailNotifyBuilder mailConfirmNotifyBuilder = new MailNotifyBuilder();
-    mailConfirmNotifyBuilder.setAuthAccessToken(token).setTemplateName(MailTemplateConstants.USER_REGISTARTION_CONFIRMATION).addToAddress(userIdentity.getEmailId()).putContext(ParameterConstants.MAIL_TOKEN, emailToken);
+    mailConfirmNotifyBuilder.setTemplateName(MailTemplateConstants.USER_REGISTARTION_CONFIRMATION).addToAddress(userIdentity.getEmailId()).putContext(ParameterConstants.MAIL_TOKEN, emailToken);
     return new MessageResponse.Builder().setResponseBody(accessToken).setEventData(eventBuilder.build())
         .addMailNotify(mailConfirmNotifyBuilder.build()).addMailNotify(mailNotifyBuilder.build())
         .setHeader(HelperConstants.LOCATION, HelperConstants.USER_ENTITY_URI + userIdentity.getUserId()).setContentTypeJson().setStatusCreated()

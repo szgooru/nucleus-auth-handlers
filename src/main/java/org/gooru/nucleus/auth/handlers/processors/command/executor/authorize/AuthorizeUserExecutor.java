@@ -109,7 +109,6 @@ public class AuthorizeUserExecutor extends Executor {
     accessToken.put(ParameterConstants.PARAM_USER_PREFERENCE, prefs);
     saveAccessToken(token, accessToken, authClient.getAccessTokenValidity());
     accessToken.put(ParameterConstants.PARAM_ACCESS_TOKEN, token);
-    mailNotifyBuilder.setAuthAccessToken(token);
     eventBuilder.setEventName(Event.AUTHORIZE_USER.getName()).putPayLoadObject(ParameterConstants.PARAM_ACCESS_TOKEN, token)
         .putPayLoadObject(ParameterConstants.PARAM_CLIENT_ID, authClient.getClientId())
         .putPayLoadObject(ParameterConstants.PARAM_USER_ID, userIdentity.getUserId())
