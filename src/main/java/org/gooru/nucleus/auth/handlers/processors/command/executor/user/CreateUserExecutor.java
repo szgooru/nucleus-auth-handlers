@@ -107,16 +107,16 @@ public final class CreateUserExecutor extends Executor {
     final JsonObject errors = new JsonObject();
     final AJEntityUser user = new AJEntityUser();
     final String firstname = userDTO.getFirstname();
-    addValidatorIfNullOrEmptyError(errors, ParameterConstants.PARAM_USER_FIRSTNAME, firstname, MessageCodeConstants.AU0011);
     if (firstname != null) {
       addValidator(errors, !(firstname.matches("[a-zA-Z0-9 ]+")), ParameterConstants.PARAM_USER_FIRSTNAME, MessageCodeConstants.AU0021,
           ParameterConstants.PARAM_USER_FIRSTNAME);
+      user.setFirstname(firstname);
     }
     final String lastname = userDTO.getLastname();
-    addValidatorIfNullOrEmptyError(errors, ParameterConstants.PARAM_USER_LASTNAME, lastname, MessageCodeConstants.AU0012);
     if (lastname != null) {
       addValidator(errors, !(lastname.matches("[a-zA-Z0-9 ]+")), ParameterConstants.PARAM_USER_LASTNAME, MessageCodeConstants.AU0021,
           ParameterConstants.PARAM_USER_LASTNAME);
+      user.setLastname(lastname);
     }
     final String username = userDTO.getUsername();
     addValidatorIfNullOrEmptyError(errors, ParameterConstants.PARAM_USER_USERNAME, username, MessageCodeConstants.AU0013);
@@ -137,10 +137,10 @@ public final class CreateUserExecutor extends Executor {
           ParameterConstants.EMAIL_ADDRESS);
     }
     final String userCategory = userDTO.getUserCategory();
-    addValidatorIfNullOrEmptyError(errors, ParameterConstants.PARAM_USER_CATEGORY, userDTO.getUserCategory(), MessageCodeConstants.AU0016);
     if (userCategory != null) {
       addValidator(errors, (HelperConstants.USER_CATEGORY.get(userCategory) == null), ParameterConstants.PARAM_USER_CATEGORY,
           MessageCodeConstants.AU0025);
+      user.setUserCategory(userCategory);
 
     }
     final String password = userDTO.getPassword();
@@ -151,9 +151,7 @@ public final class CreateUserExecutor extends Executor {
 
     }
 
-    user.setFirstname(firstname);
-    user.setLastname(lastname);
-    user.setUserCategory(userCategory);
+    
     user.setEmailId(emailId);
     if (userDTO.getGrade() != null) {
       user.setGrade(userDTO.getGrade());
