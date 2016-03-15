@@ -35,7 +35,7 @@ ext {
   postgresVersion = '9.4-1206-jdbc42'
   redisVersion = '2.8.0'
   httpclientVersion = '4.3.6'
-  activejdbcVersion = ''
+  activejdbcVersion = '1.4.11'
 }
 
 version = "0.1-snapshot"
@@ -53,11 +53,12 @@ dependencies {
   // Vertx specific dependencies
   compile "io.vertx:vertx-core:${vertxVersion}"
   compile "io.vertx:vertx-hazelcast:${vertxVersion}"
+  compile "io.vertx:vertx-codegen:${vertxVersion}"
   
 
   // active jdbc
-  compile 'org.javalite:activejdbc:${activejdbcVersion}'
-  compile 'org.javalite:activejdbc-instrumentation:${activejdbcVersion}'
+  compile "org.javalite:activejdbc:${activejdbcVersion}"
+  compile "org.javalite:activejdbc-instrumentation:${activejdbcVersion}"
 
 
   // Other dependencies
