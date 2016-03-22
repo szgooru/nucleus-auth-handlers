@@ -86,6 +86,7 @@ public final class CreateBasicAuthAccessTokenExecutor extends Executor {
     } else {
       prefs.put(ParameterConstants.PARAM_STANDARD_PREFERENCE, ConfigRegistry.instance().getDefaultUserStandardPrefs());
     }
+    prefs.put(ParameterConstants.PARAM_USER_EMAIL_ID, userIdentity.getEmailId());
     accessToken.put(ParameterConstants.PARAM_USER_PREFERENCE, prefs);
     accessToken.put(ParameterConstants.PARAM_CDN_URLS, authClient.getCdnUrls());
     saveAccessToken(token, accessToken, authClient.getAccessTokenValidity());

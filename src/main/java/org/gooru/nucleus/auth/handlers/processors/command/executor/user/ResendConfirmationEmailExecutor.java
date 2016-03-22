@@ -5,15 +5,13 @@ import static org.gooru.nucleus.auth.handlers.utils.ServerValidatorUtility.rejec
 import io.vertx.core.json.JsonObject;
 
 import org.gooru.nucleus.auth.handlers.constants.HttpConstants;
+import org.gooru.nucleus.auth.handlers.constants.MailTemplateConstants;
 import org.gooru.nucleus.auth.handlers.constants.MessageCodeConstants;
 import org.gooru.nucleus.auth.handlers.constants.ParameterConstants;
-import org.gooru.nucleus.auth.handlers.constants.SchemaConstants;
 import org.gooru.nucleus.auth.handlers.infra.RedisClient;
-import org.gooru.nucleus.auth.handlers.processors.command.executor.AJResponseJsonTransformer;
 import org.gooru.nucleus.auth.handlers.processors.command.executor.Executor;
 import org.gooru.nucleus.auth.handlers.processors.command.executor.MessageResponse;
-import org.gooru.nucleus.auth.handlers.processors.event.Event;
-import org.gooru.nucleus.auth.handlers.processors.event.EventBuilder;
+import org.gooru.nucleus.auth.handlers.processors.email.notify.MailNotifyBuilder;
 import org.gooru.nucleus.auth.handlers.processors.messageProcessor.MessageContext;
 import org.gooru.nucleus.auth.handlers.processors.repositories.UserIdentityRepo;
 import org.gooru.nucleus.auth.handlers.processors.repositories.UserRepo;
@@ -54,12 +52,10 @@ public final class ResendConfirmationEmailExecutor extends Executor {
     tokenData.put(ParameterConstants.PARAM_USER_EMAIL_ID, userIdentity.getEmailId());
     tokenData.put(ParameterConstants.PARAM_USER_ID, userId);
     getRedisClient().set(token, tokenData.toString(), EXPIRE_IN_SECONDS);
-    EventBuilder eventBuilder = new EventBuilder();
-    eventBuilder.setEventName(Event.RESEND_CONFIRM_EMAIL.getName());
-    eventBuilder.putPayLoadObject(SchemaConstants.USER_DEMOGRAPHIC, AJResponseJsonTransformer.transform(user.toJson(false)));
-    eventBuilder.putPayLoadObject(SchemaConstants.USER_IDENTITY, AJResponseJsonTransformer.transform(userIdentity.toJson(false)));
-    eventBuilder.putPayLoadObject(ParameterConstants.PARAM_USER_EMAIL_ID, user.getEmailId()).putPayLoadObject(ParameterConstants.PARAM_TOKEN, token);
-    return new MessageResponse.Builder().setEventData(eventBuilder.build()).setContentTypeJson().setStatusOkay().successful().build();
+    MailNotifyBuilder mailConfirmNotifyBuilder = new MailNotifyBuilder();
+    mailConfirmNotifyBuilder.setTemplateName(MailTemplateConstants.USER_REGISTARTION_CONFIRMATION).addToAddress(userIdentity.getEmailId())
+        .putContext(ParameterConstants.MAIL_TOKEN, token);
+    return new MessageResponse.Builder().addMailNotify(mailConfirmNotifyBuilder.build()).setContentTypeJson().setStatusOkay().successful().build();
   }
 
   private UserIdentityRepo getUserIdentityRepo() {

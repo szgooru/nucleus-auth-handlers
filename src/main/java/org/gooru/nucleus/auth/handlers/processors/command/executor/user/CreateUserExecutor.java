@@ -67,6 +67,7 @@ public final class CreateUserExecutor extends Executor {
     accessToken.put(ParameterConstants.PARAM_CDN_URLS, userContext.getCdnUrls());
     JsonObject prefs = new JsonObject();
     prefs.put(ParameterConstants.PARAM_STANDARD_PREFERENCE, ConfigRegistry.instance().getDefaultUserStandardPrefs());
+    prefs.put(ParameterConstants.PARAM_USER_EMAIL_ID, userIdentity.getEmailId());
     accessToken.put(ParameterConstants.PARAM_USER_PREFERENCE, prefs);
     final String token = InternalHelper.generateToken(userContext.getClientId(), userIdentity.getUserId());
     saveAccessToken(token, accessToken, userContext.getAccessTokenValidity());
@@ -82,7 +83,8 @@ public final class CreateUserExecutor extends Executor {
     tokenData.put(ParameterConstants.PARAM_USER_ID, userIdentity.getUserId());
     getRedisClient().set(emailToken, tokenData.toString(), HelperConstants.EXPIRE_IN_SECONDS);
     MailNotifyBuilder mailConfirmNotifyBuilder = new MailNotifyBuilder();
-    mailConfirmNotifyBuilder.setTemplateName(MailTemplateConstants.USER_REGISTARTION_CONFIRMATION).addToAddress(userIdentity.getEmailId()).putContext(ParameterConstants.MAIL_TOKEN, emailToken);
+    mailConfirmNotifyBuilder.setTemplateName(MailTemplateConstants.USER_REGISTARTION_CONFIRMATION).addToAddress(userIdentity.getEmailId())
+        .putContext(ParameterConstants.MAIL_TOKEN, emailToken);
     return new MessageResponse.Builder().setResponseBody(accessToken).setEventData(eventBuilder.build())
         .addMailNotify(mailConfirmNotifyBuilder.build()).addMailNotify(mailNotifyBuilder.build())
         .setHeader(HelperConstants.LOCATION, HelperConstants.USER_ENTITY_URI + userIdentity.getUserId()).setContentTypeJson().setStatusCreated()
@@ -151,7 +153,6 @@ public final class CreateUserExecutor extends Executor {
 
     }
 
-    
     user.setEmailId(emailId);
     if (userDTO.getGrade() != null) {
       user.setGrade(userDTO.getGrade());
@@ -197,5 +198,4 @@ public final class CreateUserExecutor extends Executor {
   public RedisClient getRedisClient() {
     return redisClient;
   }
-
 }
