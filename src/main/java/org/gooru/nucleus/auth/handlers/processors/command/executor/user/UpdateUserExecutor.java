@@ -48,13 +48,11 @@ public final class UpdateUserExecutor extends Executor {
   private SchoolDistrictRepo schoolDistrictRepo;
 
   public UpdateUserExecutor() {
-    setUserIdentityRepo(UserIdentityRepo.instance());
-    setUserRepo(UserRepo.instance());
-    setCountryRepo(CountryRepo.instance());
-    setStateRepo(StateRepo.instance());
-    setSchoolRepo(SchoolRepo.instance());
-    setSchoolDistrictRepo(SchoolDistrictRepo.instance());
-
+    this.userRepo = UserRepo.instance();
+    this.countryRepo = CountryRepo.instance();
+    this.stateRepo = StateRepo.instance();
+    this.schoolRepo = SchoolRepo.instance();
+    this.schoolDistrictRepo = SchoolDistrictRepo.instance();
   }
 
   @Override
@@ -75,7 +73,7 @@ public final class UpdateUserExecutor extends Executor {
     user = getUserRepo().update(user);
     EventBuilder eventBuilder = userValidator.getEventBuilder().setEventName(Event.UPDATE_USER.getName());
     eventBuilder.putPayLoadObject(SchemaConstants.USER_DEMOGRAPHIC,
-            AJResponseJsonTransformer.transform(user.toJson(false), HelperConstants.USERS_JSON_FIELDS));
+        AJResponseJsonTransformer.transform(user.toJson(false), HelperConstants.USERS_JSON_FIELDS));
     if (userDTO.getUsername() != null) {
       final AJEntityUserIdentity userIdentity = getUserIdentityRepo().getUserIdentityById(userId);
       userIdentity.setUsername(userDTO.getUsername());
@@ -91,91 +89,77 @@ public final class UpdateUserExecutor extends Executor {
     final AJEntityUserIdentity userIdentity = getUserIdentityRepo().getUserIdentityById(userId);
     rejectIfNull(userIdentity, MessageCodeConstants.AU0026, HttpConstants.HttpStatus.NOT_FOUND.getCode(), ParameterConstants.PARAM_USER);
     reject(userIdentity.getStatus().equalsIgnoreCase(ParameterConstants.PARAM_STATUS_DEACTIVATED), MessageCodeConstants.AU0009,
-            HttpConstants.HttpStatus.FORBIDDEN.getCode());
+        HttpConstants.HttpStatus.FORBIDDEN.getCode());
     final JsonObject errors = new JsonObject();
     final String username = userDTO.getUsername();
     final EventBuilder eventBuilder = new EventBuilder();
 
     if (userDTO.getFirstname() != null) {
-      addValidator(errors, !(userDTO.getFirstname().matches("[a-zA-Z0-9 ]+")), ParameterConstants.PARAM_USER_FIRSTNAME, MessageCodeConstants.AU0021, ParameterConstants.PARAM_USER_FIRSTNAME);
+      addValidator(errors, !(userDTO.getFirstname().matches("[a-zA-Z0-9 ]+")), ParameterConstants.PARAM_USER_FIRSTNAME, MessageCodeConstants.AU0021,
+          ParameterConstants.PARAM_USER_FIRSTNAME);
       user.setFirstname(userDTO.getFirstname());
     }
     if (userDTO.getLastname() != null) {
-      addValidator(errors, !(userDTO.getLastname().matches("[a-zA-Z0-9 ]+")), ParameterConstants.PARAM_USER_LASTNAME, MessageCodeConstants.AU0021, ParameterConstants.PARAM_USER_LASTNAME);
+      addValidator(errors, !(userDTO.getLastname().matches("[a-zA-Z0-9 ]+")), ParameterConstants.PARAM_USER_LASTNAME, MessageCodeConstants.AU0021,
+          ParameterConstants.PARAM_USER_LASTNAME);
       user.setLastname(userDTO.getLastname());
     }
     if (userDTO.getGender() != null) {
       addValidator(errors, (HelperConstants.USER_GENDER.get(userDTO.getGender()) == null), ParameterConstants.PARAM_USER_GENDER,
-              MessageCodeConstants.AU0024);
+          MessageCodeConstants.AU0024);
       user.setGender(userDTO.getGender());
     }
     if (userDTO.getUserCategory() != null) {
       addValidator(errors, (HelperConstants.USER_CATEGORY.get(userDTO.getUserCategory()) == null), ParameterConstants.PARAM_USER_CATEGORY,
-              MessageCodeConstants.AU0025);
+          MessageCodeConstants.AU0025);
       user.setUserCategory(userDTO.getUserCategory());
     }
     if (username != null) {
       addValidator(errors, !(username.matches("[a-zA-Z0-9]+")), ParameterConstants.PARAM_USER_USERNAME, MessageCodeConstants.AU0017);
       addValidator(errors, ((username.length() < 4 || username.length() > 20)), ParameterConstants.PARAM_USER_USERNAME, MessageCodeConstants.AU0018,
-              ParameterConstants.PARAM_USER_USERNAME, "4", "20");
+          ParameterConstants.PARAM_USER_USERNAME, "4", "20");
       AJEntityUserIdentity userIdentityUsername = getUserIdentityRepo().getUserIdentityByUsername(username);
       addValidator(errors, !(userIdentityUsername == null), ParameterConstants.PARAM_USER_USERNAME, MessageCodeConstants.AU0023, username,
-              ParameterConstants.PARAM_USER_USERNAME);
+          ParameterConstants.PARAM_USER_USERNAME);
     }
 
     if (userDTO.getCountryId() != null) {
       AJEntityCountry country = getCountryRepo().getCountry(userDTO.getCountryId());
       addValidator(errors, (country == null), ParameterConstants.PARAM_USER_COUNTRY_ID, MessageCodeConstants.AU0027,
-              ParameterConstants.PARAM_USER_COUNTRY);
+          ParameterConstants.PARAM_USER_COUNTRY);
       user.setCountryId(userDTO.getCountryId());
+      user.setCountry(country.getName());
     } else if (userDTO.getCountry() != null) {
-      AJEntityCountry country = getCountryRepo().getCountryByName(userDTO.getCountry());
-      if (country == null) {
-        country = getCountryRepo().createCountry(userDTO.getCountry(), userId);
-        eventBuilder.putPayLoadObject(SchemaConstants.COUNTRY, AJResponseJsonTransformer.transform(country.toJson(false)));
-      }
-      user.setCountryId(country.getId());
+      user.setCountry(userDTO.getCountry());
     }
 
     if (userDTO.getStateId() != null) {
       AJEntityState state = getStateRepo().getStateById(userDTO.getStateId());
       addValidator(errors, (state == null), ParameterConstants.PARAM_USER_STATE_ID, MessageCodeConstants.AU0027, ParameterConstants.PARAM_USER_STATE);
       user.setStateId(userDTO.getStateId());
+      user.setState(state.getName());
     } else if (userDTO.getState() != null) {
-      AJEntityState state = getStateRepo().getStateByName(userDTO.getState());
-      if (state == null) {
-        state = getStateRepo().createState(userDTO.getState(), user.getCountryId(), userId);
-        eventBuilder.putPayLoadObject(SchemaConstants.STATE, AJResponseJsonTransformer.transform(state.toJson(false)));
-      }
-      user.setStateId(state.getId());
+      user.setState(userDTO.getState());
     }
 
     if (userDTO.getSchoolDistrictId() != null) {
       AJEntitySchoolDistrict schoolDistrict = getSchoolDistrictRepo().getSchoolDistrictById(userDTO.getSchoolDistrictId());
       addValidator(errors, (schoolDistrict == null), ParameterConstants.PARAM_USER_SCHOOL_DISTRICT_ID, MessageCodeConstants.AU0027,
-              ParameterConstants.PARAM_USER_SCHOOL_DISTRICT);
+          ParameterConstants.PARAM_USER_SCHOOL_DISTRICT);
       user.setSchoolDistrictId(userDTO.getSchoolDistrictId());
+      user.setSchoolDistrict(schoolDistrict.getName());
     } else if (userDTO.getSchoolDistrict() != null) {
-      AJEntitySchoolDistrict schoolDistrict = getSchoolDistrictRepo().getSchoolDistrictByName(userDTO.getSchoolDistrict());
-      if (schoolDistrict == null) {
-        schoolDistrict = getSchoolDistrictRepo().createSchoolDistrict(userDTO.getSchoolDistrict(), userId);
-        eventBuilder.putPayLoadObject(SchemaConstants.SCHOOL_DISTRICT, AJResponseJsonTransformer.transform(schoolDistrict.toJson(false)));
-      }
-      user.setSchoolDistrictId(schoolDistrict.getId());
+      user.setSchoolDistrict(userDTO.getSchoolDistrict());
     }
 
     if (userDTO.getSchoolId() != null) {
       AJEntitySchool school = getSchoolRepo().getSchoolById(userDTO.getSchoolId());
       addValidator(errors, (school == null), ParameterConstants.PARAM_USER_SCHOOL_ID, MessageCodeConstants.AU0027,
-              ParameterConstants.PARAM_USER_SCHOOL);
+          ParameterConstants.PARAM_USER_SCHOOL);
       user.setSchoolId(userDTO.getSchoolId());
+      user.setSchool(school.getName());
     } else if (userDTO.getSchool() != null) {
-      AJEntitySchool school = getSchoolRepo().getSchoolByName(userDTO.getSchool());
-      if (school == null) {
-        school = getSchoolRepo().createSchool(userDTO.getSchool(), user.getSchoolDistrictId(), userId);
-        eventBuilder.putPayLoadObject(SchemaConstants.SCHOOL, AJResponseJsonTransformer.transform(school.toJson(false)));
-      }
-      user.setSchoolId(school.getId());
+      user.setSchool(userDTO.getSchool());
     }
 
     if (userDTO.getGrade() != null) {
@@ -199,48 +183,23 @@ public final class UpdateUserExecutor extends Executor {
     return userIdentityRepo;
   }
 
-  public void setUserIdentityRepo(UserIdentityRepo userIdentityRepo) {
-    this.userIdentityRepo = userIdentityRepo;
-  }
-
   public UserRepo getUserRepo() {
     return userRepo;
-  }
-
-  public void setUserRepo(UserRepo userRepo) {
-    this.userRepo = userRepo;
   }
 
   public CountryRepo getCountryRepo() {
     return countryRepo;
   }
 
-  public void setCountryRepo(CountryRepo countryRepo) {
-    this.countryRepo = countryRepo;
-  }
-
   public StateRepo getStateRepo() {
     return stateRepo;
-  }
-
-  public void setStateRepo(StateRepo stateRepo) {
-    this.stateRepo = stateRepo;
   }
 
   public SchoolRepo getSchoolRepo() {
     return schoolRepo;
   }
 
-  public void setSchoolRepo(SchoolRepo schoolRepo) {
-    this.schoolRepo = schoolRepo;
-  }
-
   public SchoolDistrictRepo getSchoolDistrictRepo() {
     return schoolDistrictRepo;
   }
-
-  public void setSchoolDistrictRepo(SchoolDistrictRepo schoolDistrictRepo) {
-    this.schoolDistrictRepo = schoolDistrictRepo;
-  }
-
 }

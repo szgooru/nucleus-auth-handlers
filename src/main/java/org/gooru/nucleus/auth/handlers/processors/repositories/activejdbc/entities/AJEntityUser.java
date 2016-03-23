@@ -15,7 +15,6 @@ import org.javalite.activejdbc.annotations.Table;
 @IdName(SchemaConstants.ID)
 public class AJEntityUser extends Model {
 
-
   public String getFirstname() {
     return getString(ParameterConstants.PARAM_USER_FIRSTNAME);
   }
@@ -144,5 +143,37 @@ public class AJEntityUser extends Model {
 
   public void setThumbnailPath(String thumbnailPath) {
     setString(ParameterConstants.PARAM_USER_THUMBNAIL_PATH, thumbnailPath);
+  }
+
+  public void setCountry(String country) {
+    setString(ParameterConstants.PARAM_USER_COUNTRY, country);
+  }
+
+  public String getCountry() {
+    return getString(ParameterConstants.PARAM_USER_COUNTRY);
+  }
+
+  public void setState(String state) {
+    setString(ParameterConstants.PARAM_USER_STATE, state);
+  }
+
+  public String getState() {
+    return getString(ParameterConstants.PARAM_USER_STATE);
+  }
+
+  public void setSchool(String school) {
+    setString(ParameterConstants.PARAM_USER_SCHOOL, school);
+  }
+
+  public String getSchool() {
+    return getString(ParameterConstants.PARAM_USER_SCHOOL);
+  }
+
+  public void setSchoolDistrict(String schoolDistrict) {
+    setString(ParameterConstants.PARAM_USER_SCHOOL_DISTRICT, schoolDistrict);
+  }
+
+  public String getSchoolDistrict() {
+    return getString(ParameterConstants.PARAM_USER_SCHOOL_DISTRICT);
   }
 }

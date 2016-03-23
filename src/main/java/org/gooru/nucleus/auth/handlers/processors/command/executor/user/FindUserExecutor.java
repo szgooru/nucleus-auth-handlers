@@ -1,23 +1,25 @@
 package org.gooru.nucleus.auth.handlers.processors.command.executor.user;
 
-import io.vertx.core.json.JsonObject;
+import java.util.Map;
 
 import org.gooru.nucleus.auth.handlers.constants.ParameterConstants;
+import org.gooru.nucleus.auth.handlers.processors.command.executor.AJResponseJsonTransformer;
 import org.gooru.nucleus.auth.handlers.processors.command.executor.Executor;
 import org.gooru.nucleus.auth.handlers.processors.command.executor.MessageResponse;
 import org.gooru.nucleus.auth.handlers.processors.exceptions.BadRequestException;
 import org.gooru.nucleus.auth.handlers.processors.messageProcessor.MessageContext;
 import org.gooru.nucleus.auth.handlers.processors.repositories.UserIdentityRepo;
+import org.gooru.nucleus.auth.handlers.processors.repositories.UserRepo;
 import org.gooru.nucleus.auth.handlers.processors.repositories.activejdbc.entities.AJEntityUserIdentity;
 
 public final class FindUserExecutor extends Executor {
 
   private UserIdentityRepo userIdentityRepo;
-
-  private final static String[] RESPONSE_FIELDS = { "user_id", "username", "email_id" };
-
+  private UserRepo userRepo;
+  
   public FindUserExecutor() {
-    setUserIdentityRepo(UserIdentityRepo.instance());
+     this.userIdentityRepo = UserIdentityRepo.instance();
+     this.userRepo = UserRepo.instance();
   }
 
   @Override
@@ -36,16 +38,20 @@ public final class FindUserExecutor extends Executor {
     } else {
       throw new BadRequestException("Invalid param type passed");
     }
-    JsonObject result = userIdentity != null ? new JsonObject(userIdentity.toJson(false, RESPONSE_FIELDS)) : new JsonObject();
-    return new MessageResponse.Builder().setResponseBody(result).setContentTypeJson().setStatusOkay().successful().build();
+    final Map<String, Object> user = getUserRepo().findUser(userIdentity.getUserId());
+    return new MessageResponse.Builder().setResponseBody(AJResponseJsonTransformer.transform(user)).setContentTypeJson().setStatusOkay().successful().build();
   }
 
   public UserIdentityRepo getUserIdentityRepo() {
     return userIdentityRepo;
   }
 
-  public void setUserIdentityRepo(UserIdentityRepo userIdentityRepo) {
-    this.userIdentityRepo = userIdentityRepo;
+  public UserRepo getUserRepo() {
+    return userRepo;
+  }
+
+  public void setUserRepo(UserRepo userRepo) {
+    this.userRepo = userRepo;
   }
 
 }

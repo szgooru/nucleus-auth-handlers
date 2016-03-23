@@ -27,8 +27,16 @@ import org.gooru.nucleus.auth.handlers.processors.event.Event;
 import org.gooru.nucleus.auth.handlers.processors.event.EventBuilder;
 import org.gooru.nucleus.auth.handlers.processors.messageProcessor.MessageContext;
 import org.gooru.nucleus.auth.handlers.processors.messageProcessor.UserContext;
+import org.gooru.nucleus.auth.handlers.processors.repositories.CountryRepo;
+import org.gooru.nucleus.auth.handlers.processors.repositories.SchoolDistrictRepo;
+import org.gooru.nucleus.auth.handlers.processors.repositories.SchoolRepo;
+import org.gooru.nucleus.auth.handlers.processors.repositories.StateRepo;
 import org.gooru.nucleus.auth.handlers.processors.repositories.UserIdentityRepo;
 import org.gooru.nucleus.auth.handlers.processors.repositories.UserRepo;
+import org.gooru.nucleus.auth.handlers.processors.repositories.activejdbc.entities.AJEntityCountry;
+import org.gooru.nucleus.auth.handlers.processors.repositories.activejdbc.entities.AJEntitySchool;
+import org.gooru.nucleus.auth.handlers.processors.repositories.activejdbc.entities.AJEntitySchoolDistrict;
+import org.gooru.nucleus.auth.handlers.processors.repositories.activejdbc.entities.AJEntityState;
 import org.gooru.nucleus.auth.handlers.processors.repositories.activejdbc.entities.AJEntityUser;
 import org.gooru.nucleus.auth.handlers.processors.repositories.activejdbc.entities.AJEntityUserIdentity;
 import org.gooru.nucleus.auth.handlers.utils.InternalHelper;
@@ -36,15 +44,21 @@ import org.gooru.nucleus.auth.handlers.utils.InternalHelper;
 public final class CreateUserExecutor extends Executor {
 
   private UserIdentityRepo userIdentityRepo;
-
   private UserRepo userRepo;
-
   private RedisClient redisClient;
+  private CountryRepo countryRepo;
+  private StateRepo stateRepo;
+  private SchoolRepo schoolRepo;
+  private SchoolDistrictRepo schoolDistrictRepo;
 
   public CreateUserExecutor() {
     this.userIdentityRepo = UserIdentityRepo.instance();
     this.redisClient = RedisClient.instance();
     this.userRepo = UserRepo.instance();
+    this.countryRepo = CountryRepo.instance();
+    this.stateRepo = StateRepo.instance();
+    this.schoolRepo = SchoolRepo.instance();
+    this.schoolDistrictRepo = SchoolDistrictRepo.instance();
   }
 
   @Override
@@ -162,6 +176,44 @@ public final class CreateUserExecutor extends Executor {
           MessageCodeConstants.AU0024);
       user.setGender(user.getGender());
     }
+    if (userDTO.getCountryId() != null) {
+      AJEntityCountry country = getCountryRepo().getCountry(userDTO.getCountryId());
+      addValidator(errors, (country == null), ParameterConstants.PARAM_USER_COUNTRY_ID, MessageCodeConstants.AU0027,
+          ParameterConstants.PARAM_USER_COUNTRY);
+      user.setCountryId(country.getId());
+      user.setCountry(country.getName());
+    } else if (userDTO.getCountry() != null) {
+      user.setCountry(userDTO.getCountry());
+    }
+
+    if (userDTO.getStateId() != null) {
+      AJEntityState state = getStateRepo().getStateById(userDTO.getStateId());
+      addValidator(errors, (state == null), ParameterConstants.PARAM_USER_STATE_ID, MessageCodeConstants.AU0027, ParameterConstants.PARAM_USER_STATE);
+      user.setStateId(state.getId());
+      user.setState(state.getName());
+    } else if (userDTO.getState() != null) {
+      user.setState(userDTO.getState());
+    }
+
+    if (userDTO.getSchoolDistrictId() != null) {
+      AJEntitySchoolDistrict schoolDistrict = getSchoolDistrictRepo().getSchoolDistrictById(userDTO.getSchoolDistrictId());
+      addValidator(errors, (schoolDistrict == null), ParameterConstants.PARAM_USER_SCHOOL_DISTRICT_ID, MessageCodeConstants.AU0027,
+          ParameterConstants.PARAM_USER_SCHOOL_DISTRICT);
+      user.setSchoolDistrictId(schoolDistrict.getId());
+      user.setSchoolDistrict(schoolDistrict.getName());
+    } else if (userDTO.getSchoolDistrict() != null) {
+      user.setSchoolDistrict(userDTO.getSchoolDistrict());
+    }
+
+    if (userDTO.getSchoolId() != null) {
+      AJEntitySchool school = getSchoolRepo().getSchoolById(userDTO.getSchoolId());
+      addValidator(errors, (school == null), ParameterConstants.PARAM_USER_SCHOOL_ID, MessageCodeConstants.AU0027,
+          ParameterConstants.PARAM_USER_SCHOOL);
+      user.setSchoolId(school.getId());
+      user.setSchool(school.getName());
+    } else if (userDTO.getSchool() != null) {
+      user.setSchool(userDTO.getSchool());
+    }
 
     return new ActionResponseDTO<>(user, errors);
   }
@@ -197,5 +249,22 @@ public final class CreateUserExecutor extends Executor {
 
   public RedisClient getRedisClient() {
     return redisClient;
+  }
+  
+
+  public CountryRepo getCountryRepo() {
+    return countryRepo;
+  }
+
+  public StateRepo getStateRepo() {
+    return stateRepo;
+  }
+
+  public SchoolRepo getSchoolRepo() {
+    return schoolRepo;
+  }
+
+  public SchoolDistrictRepo getSchoolDistrictRepo() {
+    return schoolDistrictRepo;
   }
 }

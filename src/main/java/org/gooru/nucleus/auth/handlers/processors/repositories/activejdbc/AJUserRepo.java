@@ -17,7 +17,7 @@ public class AJUserRepo extends AJAbstractRepo implements UserRepo {
   private static final String GET_USER = "id = ?::uuid";
 
   private static final String FIND_USER =
-          "select s.name as school, st.name as state, sd.name as school_district, c.name as country,  u.*, ui.username from user_demographic  u   inner join user_identity ui    on (u.id = ui.user_id) left join school s on (s.id = u.school_id) left join school_district sd on (u.school_district_id = sd.id) left join state st  on (u.state_id = st.id) left join  country c on  (u.country_id = c.id) where u.id = ?::uuid";
+      "select u.*, ui.username from user_demographic  u   inner join user_identity ui    on (u.id = ui.user_id)  where u.id = ?::uuid";
 
   @Override
   public AJEntityUser create(AJEntityUser user) {
