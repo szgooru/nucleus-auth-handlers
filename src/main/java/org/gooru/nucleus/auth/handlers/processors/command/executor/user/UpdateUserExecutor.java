@@ -53,6 +53,7 @@ public final class UpdateUserExecutor extends Executor {
     this.stateRepo = StateRepo.instance();
     this.schoolRepo = SchoolRepo.instance();
     this.schoolDistrictRepo = SchoolDistrictRepo.instance();
+    this.userIdentityRepo = UserIdentityRepo.instance();
   }
 
   @Override
