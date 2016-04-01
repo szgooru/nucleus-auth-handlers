@@ -6,11 +6,11 @@ import static org.gooru.nucleus.auth.handlers.utils.ServerValidatorUtility.rejec
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
+import org.gooru.nucleus.auth.handlers.constants.HelperConstants.GrantType;
 import org.gooru.nucleus.auth.handlers.constants.HttpConstants;
 import org.gooru.nucleus.auth.handlers.constants.MessageCodeConstants;
 import org.gooru.nucleus.auth.handlers.constants.MessageConstants;
 import org.gooru.nucleus.auth.handlers.constants.ParameterConstants;
-import org.gooru.nucleus.auth.handlers.constants.HelperConstants.GrantType;
 import org.gooru.nucleus.auth.handlers.infra.ConfigRegistry;
 import org.gooru.nucleus.auth.handlers.infra.RedisClient;
 import org.gooru.nucleus.auth.handlers.processors.command.executor.Executor;
@@ -22,7 +22,9 @@ import org.gooru.nucleus.auth.handlers.processors.messageProcessor.MessageContex
 import org.gooru.nucleus.auth.handlers.processors.repositories.AuthClientRepo;
 import org.gooru.nucleus.auth.handlers.processors.repositories.UserIdentityRepo;
 import org.gooru.nucleus.auth.handlers.processors.repositories.UserPreferenceRepo;
+import org.gooru.nucleus.auth.handlers.processors.repositories.UserRepo;
 import org.gooru.nucleus.auth.handlers.processors.repositories.activejdbc.entities.AJEntityAuthClient;
+import org.gooru.nucleus.auth.handlers.processors.repositories.activejdbc.entities.AJEntityUser;
 import org.gooru.nucleus.auth.handlers.processors.repositories.activejdbc.entities.AJEntityUserIdentity;
 import org.gooru.nucleus.auth.handlers.processors.repositories.activejdbc.entities.AJEntityUserPreference;
 import org.gooru.nucleus.auth.handlers.utils.InternalHelper;
@@ -30,18 +32,17 @@ import org.gooru.nucleus.auth.handlers.utils.InternalHelper;
 public final class CreateBasicAuthAccessTokenExecutor extends Executor {
 
   private UserIdentityRepo userIdentityRepo;
-
   private UserPreferenceRepo userPreferenceRepo;
-
   private RedisClient redisClient;
-
   private AuthClientRepo authClientRepo;
+  private UserRepo userRepo;
 
   public CreateBasicAuthAccessTokenExecutor() {
-    setAuthClientRepo(AuthClientRepo.instance());
-    setUserIdentityRepo(UserIdentityRepo.instance());
-    setUserPreferenceRepo(UserPreferenceRepo.instance());
-    setRedisClient(RedisClient.instance());
+    this.authClientRepo = AuthClientRepo.instance();
+    this.userIdentityRepo = UserIdentityRepo.instance();
+    this.userPreferenceRepo = UserPreferenceRepo.instance();
+    this.redisClient = RedisClient.instance();
+    this.userRepo = UserRepo.instance();
   }
 
   @Override
@@ -91,6 +92,13 @@ public final class CreateBasicAuthAccessTokenExecutor extends Executor {
     accessToken.put(ParameterConstants.PARAM_CDN_URLS, authClient.getCdnUrls());
     saveAccessToken(token, accessToken, authClient.getAccessTokenValidity());
     accessToken.put(ParameterConstants.PARAM_ACCESS_TOKEN, token);
+    AJEntityUser user = getUserRepo().getUser(userIdentity.getUserId());
+    if (user.getFirstname() != null) {
+      accessToken.put(ParameterConstants.PARAM_USER_FIRSTNAME, user.getFirstname());
+    }
+    if (user.getLastname() != null) {       
+      accessToken.put(ParameterConstants.PARAM_USER_LASTNAME, user.getLastname());
+    }
     EventBuilder eventBuilder = new EventBuilder();
     eventBuilder.setEventName(Event.AUTHENTICATION_USER.getName()).putPayLoadObject(ParameterConstants.PARAM_ACCESS_TOKEN, token)
             .putPayLoadObject(ParameterConstants.PARAM_CLIENT_ID, authClient.getClientId())
@@ -134,32 +142,20 @@ public final class CreateBasicAuthAccessTokenExecutor extends Executor {
     return userIdentityRepo;
   }
 
-  public void setUserIdentityRepo(UserIdentityRepo userIdentityRepo) {
-    this.userIdentityRepo = userIdentityRepo;
+  public UserRepo getUserRepo() {
+    return userRepo;
   }
-
+  
   public UserPreferenceRepo getUserPreferenceRepo() {
     return userPreferenceRepo;
-  }
-
-  public void setUserPreferenceRepo(UserPreferenceRepo userPreferenceRepo) {
-    this.userPreferenceRepo = userPreferenceRepo;
-  }
+  } 
 
   public AuthClientRepo getAuthClientRepo() {
     return authClientRepo;
-  }
-
-  public void setAuthClientRepo(AuthClientRepo authClientRepo) {
-    this.authClientRepo = authClientRepo;
-  }
+  }  
 
   public RedisClient getRedisClient() {
     return redisClient;
-  }
-
-  public void setRedisClient(RedisClient redisClient) {
-    this.redisClient = redisClient;
   }
 
 }
