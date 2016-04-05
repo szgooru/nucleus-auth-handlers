@@ -51,18 +51,33 @@ public abstract class AJAbstractRepo {
   }
 
   @SuppressWarnings("rawtypes")
-  public Map find(final String sql, final Object... params) {
-    Map result = null;
+  public List<Map> find(final String sql, final Object... params) {
+    List<Map> results = null;
     try {
       Base.open(dataSource());
-      List<Map> results = Base.findAll(sql, params);
-      result = results.size() > 0 ? results.get(0) : null;
+      results = Base.findAll(sql, params);
     } catch (Throwable e) {
       LOG.error("Exception while marking connection to be read", e);
       ServerValidatorUtility.throwASInternalServerError();
     } finally {
       Base.close();
     }
-    return result;
+    return results;
   }
+
+  @SuppressWarnings("rawtypes")
+  public List<Map> find(final String sql) {
+    List<Map> results = null;
+    try {
+      Base.open(dataSource());
+      results = Base.findAll(sql);
+    } catch (Throwable e) {
+      LOG.error("Exception while marking connection to be read", e);
+      ServerValidatorUtility.throwASInternalServerError();
+    } finally {
+      Base.close();
+    }
+    return results;
+  }
+
 }

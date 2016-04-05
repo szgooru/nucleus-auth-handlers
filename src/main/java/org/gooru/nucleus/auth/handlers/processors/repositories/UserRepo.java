@@ -1,5 +1,6 @@
 package org.gooru.nucleus.auth.handlers.processors.repositories;
 
+import java.util.List;
 import java.util.Map;
 
 import org.gooru.nucleus.auth.handlers.processors.repositories.activejdbc.AJUserRepo;
@@ -18,4 +19,8 @@ public interface UserRepo {
   AJEntityUser update(AJEntityUser user);
   
   Map<String, Object> findUser(String userId);
+  
+  @SuppressWarnings("rawtypes")
+  List<Map> findUsers(String userIds);
+  
 }

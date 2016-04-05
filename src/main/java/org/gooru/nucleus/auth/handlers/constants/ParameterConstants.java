@@ -53,6 +53,8 @@ public class ParameterConstants {
   public static final String PARAM_USER_REFERENCE_ID = "reference_id";
   public static final String PARAM_USER_STATUS = "status";
   public static final String PARAM_USER_EMAIL_CONFIRM_STATUS = "email_confirm_status";
+  public static final String PARAM_USER_IDS = "ids";
+  public static final String PARAM_USERS = "users";
 
   // misc
   public static final String EMAIL_ADDRESS = "email address";

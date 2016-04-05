@@ -99,6 +99,9 @@ public final class CreateBasicAuthAccessTokenExecutor extends Executor {
     if (user.getLastname() != null) {       
       accessToken.put(ParameterConstants.PARAM_USER_LASTNAME, user.getLastname());
     }
+    if (user.getUserCategory() != null) { 
+      accessToken.put(ParameterConstants.PARAM_USER_CATEGORY, user.getUserCategory());
+    }
     EventBuilder eventBuilder = new EventBuilder();
     eventBuilder.setEventName(Event.AUTHENTICATION_USER.getName()).putPayLoadObject(ParameterConstants.PARAM_ACCESS_TOKEN, token)
             .putPayLoadObject(ParameterConstants.PARAM_CLIENT_ID, authClient.getClientId())

@@ -25,7 +25,7 @@ public final class HelperConstants {
   public static final String HEADER_TOKEN = "Token ";
 
   public static final int EXPIRE_IN_SECONDS = 86400;
-
+  
   static {
     Map<String, String> gender = new HashMap<>();
     gender.put("male", "male");

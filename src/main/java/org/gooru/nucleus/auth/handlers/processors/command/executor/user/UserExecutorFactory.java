@@ -37,6 +37,8 @@ public final class UserExecutorFactory {
           executor = new ResetPasswordExecutor();
         } else if (executorType.equals(ExecutorType.User.RESEND_CONFIRMATION_MAIL)) {
           executor = new ConfirmUserEmailExecutor();
+        } else if (executorType.equals(ExecutorType.User.FIND_USERS)) {
+          executor = new FindUsersExecutor();
         } else {
           LOG.debug("None of the user executor matched, looks like invalid executor type.");
         }

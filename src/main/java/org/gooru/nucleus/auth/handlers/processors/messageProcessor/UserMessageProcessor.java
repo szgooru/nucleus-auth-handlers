@@ -48,6 +48,9 @@ public final class UserMessageProcessor implements MessageProcessorHandler {
     case CommandConstants.CONFIRMATION_EMAIL:
       result = UserExecutorFactory.getInstance(ExecutorType.User.CONFIRM_USER_EMAIL).execute(messageContext);
       break;
+    case CommandConstants.GET_USERS_FIND:
+      result = UserExecutorFactory.getInstance(ExecutorType.User.FIND_USERS).execute(messageContext);
+      break;    
     default:
       LOG.error("Invalid command type passed in, not able to handle");
       throw new InvalidRequestException();
