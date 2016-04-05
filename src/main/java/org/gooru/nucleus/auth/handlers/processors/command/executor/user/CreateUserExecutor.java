@@ -98,7 +98,7 @@ public final class CreateUserExecutor extends Executor {
     getRedisClient().set(emailToken, tokenData.toString(), HelperConstants.EXPIRE_IN_SECONDS);
     MailNotifyBuilder mailConfirmNotifyBuilder = new MailNotifyBuilder();
     mailConfirmNotifyBuilder.setTemplateName(MailTemplateConstants.USER_REGISTARTION_CONFIRMATION).addToAddress(userIdentity.getEmailId())
-        .putContext(ParameterConstants.MAIL_TOKEN, emailToken);
+        .putContext(ParameterConstants.MAIL_TOKEN, emailToken).putContext(ParameterConstants.PARAM_USER_ID, userIdentity.getUserId());
     return new MessageResponse.Builder().setResponseBody(accessToken).setEventData(eventBuilder.build())
         .addMailNotify(mailConfirmNotifyBuilder.build()).addMailNotify(mailNotifyBuilder.build())
         .setHeader(HelperConstants.LOCATION, HelperConstants.USER_ENTITY_URI + userIdentity.getUserId()).setContentTypeJson().setStatusCreated()

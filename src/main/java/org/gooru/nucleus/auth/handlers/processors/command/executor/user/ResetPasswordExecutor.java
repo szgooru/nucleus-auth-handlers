@@ -38,12 +38,12 @@ public final class ResetPasswordExecutor extends Executor {
         ParameterConstants.PARAM_USER);
     final String token = InternalHelper.generatePasswordResetToken(userIdentity.getUserId());
     getRedisClient().set(token, userIdentity.getEmailId(), HelperConstants.EXPIRE_IN_SECONDS);
-    MailNotifyBuilder  mailNotifyBuilder = new MailNotifyBuilder();
-    mailNotifyBuilder.setTemplateName(MailTemplateConstants.PASSWORD_CHANGE_REQUEST).addToAddress(emailId).putContext(ParameterConstants.MAIL_TOKEN, token);
-    return new MessageResponse.Builder().setResponseBody(null).addMailNotify(mailNotifyBuilder.build()).setContentTypeJson().setStatusOkay().successful().build();
+    MailNotifyBuilder mailNotifyBuilder = new MailNotifyBuilder();
+    mailNotifyBuilder.setTemplateName(MailTemplateConstants.PASSWORD_CHANGE_REQUEST).addToAddress(emailId)
+        .putContext(ParameterConstants.MAIL_TOKEN, token).putContext(ParameterConstants.PARAM_USER_ID, userIdentity.getUserId());
+    return new MessageResponse.Builder().setResponseBody(null).addMailNotify(mailNotifyBuilder.build()).setContentTypeJson().setStatusOkay()
+        .successful().build();
   }
-
-  
 
   private UserIdentityRepo getUserIdentityRepo() {
     return userIdentityRepo;
