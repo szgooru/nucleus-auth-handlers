@@ -35,7 +35,7 @@ public final class UserExecutorFactory {
           executor = new UpdateUserEmailExecutor();
         } else if (executorType.equals(ExecutorType.User.RESET_PASSWORD)) {
           executor = new ResetPasswordExecutor();
-        } else if (executorType.equals(ExecutorType.User.RESEND_CONFIRMATION_MAIL)) {
+        } else if (executorType.equals(ExecutorType.User.CONFIRM_USER_EMAIL)) {
           executor = new ConfirmUserEmailExecutor();
         } else if (executorType.equals(ExecutorType.User.FIND_USERS)) {
           executor = new FindUsersExecutor();
