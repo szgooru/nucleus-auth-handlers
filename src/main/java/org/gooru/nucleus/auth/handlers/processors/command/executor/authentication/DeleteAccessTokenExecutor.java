@@ -2,34 +2,38 @@ package org.gooru.nucleus.auth.handlers.processors.command.executor.authenticati
 
 import org.gooru.nucleus.auth.handlers.constants.MessageConstants;
 import org.gooru.nucleus.auth.handlers.infra.RedisClient;
-import org.gooru.nucleus.auth.handlers.processors.command.executor.Executor;
+import org.gooru.nucleus.auth.handlers.processors.command.executor.DBExecutor;
 import org.gooru.nucleus.auth.handlers.processors.command.executor.MessageResponse;
 import org.gooru.nucleus.auth.handlers.processors.messageProcessor.MessageContext;
 
-public final class DeleteAccessTokenExecutor extends Executor {
+public final class DeleteAccessTokenExecutor implements DBExecutor {
 
   private RedisClient redisClient;
+  private MessageContext messageContext;
+  private String token;
 
-  public DeleteAccessTokenExecutor() {
-    setRedisClient(RedisClient.instance());
+  public DeleteAccessTokenExecutor(MessageContext messageContext) {
+    this.messageContext = messageContext;
+    this.redisClient = RedisClient.instance();
   }
 
   @Override
-  public MessageResponse execute(MessageContext messageContext) {
-    String token = messageContext.headers().get(MessageConstants.MSG_HEADER_TOKEN);
-    return deleteAccessToken(token);
+  public void checkSanity() {
+    token = messageContext.headers().get(MessageConstants.MSG_HEADER_TOKEN);
   }
 
-  private MessageResponse deleteAccessToken(String token) {
-    getRedisClient().del(token);
+  @Override
+  public void validateRequest() {
+  }
+
+  @Override
+  public MessageResponse executeRequest() {
+    this.redisClient.del(token);
     return new MessageResponse.Builder().setContentTypeJson().setStatusNoOutput().successful().build();
   }
 
-  public RedisClient getRedisClient() {
-    return redisClient;
-  }
-
-  public void setRedisClient(RedisClient redisClient) {
-    this.redisClient = redisClient;
+  @Override
+  public boolean handlerReadOnly() {
+    return true;
   }
 }

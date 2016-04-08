@@ -1,6 +1,8 @@
 package org.gooru.nucleus.auth.handlers.processors.command.executor.authenticationGLA;
 
-import io.vertx.core.json.JsonArray;
+import static org.gooru.nucleus.auth.handlers.utils.ServerValidatorUtility.reject;
+import static org.gooru.nucleus.auth.handlers.utils.ServerValidatorUtility.rejectIfNull;
+import static org.gooru.nucleus.auth.handlers.utils.ServerValidatorUtility.rejectIfNullOrEmpty;
 import io.vertx.core.json.JsonObject;
 
 import org.gooru.nucleus.auth.handlers.constants.HttpConstants;
@@ -9,41 +11,55 @@ import org.gooru.nucleus.auth.handlers.constants.MessageConstants;
 import org.gooru.nucleus.auth.handlers.constants.ParameterConstants;
 import org.gooru.nucleus.auth.handlers.infra.ConfigRegistry;
 import org.gooru.nucleus.auth.handlers.infra.RedisClient;
-import org.gooru.nucleus.auth.handlers.processors.command.executor.Executor;
+import org.gooru.nucleus.auth.handlers.processors.command.executor.DBExecutor;
 import org.gooru.nucleus.auth.handlers.processors.command.executor.MessageResponse;
 import org.gooru.nucleus.auth.handlers.processors.messageProcessor.MessageContext;
-import org.gooru.nucleus.auth.handlers.processors.repositories.AuthClientRepo;
 import org.gooru.nucleus.auth.handlers.processors.repositories.activejdbc.entities.AJEntityAuthClient;
 import org.gooru.nucleus.auth.handlers.utils.InternalHelper;
+import org.javalite.activejdbc.LazyList;
 
-import static org.gooru.nucleus.auth.handlers.utils.ServerValidatorUtility.reject;
-import static org.gooru.nucleus.auth.handlers.utils.ServerValidatorUtility.rejectIfNull;
-import static org.gooru.nucleus.auth.handlers.utils.ServerValidatorUtility.rejectIfNullOrEmpty;
-
-public final class CreateGLAAnonymousAccessTokenExecutor extends Executor {
-
-  private AuthClientRepo authClientRepo;
+class CreateGLAAnonymousAccessTokenExecutor implements DBExecutor {
 
   private RedisClient redisClient;
+  private MessageContext messageContext;
+  private String clientKey;
+  private AJEntityAuthClient authClient;
 
-  public CreateGLAAnonymousAccessTokenExecutor() {
-    setAuthClientRepo(AuthClientRepo.instance());
-    setRedisClient(RedisClient.instance());
+  public CreateGLAAnonymousAccessTokenExecutor(MessageContext messageContext) {
+    this.redisClient = RedisClient.instance();
+    this.messageContext = messageContext;
   }
 
   @Override
-  public MessageResponse execute(MessageContext messageContext) {
-    String clientKey = messageContext.headers().get(MessageConstants.MSG_HEADER_API_KEY);
+  public void checkSanity() {
+    clientKey = messageContext.headers().get(MessageConstants.MSG_HEADER_API_KEY);
     if (clientKey == null) {
       clientKey = messageContext.requestParams().getString(ParameterConstants.PARAM_API_KEY);
     }
-    final String requestDomain = messageContext.headers().get(MessageConstants.MSG_HEADER_REQUEST_DOMAIN);
-    return createAccessToken(clientKey, requestDomain);
   }
 
-  private MessageResponse createAccessToken(String clientKey, String requestDomain) {
-    final AJEntityAuthClient authClient = validateAuthClient(InternalHelper.encryptClientKey(clientKey));
-    verifyClientkeyDomains(requestDomain, authClient.getRefererDomains());
+  @Override
+  public void validateRequest() {
+    String requestDomain = messageContext.headers().get(MessageConstants.MSG_HEADER_REQUEST_DOMAIN);
+    rejectIfNullOrEmpty(clientKey, MessageCodeConstants.AU0034, HttpConstants.HttpStatus.UNAUTHORIZED.getCode());
+    LazyList<AJEntityAuthClient> authClients = AJEntityAuthClient.where(AJEntityAuthClient.GET_AUTH_CLIENT_KEY, InternalHelper.encryptClientKey(clientKey));
+    authClient = authClients.size() > 0 ? authClients.get(0) : null;
+    rejectIfNull(authClient, MessageCodeConstants.AU0004, HttpConstants.HttpStatus.UNAUTHORIZED.getCode());
+    if (requestDomain != null && authClient.getRefererDomains() != null) {
+      boolean isValidReferrer = false;
+      for (Object whitelistedDomain : authClient.getRefererDomains()) {
+        if (requestDomain.endsWith(((String) whitelistedDomain))) {
+          isValidReferrer = true;
+          break;
+        }
+      }
+      reject(!isValidReferrer, MessageCodeConstants.AU0009, HttpConstants.HttpStatus.FORBIDDEN.getCode());
+    }
+
+  }
+
+  @Override
+  public MessageResponse executeRequest() {
     final JsonObject accessToken = new JsonObject();
     accessToken.put(ParameterConstants.PARAM_USER_ID, MessageConstants.MSG_USER_ANONYMOUS);
     accessToken.put(ParameterConstants.PARAM_CLIENT_ID, authClient.getClientId());
@@ -56,50 +72,18 @@ public final class CreateGLAAnonymousAccessTokenExecutor extends Executor {
     saveAccessToken(token, accessToken, authClient.getAccessTokenValidity());
     accessToken.put(ParameterConstants.PARAM_ACCESS_TOKEN, token);
     return new MessageResponse.Builder().setResponseBody(accessToken).setContentTypeJson().setStatusOkay().successful().build();
-  }
 
-  private AJEntityAuthClient validateAuthClient(String clientKey) {
-    rejectIfNullOrEmpty(clientKey, MessageCodeConstants.AU0034, HttpConstants.HttpStatus.UNAUTHORIZED.getCode());
-    AJEntityAuthClient authClient = getAuthClientRepo().getAuthClient(clientKey);
-    rejectIfNull(authClient, MessageCodeConstants.AU0035, HttpConstants.HttpStatus.UNAUTHORIZED.getCode());
-    return authClient;
-  }
-
-  private void verifyClientkeyDomains(String requestDomain, JsonArray registeredRefererDomains) {
-    if (requestDomain != null && registeredRefererDomains != null) {
-      boolean isValidReferrer = false;
-      for (Object whitelistedDomain : registeredRefererDomains) {
-        if (requestDomain.endsWith(((String) whitelistedDomain))) {
-          isValidReferrer = true;
-          break;
-        }
-      }
-      reject(!isValidReferrer, MessageCodeConstants.AU0009, HttpConstants.HttpStatus.FORBIDDEN.getCode());
-    }
   }
 
   private void saveAccessToken(String token, JsonObject accessToken, Integer expireAtInSeconds) {
     JsonObject data = new JsonObject(accessToken.toString());
     data.put(ParameterConstants.PARAM_ACCESS_TOKEN_VALIDITY, expireAtInSeconds);
-    getRedisClient().set(token, data.toString(), expireAtInSeconds);
+    this.redisClient.set(token, data.toString(), expireAtInSeconds);
   }
 
-  public AuthClientRepo getAuthClientRepo() {
-    return authClientRepo;
+  @Override
+  public boolean handlerReadOnly() {
+    return false;
   }
-
-  public void setAuthClientRepo(AuthClientRepo authClientRepo) {
-    this.authClientRepo = authClientRepo;
-  }
-
-  public RedisClient getRedisClient() {
-    return redisClient;
-  }
-
-  public void setRedisClient(RedisClient redisClient) {
-    this.redisClient = redisClient;
-  }
-  
-
 
 }

@@ -10,79 +10,65 @@ import org.gooru.nucleus.auth.handlers.constants.MailTemplateConstants;
 import org.gooru.nucleus.auth.handlers.constants.MessageCodeConstants;
 import org.gooru.nucleus.auth.handlers.constants.ParameterConstants;
 import org.gooru.nucleus.auth.handlers.infra.RedisClient;
-import org.gooru.nucleus.auth.handlers.processors.command.executor.Executor;
+import org.gooru.nucleus.auth.handlers.processors.command.executor.DBExecutor;
 import org.gooru.nucleus.auth.handlers.processors.command.executor.MessageResponse;
 import org.gooru.nucleus.auth.handlers.processors.email.notify.MailNotifyBuilder;
 import org.gooru.nucleus.auth.handlers.processors.messageProcessor.MessageContext;
-import org.gooru.nucleus.auth.handlers.processors.repositories.UserIdentityRepo;
-import org.gooru.nucleus.auth.handlers.processors.repositories.UserRepo;
 import org.gooru.nucleus.auth.handlers.processors.repositories.activejdbc.entities.AJEntityUserIdentity;
 import org.gooru.nucleus.auth.handlers.utils.InternalHelper;
+import org.gooru.nucleus.auth.handlers.utils.ServerValidatorUtility;
+import org.javalite.activejdbc.LazyList;
 
-public final class UpdateUserEmailExecutor extends Executor {
-
-  private UserIdentityRepo userIdentityRepo;
-
-  private UserRepo userRepo;
+class UpdateUserEmailExecutor implements DBExecutor {
 
   private RedisClient redisClient;
+  private final MessageContext messageContext;
+  private String newEmailId;
 
-
-  public UpdateUserEmailExecutor() {
-    this.userIdentityRepo = UserIdentityRepo.instance();
-    this.userRepo = UserRepo.instance();
+  public UpdateUserEmailExecutor(MessageContext messageContext) {
     this.redisClient = RedisClient.instance();
+    this.messageContext = messageContext;
   }
 
   @Override
-  public MessageResponse execute(MessageContext messageContext) {
-    String newEmailId = null;
+  public void checkSanity() {
     if (messageContext.requestBody() != null) {
       newEmailId = messageContext.requestBody().getString(ParameterConstants.PARAM_USER_EMAIL_ID);
     }
-    return updateUserEmail(messageContext.user().getUserId(), newEmailId);
+    rejectIfNull(newEmailId, MessageCodeConstants.AU0014, HttpConstants.HttpStatus.BAD_REQUEST.getCode(), ParameterConstants.PARAM_USER_EMAIL_ID);
+
   }
 
-  private MessageResponse updateUserEmail(final String userId, final String emailId) {
-    rejectIfNull(emailId, MessageCodeConstants.AU0014, HttpConstants.HttpStatus.BAD_REQUEST.getCode(), ParameterConstants.PARAM_USER_EMAIL_ID);
-    AJEntityUserIdentity userIdentityEmail = getUserIdentityRepo().getUserIdentityByEmailId(emailId);
-    reject(userIdentityEmail != null, MessageCodeConstants.AU0023, HttpConstants.HttpStatus.BAD_REQUEST.getCode(), emailId,
+  @Override
+  public void validateRequest() {
+    LazyList<AJEntityUserIdentity> results = AJEntityUserIdentity.where(AJEntityUserIdentity.GET_BY_EMAIL, newEmailId);
+    AJEntityUserIdentity userIdentity = results.size() > 0 ? results.get(0) : null;
+    reject(userIdentity != null, MessageCodeConstants.AU0023, HttpConstants.HttpStatus.BAD_REQUEST.getCode(), newEmailId,
         ParameterConstants.EMAIL_ADDRESS);
-    AJEntityUserIdentity userIdentity = getUserIdentityRepo().getUserIdentityById(userId);
-    final String token = InternalHelper.generateEmailConfirmToken(userId);
+
+  }
+
+  @Override
+  public MessageResponse executeRequest() {
+    LazyList<AJEntityUserIdentity> results = AJEntityUserIdentity.where(AJEntityUserIdentity.GET_BY_USER_ID, messageContext.user().getUserId());
+    AJEntityUserIdentity userIdentity = results.size() > 0 ? results.get(0) : null;
+    ServerValidatorUtility.rejectIfNull(userIdentity, MessageCodeConstants.AU0026, HttpConstants.HttpStatus.NOT_FOUND.getCode(),
+        ParameterConstants.PARAM_USER);
+    final String token = InternalHelper.generateEmailConfirmToken(messageContext.user().getUserId());
     JsonObject tokenData = new JsonObject();
-    tokenData.put(ParameterConstants.PARAM_USER_EMAIL_ID, emailId);
-    tokenData.put(ParameterConstants.PARAM_USER_ID, userId);
-    getRedisClient().set(token, tokenData.toString(), HelperConstants.EXPIRE_IN_SECONDS);
+    tokenData.put(ParameterConstants.PARAM_USER_EMAIL_ID, newEmailId);
+    tokenData.put(ParameterConstants.PARAM_USER_ID, messageContext.user().getUserId());
+    this.redisClient.set(token, tokenData.toString(), HelperConstants.EXPIRE_IN_SECONDS);
     MailNotifyBuilder mailNotifyBuilder = new MailNotifyBuilder();
-    mailNotifyBuilder.setTemplateName(MailTemplateConstants.EMAIL_ADDRESS_CHANGE_REQUEST).addToAddress(emailId)
+    mailNotifyBuilder.setTemplateName(MailTemplateConstants.EMAIL_ADDRESS_CHANGE_REQUEST).addToAddress(newEmailId)
         .putContext(ParameterConstants.MAIL_TOKEN, token).putContext(ParameterConstants.OLD_EMAIL_ID, userIdentity.getEmailId())
-        .putContext(ParameterConstants.NEW_EMAIL_ID, emailId);
+        .putContext(ParameterConstants.NEW_EMAIL_ID, newEmailId);
     return new MessageResponse.Builder().setContentTypeJson().setResponseBody(null).addMailNotify(mailNotifyBuilder.build()).setStatusOkay()
         .successful().build();
   }
 
-  public UserIdentityRepo getUserIdentityRepo() {
-    return userIdentityRepo;
-  }
-
-  public void setUserIdentityRepo(UserIdentityRepo userIdentityRepo) {
-    this.userIdentityRepo = userIdentityRepo;
-  }
-
-  public RedisClient getRedisClient() {
-    return redisClient;
-  }
-
-  public void setRedisClient(RedisClient redisClient) {
-    this.redisClient = redisClient;
-  }
-
-  public UserRepo getUserRepo() {
-    return userRepo;
-  }
-
-  public void setUserRepo(UserRepo userRepo) {
-    this.userRepo = userRepo;
+  @Override
+  public boolean handlerReadOnly() {
+    return true;
   }
 }

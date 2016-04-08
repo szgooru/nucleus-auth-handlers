@@ -11,23 +11,25 @@ import java.util.stream.Stream;
 import org.gooru.nucleus.auth.handlers.constants.MessageCodeConstants;
 import org.gooru.nucleus.auth.handlers.constants.ParameterConstants;
 import org.gooru.nucleus.auth.handlers.processors.command.executor.AJResponseJsonTransformer;
-import org.gooru.nucleus.auth.handlers.processors.command.executor.Executor;
+import org.gooru.nucleus.auth.handlers.processors.command.executor.DBExecutor;
 import org.gooru.nucleus.auth.handlers.processors.command.executor.MessageResponse;
 import org.gooru.nucleus.auth.handlers.processors.messageProcessor.MessageContext;
-import org.gooru.nucleus.auth.handlers.processors.repositories.UserRepo;
+import org.gooru.nucleus.auth.handlers.processors.repositories.activejdbc.entities.AJEntityUser;
 import org.gooru.nucleus.auth.handlers.utils.ServerValidatorUtility;
+import org.javalite.activejdbc.Base;
 
-public final class FindUsersExecutor extends Executor {
+class FindUsersExecutor implements DBExecutor {
 
-  private UserRepo userRepo;
+  private MessageContext messageContext;
+  private String ids;
 
-  public FindUsersExecutor() {
-    this.userRepo = UserRepo.instance();
+  public FindUsersExecutor(MessageContext messageContext) {
+    this.messageContext = messageContext;
   }
 
   @Override
-  public MessageResponse execute(MessageContext messageContext) {
-    final String ids = messageContext.requestParams().getString(ParameterConstants.PARAM_USER_IDS);
+  public void checkSanity() {
+    ids = messageContext.requestParams().getString(ParameterConstants.PARAM_USER_IDS);
     ServerValidatorUtility.rejectIfNullOrEmpty(ids, MessageCodeConstants.AU0043, 400, ParameterConstants.PARAM_USER_IDS);
     final String[] userIds = ids.split(",");
     ServerValidatorUtility.reject(userIds.length > 30, MessageCodeConstants.AU0044, 400);
@@ -38,13 +40,17 @@ public final class FindUsersExecutor extends Executor {
         ServerValidatorUtility.reject(true, MessageCodeConstants.AU0045, 400);
       }
     });
-    return findUsers(ids);
+  }
+
+  @Override
+  public void validateRequest() {
   }
 
   @SuppressWarnings({ "rawtypes", "unchecked" })
-  private MessageResponse findUsers(String ids) {
+  @Override
+  public MessageResponse executeRequest() {
     ids = ids.replaceAll(",", "','");
-    List<Map> results = getUserRepo().findUsers("'" + ids + "'");
+    List<Map> results = Base.findAll(AJEntityUser.FIND_USERS + "'" + ids + "')");
     JsonArray users = new JsonArray();
     if (results != null) {
       results.forEach(user -> users.add(AJResponseJsonTransformer.transform((Map<String, Object>) user)));
@@ -53,8 +59,9 @@ public final class FindUsersExecutor extends Executor {
         .setStatusOkay().successful().build();
   }
 
-  public UserRepo getUserRepo() {
-    return userRepo;
+  @Override
+  public boolean handlerReadOnly() {
+    return true;
   }
 
 }

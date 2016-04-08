@@ -12,6 +12,8 @@ import org.javalite.activejdbc.annotations.Table;
 @IdName(SchemaConstants.USER_ID)
 public class AJEntityUserPreference extends Model {
 
+  public static final String GET_USER_PREFERENCE = "user_id = ?::uuid";
+  
   public String getUserId() {
     return getString(ParameterConstants.PARAM_USER_ID);
   }

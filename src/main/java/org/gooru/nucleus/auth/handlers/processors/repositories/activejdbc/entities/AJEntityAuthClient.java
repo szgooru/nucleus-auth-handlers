@@ -13,6 +13,9 @@ import org.javalite.activejdbc.annotations.Table;
 @IdName(SchemaConstants.CLIENT_ID)
 public class AJEntityAuthClient extends Model {
 
+  public static final String GET_AUTH_CLIENT_ID_AND_KEY = "client_id = ?::uuid and client_key = ?";
+  public static final String GET_AUTH_CLIENT_KEY = "client_key = ?";
+  
   public String getClientId() {
     return getString(ParameterConstants.PARAM_CLIENT_ID);
   }

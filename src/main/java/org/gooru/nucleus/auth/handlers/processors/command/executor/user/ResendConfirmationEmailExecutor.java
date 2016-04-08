@@ -9,65 +9,61 @@ import org.gooru.nucleus.auth.handlers.constants.MailTemplateConstants;
 import org.gooru.nucleus.auth.handlers.constants.MessageCodeConstants;
 import org.gooru.nucleus.auth.handlers.constants.ParameterConstants;
 import org.gooru.nucleus.auth.handlers.infra.RedisClient;
-import org.gooru.nucleus.auth.handlers.processors.command.executor.Executor;
+import org.gooru.nucleus.auth.handlers.processors.command.executor.DBExecutor;
 import org.gooru.nucleus.auth.handlers.processors.command.executor.MessageResponse;
 import org.gooru.nucleus.auth.handlers.processors.email.notify.MailNotifyBuilder;
 import org.gooru.nucleus.auth.handlers.processors.messageProcessor.MessageContext;
-import org.gooru.nucleus.auth.handlers.processors.repositories.UserIdentityRepo;
-import org.gooru.nucleus.auth.handlers.processors.repositories.UserRepo;
 import org.gooru.nucleus.auth.handlers.processors.repositories.activejdbc.entities.AJEntityUser;
 import org.gooru.nucleus.auth.handlers.processors.repositories.activejdbc.entities.AJEntityUserIdentity;
 import org.gooru.nucleus.auth.handlers.utils.InternalHelper;
+import org.javalite.activejdbc.LazyList;
 
-public final class ResendConfirmationEmailExecutor extends Executor {
-
-  private UserIdentityRepo userIdentityRepo;
-
-  private UserRepo userRepo;
+class ResendConfirmationEmailExecutor implements DBExecutor {
 
   private RedisClient redisClient;
-
+  private MessageContext messageContext;
+  private AJEntityUser user;
+  private AJEntityUserIdentity userIdentity;
   private static final int EXPIRE_IN_SECONDS = 86400;
 
-  public ResendConfirmationEmailExecutor() {
+  public ResendConfirmationEmailExecutor(MessageContext messageContext) {
     this.redisClient = RedisClient.instance();
-    this.userIdentityRepo = UserIdentityRepo.instance();
-    this.userRepo = UserRepo.instance();
+    this.messageContext = messageContext;
   }
 
   @Override
-  public MessageResponse execute(MessageContext messageContext) {
-    return resendConfirmationEmail(messageContext.user().getUserId());
+  public void checkSanity() {
+
   }
 
-  private MessageResponse resendConfirmationEmail(String userId) {
-    final AJEntityUser user = getUserRepo().getUser(userId);
+  @Override
+  public void validateRequest() {
+    LazyList<AJEntityUser> results = AJEntityUser.where(AJEntityUser.GET_USER, messageContext.user().getUserId());
+    System.out.println(messageContext.user().getUserId());
+    user = results.size() > 0 ? results.get(0) : null;
     rejectIfNull(user, MessageCodeConstants.AU0026, HttpConstants.HttpStatus.NOT_FOUND.getCode(), ParameterConstants.PARAM_USER);
-    final AJEntityUserIdentity userIdentity = getUserIdentityRepo().getUserIdentityByEmailId(user.getEmailId());
+    LazyList<AJEntityUserIdentity> userIdentitys = AJEntityUserIdentity.where(AJEntityUserIdentity.GET_BY_EMAIL, user.getEmailId());
+    userIdentity = userIdentitys.size() > 0 ? userIdentitys.get(0) : null;
     rejectIfNull(userIdentity, MessageCodeConstants.AU0026, HttpConstants.HttpStatus.NOT_FOUND.getCode(), ParameterConstants.PARAM_USER);
     reject(userIdentity.getStatus().equalsIgnoreCase(ParameterConstants.PARAM_STATUS_DEACTIVATED), MessageCodeConstants.AU0009,
         HttpConstants.HttpStatus.FORBIDDEN.getCode());
-    final String token = InternalHelper.generateEmailConfirmToken(userId);
+  }
+
+  @Override
+  public MessageResponse executeRequest() {
+    final String token = InternalHelper.generateEmailConfirmToken(messageContext.user().getUserId());
     JsonObject tokenData = new JsonObject();
     tokenData.put(ParameterConstants.PARAM_USER_EMAIL_ID, userIdentity.getEmailId());
-    tokenData.put(ParameterConstants.PARAM_USER_ID, userId);
-    getRedisClient().set(token, tokenData.toString(), EXPIRE_IN_SECONDS);
+    tokenData.put(ParameterConstants.PARAM_USER_ID, user.getId().toString());
+    this.redisClient.set(token, tokenData.toString(), EXPIRE_IN_SECONDS);
     MailNotifyBuilder mailConfirmNotifyBuilder = new MailNotifyBuilder();
     mailConfirmNotifyBuilder.setTemplateName(MailTemplateConstants.USER_REGISTARTION_CONFIRMATION).addToAddress(userIdentity.getEmailId())
-        .putContext(ParameterConstants.MAIL_TOKEN, token).putContext(ParameterConstants.PARAM_USER_ID, userId);
+        .putContext(ParameterConstants.MAIL_TOKEN, token).putContext(ParameterConstants.PARAM_USER_ID, user.getId().toString());
     return new MessageResponse.Builder().addMailNotify(mailConfirmNotifyBuilder.build()).setContentTypeJson().setStatusOkay().successful().build();
   }
 
-  private UserIdentityRepo getUserIdentityRepo() {
-    return userIdentityRepo;
+  @Override
+  public boolean handlerReadOnly() {
+    return true;
   }
-
-  private UserRepo getUserRepo() {
-    return userRepo;
-  }
-
-  private RedisClient getRedisClient() {
-    return redisClient;
-  }
-
 }

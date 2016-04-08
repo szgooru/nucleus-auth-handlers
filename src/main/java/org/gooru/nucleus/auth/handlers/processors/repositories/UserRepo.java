@@ -1,26 +1,27 @@
 package org.gooru.nucleus.auth.handlers.processors.repositories;
 
-import java.util.List;
-import java.util.Map;
-
-import org.gooru.nucleus.auth.handlers.processors.repositories.activejdbc.AJUserRepo;
-import org.gooru.nucleus.auth.handlers.processors.repositories.activejdbc.entities.AJEntityUser;
+import org.gooru.nucleus.auth.handlers.processors.command.executor.MessageResponse;
 
 public interface UserRepo {
+  MessageResponse createUser();
 
-  static UserRepo instance() {
-    return new AJUserRepo();
-  }
+  MessageResponse updateUser();
 
-  AJEntityUser getUser(String userId);
+  MessageResponse findUser();
 
-  AJEntityUser create(AJEntityUser user);
+  MessageResponse findUsers();
 
-  AJEntityUser update(AJEntityUser user);
-  
-  Map<String, Object> findUser(String userId);
-  
-  @SuppressWarnings("rawtypes")
-  List<Map> findUsers(String userIds);
-  
+  MessageResponse fetchUser();
+
+  MessageResponse resetAuthenticateUserPassword();
+
+  MessageResponse resetPassword();
+
+  MessageResponse resetUnAuthenticateUserPassword();
+
+  MessageResponse updateUserEmail();
+
+  MessageResponse confirmUserEmail();
+
+  MessageResponse resendConfirmationEmail();
 }

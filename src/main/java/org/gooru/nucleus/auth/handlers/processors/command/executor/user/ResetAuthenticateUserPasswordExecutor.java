@@ -8,54 +8,61 @@ import org.gooru.nucleus.auth.handlers.constants.MailTemplateConstants;
 import org.gooru.nucleus.auth.handlers.constants.MessageCodeConstants;
 import org.gooru.nucleus.auth.handlers.constants.ParameterConstants;
 import org.gooru.nucleus.auth.handlers.infra.RedisClient;
-import org.gooru.nucleus.auth.handlers.processors.command.executor.Executor;
+import org.gooru.nucleus.auth.handlers.processors.command.executor.DBExecutor;
 import org.gooru.nucleus.auth.handlers.processors.command.executor.MessageResponse;
 import org.gooru.nucleus.auth.handlers.processors.email.notify.MailNotifyBuilder;
 import org.gooru.nucleus.auth.handlers.processors.messageProcessor.MessageContext;
-import org.gooru.nucleus.auth.handlers.processors.repositories.UserIdentityRepo;
 import org.gooru.nucleus.auth.handlers.processors.repositories.activejdbc.entities.AJEntityUserIdentity;
 import org.gooru.nucleus.auth.handlers.utils.InternalHelper;
+import org.javalite.activejdbc.LazyList;
 
-public final class ResetAuthenticateUserPasswordExecutor extends Executor {
-
-  private UserIdentityRepo userIdentityRepo;
+class ResetAuthenticateUserPasswordExecutor implements DBExecutor {
 
   private RedisClient redisClient;
+  private MessageContext messageContext;
+  private String newPassword;
+  private String oldPassword;
+  private AJEntityUserIdentity userIdentity;
 
-  public ResetAuthenticateUserPasswordExecutor() {
-    this.userIdentityRepo = UserIdentityRepo.instance();
+  public ResetAuthenticateUserPasswordExecutor(MessageContext messageContext) {
     this.redisClient = RedisClient.instance();
+    this.messageContext = messageContext;
   }
 
   @Override
-  public MessageResponse execute(MessageContext messageContext) {
-    final String newPassword = messageContext.requestBody().getString(ParameterConstants.PARAM_USER_NEW_PASSWORD);
-    final String oldPassword = messageContext.requestBody().getString(ParameterConstants.PARAM_USER_OLD_PASSWORD);
-    return resetAuthenticateUserPassword(messageContext.user().getUserId(), oldPassword, newPassword);
-  }
-
-  private MessageResponse resetAuthenticateUserPassword(String userId, String oldPassword, String newPassword) {
+  public void checkSanity() {
+    newPassword = messageContext.requestBody().getString(ParameterConstants.PARAM_USER_NEW_PASSWORD);
+    oldPassword = messageContext.requestBody().getString(ParameterConstants.PARAM_USER_OLD_PASSWORD);
     rejectIfNull(oldPassword, MessageCodeConstants.AU0041, HttpConstants.HttpStatus.BAD_REQUEST.getCode());
     rejectIfNull(newPassword, MessageCodeConstants.AU0042, HttpConstants.HttpStatus.BAD_REQUEST.getCode());
-    final AJEntityUserIdentity userIdentity =
-        getUserIdentityRepo().getUserIdentityByIdAndPassword(userId, InternalHelper.encryptPassword(oldPassword));
+
+  }
+
+  @Override
+  public void validateRequest() {
+    LazyList<AJEntityUserIdentity> results =
+        AJEntityUserIdentity.where(AJEntityUserIdentity.GET_BY_ID_PASSWORD, messageContext.user().getUserId(),
+            InternalHelper.encryptPassword(oldPassword));
+    userIdentity = results.size() > 0 ? results.get(0) : null;
     rejectIfNull(userIdentity, MessageCodeConstants.AU0026, HttpConstants.HttpStatus.NOT_FOUND.getCode(), ParameterConstants.PARAM_USER);
+  }
+
+  @Override
+  public MessageResponse executeRequest() {
     userIdentity.setPassword(InternalHelper.encryptPassword(newPassword));
-    getUserIdentityRepo().createOrUpdate(userIdentity);
+    userIdentity.saveIt();
     final String token = InternalHelper.generatePasswordResetToken(userIdentity.getUserId());
-    getRedisClient().set(token, userIdentity.getEmailId(), HelperConstants.EXPIRE_IN_SECONDS);
-    MailNotifyBuilder  mailNotifyBuilder = new MailNotifyBuilder();
-    mailNotifyBuilder.setTemplateName(MailTemplateConstants.PASSWORD_CHANGED).addToAddress(userIdentity.getEmailId()).putContext(ParameterConstants.MAIL_TOKEN, token).putContext(ParameterConstants.PARAM_USER_USERNAME, userIdentity.getUsername());
-    return new MessageResponse.Builder().setResponseBody(null).addMailNotify(mailNotifyBuilder.build()).setContentTypeJson().setStatusNoOutput().successful().build();
+    this.redisClient.set(token, userIdentity.getEmailId(), HelperConstants.EXPIRE_IN_SECONDS);
+    MailNotifyBuilder mailNotifyBuilder = new MailNotifyBuilder();
+    mailNotifyBuilder.setTemplateName(MailTemplateConstants.PASSWORD_CHANGED).addToAddress(userIdentity.getEmailId())
+        .putContext(ParameterConstants.MAIL_TOKEN, token).putContext(ParameterConstants.PARAM_USER_USERNAME, userIdentity.getUsername());
+    return new MessageResponse.Builder().setResponseBody(null).addMailNotify(mailNotifyBuilder.build()).setContentTypeJson().setStatusNoOutput()
+        .successful().build();
   }
 
-
-  private UserIdentityRepo getUserIdentityRepo() {
-    return userIdentityRepo;
-  }
-
-  private RedisClient getRedisClient() {
-    return redisClient;
+  @Override
+  public boolean handlerReadOnly() {
+    return false;
   }
 
 }

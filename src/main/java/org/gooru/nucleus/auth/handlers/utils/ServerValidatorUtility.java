@@ -114,6 +114,20 @@ public class ServerValidatorUtility {
     throw new RuntimeException("internal api error");
   }
 
+  public static void reject(Throwable e) {
+    if (e instanceof BadRequestException) {
+      throw new BadRequestException(e.getMessage());
+    } else if (e instanceof NotFoundException) {
+      throw new NotFoundException(e.getMessage());
+    } else if (e instanceof AccessDeniedException) {
+      throw new AccessDeniedException(e.getMessage());
+    } else if (e instanceof UnauthorizedException) {
+      throw new UnauthorizedException(e.getMessage());
+    } else {
+      throw new RuntimeException("internal api error");
+    }
+  }
+
   public static void addError(JsonObject errors, String fieldName, String code, String... placeHolderReplacer) {
     errors.put(fieldName, generateErrorMessage(code, placeHolderReplacer));
   }

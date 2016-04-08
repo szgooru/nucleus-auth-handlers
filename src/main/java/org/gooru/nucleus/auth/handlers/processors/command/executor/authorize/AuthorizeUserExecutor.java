@@ -5,7 +5,6 @@ import static org.gooru.nucleus.auth.handlers.utils.ServerValidatorUtility.rejec
 import static org.gooru.nucleus.auth.handlers.utils.ServerValidatorUtility.rejectError;
 import static org.gooru.nucleus.auth.handlers.utils.ServerValidatorUtility.rejectIfNull;
 import static org.gooru.nucleus.auth.handlers.utils.ServerValidatorUtility.rejectIfNullOrEmpty;
-import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
 import java.util.Random;
@@ -21,7 +20,7 @@ import org.gooru.nucleus.auth.handlers.infra.ConfigRegistry;
 import org.gooru.nucleus.auth.handlers.infra.RedisClient;
 import org.gooru.nucleus.auth.handlers.processors.command.executor.AJResponseJsonTransformer;
 import org.gooru.nucleus.auth.handlers.processors.command.executor.ActionResponseDTO;
-import org.gooru.nucleus.auth.handlers.processors.command.executor.Executor;
+import org.gooru.nucleus.auth.handlers.processors.command.executor.DBExecutor;
 import org.gooru.nucleus.auth.handlers.processors.command.executor.MessageResponse;
 import org.gooru.nucleus.auth.handlers.processors.data.transform.model.AuthorizeDTO;
 import org.gooru.nucleus.auth.handlers.processors.data.transform.model.UserDTO;
@@ -29,50 +28,66 @@ import org.gooru.nucleus.auth.handlers.processors.email.notify.MailNotifyBuilder
 import org.gooru.nucleus.auth.handlers.processors.event.Event;
 import org.gooru.nucleus.auth.handlers.processors.event.EventBuilder;
 import org.gooru.nucleus.auth.handlers.processors.messageProcessor.MessageContext;
-import org.gooru.nucleus.auth.handlers.processors.repositories.AuthClientRepo;
-import org.gooru.nucleus.auth.handlers.processors.repositories.UserIdentityRepo;
-import org.gooru.nucleus.auth.handlers.processors.repositories.UserPreferenceRepo;
-import org.gooru.nucleus.auth.handlers.processors.repositories.UserRepo;
 import org.gooru.nucleus.auth.handlers.processors.repositories.activejdbc.entities.AJEntityAuthClient;
 import org.gooru.nucleus.auth.handlers.processors.repositories.activejdbc.entities.AJEntityUser;
 import org.gooru.nucleus.auth.handlers.processors.repositories.activejdbc.entities.AJEntityUserIdentity;
 import org.gooru.nucleus.auth.handlers.processors.repositories.activejdbc.entities.AJEntityUserPreference;
 import org.gooru.nucleus.auth.handlers.utils.InternalHelper;
+import org.javalite.activejdbc.LazyList;
 
-public class AuthorizeUserExecutor extends Executor {
-
-  private AuthClientRepo authClientRepo;
+class AuthorizeUserExecutor implements DBExecutor {
 
   private RedisClient redisClient;
+  private AJEntityAuthClient authClient;
+  private final MessageContext messageContext;
+  private AuthorizeDTO authorizeDTO;
 
-  private UserIdentityRepo userIdentityRepo;
-
-  private UserPreferenceRepo userPreferenceRepo;
-
-  private UserRepo userRepo;
-
-  public AuthorizeUserExecutor() {
-    this.authClientRepo = AuthClientRepo.instance();
+  public AuthorizeUserExecutor(MessageContext messageContext) {
     this.redisClient = RedisClient.instance();
-    this.userIdentityRepo = UserIdentityRepo.instance();
-    this.userPreferenceRepo = UserPreferenceRepo.instance();
-    this.userRepo = UserRepo.instance();
+    this.messageContext = messageContext;
   }
 
   @Override
-  public MessageResponse execute(MessageContext messageContext) {
-    AuthorizeDTO authorizeDTO = new AuthorizeDTO(messageContext.requestBody());
-    String requestDomain = messageContext.headers().get(MessageConstants.MSG_HEADER_REQUEST_DOMAIN);
-    return authorizeUser(authorizeDTO, requestDomain);
-  }
-
-  private MessageResponse authorizeUser(AuthorizeDTO authorizeDTO, String requestDomain) {
+  public void checkSanity() {
+    authorizeDTO = new AuthorizeDTO(messageContext.requestBody());
     reject((HelperConstants.SSO_CONNECT_GRANT_TYPES.get(authorizeDTO.getGrantType()) == null), MessageCodeConstants.AU0003,
         HttpConstants.HttpStatus.UNAUTHORIZED.getCode());
-    final AJEntityAuthClient authClient =
-        validateAuthClient(authorizeDTO.getClientId(), InternalHelper.encryptClientKey(authorizeDTO.getClientKey()), authorizeDTO.getGrantType());
-    verifyClientkeyDomains(requestDomain, authClient.getRefererDomains());
-    authorizeValidator(authorizeDTO);
+
+  }
+
+  @Override
+  public void validateRequest() {
+    String requestDomain = messageContext.headers().get(MessageConstants.MSG_HEADER_REQUEST_DOMAIN);
+    rejectIfNullOrEmpty(authorizeDTO.getClientId(), MessageCodeConstants.AU0001, HttpConstants.HttpStatus.UNAUTHORIZED.getCode());
+    rejectIfNullOrEmpty(authorizeDTO.getClientKey(), MessageCodeConstants.AU0002, HttpConstants.HttpStatus.UNAUTHORIZED.getCode());
+    LazyList<AJEntityAuthClient> results =
+        AJEntityAuthClient.where(AJEntityAuthClient.GET_AUTH_CLIENT_ID_AND_KEY, authorizeDTO.getClientId(),
+            InternalHelper.encryptClientKey(authorizeDTO.getClientKey()));
+    authClient = results.size() > 0 ? results.get(0) : null;
+    rejectIfNull(authClient, MessageCodeConstants.AU0004, HttpConstants.HttpStatus.UNAUTHORIZED.getCode());
+    reject((authClient.getGrantTypes() == null || !authClient.getGrantTypes().contains(authorizeDTO.getGrantType())), MessageCodeConstants.AU0005,
+        HttpConstants.HttpStatus.FORBIDDEN.getCode());
+
+    if (requestDomain != null && authClient.getRefererDomains() != null) {
+      boolean isValidReferrer = false;
+      for (Object whitelistedDomain : authClient.getRefererDomains()) {
+        if (requestDomain.endsWith(((String) whitelistedDomain))) {
+          isValidReferrer = true;
+          break;
+        }
+      }
+      reject(!isValidReferrer, MessageCodeConstants.AU0009, HttpConstants.HttpStatus.FORBIDDEN.getCode());
+    }
+
+    reject(authorizeDTO.getUser() == null, MessageCodeConstants.AU0038, 400);
+    JsonObject errors = new JsonObject();
+    addValidator(errors, authorizeDTO.getUser().getIdentityId() == null, ParameterConstants.PARAM_AUTHORIZE_IDENTITY_ID, MessageCodeConstants.AU0033);
+    rejectError(errors, HttpConstants.HttpStatus.BAD_REQUEST.getCode());
+
+  }
+
+  @Override
+  public MessageResponse executeRequest() {
     String identityId = authorizeDTO.getUser().getIdentityId();
     boolean isEmailIdentity = false;
     AJEntityUserIdentity userIdentity = null;
@@ -80,9 +95,11 @@ public class AuthorizeUserExecutor extends Executor {
     MailNotifyBuilder mailNotifyBuilder = new MailNotifyBuilder();
     if (identityId.indexOf("@") > 1) {
       isEmailIdentity = true;
-      userIdentity = getUserIdentityRepo().getUserIdentityByEmailId(identityId);
+      LazyList<AJEntityUserIdentity> userIdentityEmail = AJEntityUserIdentity.where(AJEntityUserIdentity.GET_BY_EMAIL, identityId);
+      userIdentity = userIdentityEmail.size() > 0 ? userIdentityEmail.get(0) : null;
     } else {
-      userIdentity = getUserIdentityRepo().getUserIdentityByReferenceId(identityId);
+      LazyList<AJEntityUserIdentity> userIdentityReference = AJEntityUserIdentity.where(AJEntityUserIdentity.GET_BY_REFERENCE, identityId);
+      userIdentity = userIdentityReference.size() > 0 ? userIdentityReference.get(0) : null;
     }
     if (userIdentity == null) {
       ActionResponseDTO<AJEntityUserIdentity> responseDTO =
@@ -98,7 +115,9 @@ public class AuthorizeUserExecutor extends Executor {
     accessToken.put(ParameterConstants.PARAM_CLIENT_ID, authClient.getClientId());
     accessToken.put(ParameterConstants.PARAM_PROVIDED_AT, System.currentTimeMillis());
     final String token = InternalHelper.generateToken(authClient.getClientId(), userIdentity.getUserId());
-    final AJEntityUserPreference userPreference = getUserPreferenceRepo().getUserPreference(userIdentity.getUserId());
+    LazyList<AJEntityUserPreference> userPreferences =
+        AJEntityUserPreference.where(AJEntityUserPreference.GET_USER_PREFERENCE, userIdentity.getUserId());
+    final AJEntityUserPreference userPreference = userPreferences.size() > 0 ? userPreferences.get(0) : null;
     JsonObject prefs = new JsonObject();
     if (userPreference != null) {
       prefs.put(ParameterConstants.PARAM_STANDARD_PREFERENCE, userPreference.getStandardPreference());
@@ -116,6 +135,7 @@ public class AuthorizeUserExecutor extends Executor {
         .putPayLoadObject(ParameterConstants.PARAM_GRANT_TYPE, authorizeDTO.getGrantType());
     return new MessageResponse.Builder().setResponseBody(accessToken).setEventData(eventBuilder.build()).addMailNotify(mailNotifyBuilder.build())
         .setContentTypeJson().setStatusOkay().successful().build();
+
   }
 
   private ActionResponseDTO<AJEntityUserIdentity> createUserWithIdentity(final UserDTO userDTO, final String grantType, final String clientId,
@@ -125,8 +145,7 @@ public class AuthorizeUserExecutor extends Executor {
     if (userDTO.getLastname() != null) {
       user.setLastname(userDTO.getLastname());
     }
-
-    getUserRepo().create(user);
+    user.saveIt();
     eventBuilder.putPayLoadObject(SchemaConstants.USER_DEMOGRAPHIC,
         AJResponseJsonTransformer.transform(user.toJson(false), HelperConstants.USERS_JSON_FIELDS));
 
@@ -143,7 +162,8 @@ public class AuthorizeUserExecutor extends Executor {
         final String lastname = userDTO.getLastname();
         username.append(lastname.substring(0, lastname.length() > 5 ? 5 : lastname.length()));
       }
-      AJEntityUserIdentity identityUsername = getUserIdentityRepo().getUserIdentityByUsername(username.toString());
+      LazyList<AJEntityUserIdentity> results = AJEntityUserIdentity.where(AJEntityUserIdentity.GET_BY_USERNAME, username.toString());
+      AJEntityUserIdentity identityUsername = results.size() > 0 ? results.get(0) : null;
       if (identityUsername != null) {
         final Random randomNumber = new Random();
         username.append(randomNumber.nextInt(1000));
@@ -152,38 +172,15 @@ public class AuthorizeUserExecutor extends Executor {
     } else {
       userIdentity.setUsername(userDTO.getUsername());
     }
-    getUserIdentityRepo().createOrUpdate(userIdentity);
+    userIdentity.saveIt();
     eventBuilder.putPayLoadObject(SchemaConstants.USER_IDENTITY, AJResponseJsonTransformer.transform(userIdentity.toJson(false)));
     return new ActionResponseDTO<>(userIdentity, eventBuilder);
-  }
-
-  private AJEntityAuthClient validateAuthClient(String clientId, String clientKey, String grantType) {
-    rejectIfNullOrEmpty(clientId, MessageCodeConstants.AU0001, HttpConstants.HttpStatus.UNAUTHORIZED.getCode());
-    rejectIfNullOrEmpty(clientKey, MessageCodeConstants.AU0002, HttpConstants.HttpStatus.UNAUTHORIZED.getCode());
-    AJEntityAuthClient authClient = getAuthClientRepo().getAuthClient(clientId, clientKey);
-    rejectIfNull(authClient, MessageCodeConstants.AU0004, HttpConstants.HttpStatus.UNAUTHORIZED.getCode());
-    reject((authClient.getGrantTypes() == null || !authClient.getGrantTypes().contains(grantType)), MessageCodeConstants.AU0005,
-        HttpConstants.HttpStatus.FORBIDDEN.getCode());
-    return authClient;
-  }
-
-  private void verifyClientkeyDomains(String requestDomain, JsonArray registeredRefererDomains) {
-    if (requestDomain != null && registeredRefererDomains != null) {
-      boolean isValidReferrer = false;
-      for (Object whitelistedDomain : registeredRefererDomains) {
-        if (requestDomain.endsWith(((String) whitelistedDomain))) {
-          isValidReferrer = true;
-          break;
-        }
-      }
-      reject(!isValidReferrer, MessageCodeConstants.AU0009, HttpConstants.HttpStatus.FORBIDDEN.getCode());
-    }
   }
 
   private void saveAccessToken(String token, JsonObject accessToken, Integer expireAtInSeconds) {
     JsonObject data = new JsonObject(accessToken.toString());
     data.put(ParameterConstants.PARAM_ACCESS_TOKEN_VALIDITY, expireAtInSeconds);
-    getRedisClient().set(token, data.toString(), expireAtInSeconds);
+    this.redisClient.set(token, data.toString(), expireAtInSeconds);
   }
 
   private AJEntityUserIdentity createUserIdentityValue(final String userIdentityAuthorizeType, final AJEntityUser user, final String clientId) {
@@ -196,31 +193,9 @@ public class AuthorizeUserExecutor extends Executor {
     return userIdentity;
   }
 
-  private void authorizeValidator(AuthorizeDTO authorizeDTO) {
-    reject(authorizeDTO.getUser() == null, MessageCodeConstants.AU0038, 400);
-    JsonObject errors = new JsonObject();
-    addValidator(errors, authorizeDTO.getUser().getIdentityId() == null, ParameterConstants.PARAM_AUTHORIZE_IDENTITY_ID, MessageCodeConstants.AU0033);
-    rejectError(errors, HttpConstants.HttpStatus.BAD_REQUEST.getCode());
-  }
-
-  public AuthClientRepo getAuthClientRepo() {
-    return authClientRepo;
-  }
-
-  public RedisClient getRedisClient() {
-    return redisClient;
-  }
-
-  public UserIdentityRepo getUserIdentityRepo() {
-    return userIdentityRepo;
-  }
-
-  public UserRepo getUserRepo() {
-    return userRepo;
-  }
-
-  public UserPreferenceRepo getUserPreferenceRepo() {
-    return userPreferenceRepo;
+  @Override
+  public boolean handlerReadOnly() {
+    return false;
   }
 
 }

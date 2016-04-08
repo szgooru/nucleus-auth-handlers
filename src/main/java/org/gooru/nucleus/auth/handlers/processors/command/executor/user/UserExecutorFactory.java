@@ -1,52 +1,51 @@
 package org.gooru.nucleus.auth.handlers.processors.command.executor.user;
 
-import java.util.HashMap;
-import java.util.Map;
-
-import org.gooru.nucleus.auth.handlers.processors.command.executor.Executor;
-import org.gooru.nucleus.auth.handlers.processors.command.executor.ExecutorType;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.gooru.nucleus.auth.handlers.processors.command.executor.DBExecutor;
+import org.gooru.nucleus.auth.handlers.processors.messageProcessor.MessageContext;
 
 public final class UserExecutorFactory {
-  private static final Map<ExecutorType.User, Executor> instances = new HashMap<>();
 
-  private static final Logger LOG = LoggerFactory.getLogger(UserExecutorFactory.class);
+  public static DBExecutor createUser(MessageContext messageContext) {
+    return new CreateUserExecutor(messageContext);
+  }
 
-  public static Executor getInstance(ExecutorType.User executorType) {
-    Executor executor = instances.get(executorType);
-    if (executor == null) {
-      synchronized (UserExecutorFactory.class) {
-        if (executorType.equals(ExecutorType.User.CREATE_USER)) {
-          executor = new CreateUserExecutor();
-        } else if (executorType.equals(ExecutorType.User.UPDATE_USER)) {
-          executor = new UpdateUserExecutor();
-        } else if (executorType.equals(ExecutorType.User.FETCH_USER)) {
-          executor = new FetchUserExecutor();
-        } else if (executorType.equals(ExecutorType.User.FIND_USER)) {
-          executor = new FindUserExecutor();
-        } else if (executorType.equals(ExecutorType.User.RESEND_CONFIRMATION_MAIL)) {
-          executor = new ResendConfirmationEmailExecutor();
-        } else if (executorType.equals(ExecutorType.User.RESET_AUTHENTICATE_USER_PASSWORD)) {
-          executor = new ResetAuthenticateUserPasswordExecutor();
-        } else if (executorType.equals(ExecutorType.User.RESET_UNAUTHENTICATE_USER_PASSWORD)) {
-          executor = new ResetUnAuthenticateUserPasswordExecutor();
-        } else if (executorType.equals(ExecutorType.User.UPDATE_USER_EMAIL)) {
-          executor = new UpdateUserEmailExecutor();
-        } else if (executorType.equals(ExecutorType.User.RESET_PASSWORD)) {
-          executor = new ResetPasswordExecutor();
-        } else if (executorType.equals(ExecutorType.User.CONFIRM_USER_EMAIL)) {
-          executor = new ConfirmUserEmailExecutor();
-        } else if (executorType.equals(ExecutorType.User.FIND_USERS)) {
-          executor = new FindUsersExecutor();
-        } else {
-          LOG.debug("None of the user executor matched, looks like invalid executor type.");
-        }
-      }
-      instances.put(executorType, executor);
-    }
+  public static DBExecutor updateUser(MessageContext messageContext) {
+    return new UpdateUserExecutor(messageContext);
+  }
 
-    return executor;
+  public static DBExecutor fetchUser(MessageContext messageContext) {
+    return new FetchUserExecutor(messageContext);
+  }
 
+  public static DBExecutor findUser(MessageContext messageContext) {
+    return new FindUserExecutor(messageContext);
+  }
+
+  public static DBExecutor resendConfirmationEmail(MessageContext messageContext) {
+    return new ResendConfirmationEmailExecutor(messageContext);
+  }
+
+  public static DBExecutor resetAuthenticateUserPassword(MessageContext messageContext) {
+    return new ResetAuthenticateUserPasswordExecutor(messageContext);
+  }
+
+  public static DBExecutor resetUnAuthenticateUserPassword(MessageContext messageContext) {
+    return new ResetUnAuthenticateUserPasswordExecutor(messageContext);
+  }
+  
+  public static DBExecutor updateUserEmail(MessageContext messageContext) {
+    return new UpdateUserEmailExecutor(messageContext);
+  }
+
+  public static DBExecutor resetPassword(MessageContext messageContext) {
+    return new ResetPasswordExecutor(messageContext);
+  }
+
+  public static DBExecutor confirmUserEmail(MessageContext messageContext) {
+    return new ConfirmUserEmailExecutor(messageContext);
+  }
+
+  public static DBExecutor findUsers(MessageContext messageContext) {
+    return new FindUsersExecutor(messageContext);
   }
 }

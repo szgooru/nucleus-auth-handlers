@@ -14,80 +14,72 @@ import org.gooru.nucleus.auth.handlers.constants.ParameterConstants;
 import org.gooru.nucleus.auth.handlers.constants.SchemaConstants;
 import org.gooru.nucleus.auth.handlers.processors.command.executor.AJResponseJsonTransformer;
 import org.gooru.nucleus.auth.handlers.processors.command.executor.ActionResponseDTO;
-import org.gooru.nucleus.auth.handlers.processors.command.executor.Executor;
+import org.gooru.nucleus.auth.handlers.processors.command.executor.DBExecutor;
 import org.gooru.nucleus.auth.handlers.processors.command.executor.MessageResponse;
 import org.gooru.nucleus.auth.handlers.processors.data.transform.model.UserDTO;
 import org.gooru.nucleus.auth.handlers.processors.event.Event;
 import org.gooru.nucleus.auth.handlers.processors.event.EventBuilder;
 import org.gooru.nucleus.auth.handlers.processors.messageProcessor.MessageContext;
-import org.gooru.nucleus.auth.handlers.processors.repositories.CountryRepo;
-import org.gooru.nucleus.auth.handlers.processors.repositories.SchoolDistrictRepo;
-import org.gooru.nucleus.auth.handlers.processors.repositories.SchoolRepo;
-import org.gooru.nucleus.auth.handlers.processors.repositories.StateRepo;
-import org.gooru.nucleus.auth.handlers.processors.repositories.UserIdentityRepo;
-import org.gooru.nucleus.auth.handlers.processors.repositories.UserRepo;
 import org.gooru.nucleus.auth.handlers.processors.repositories.activejdbc.entities.AJEntityCountry;
 import org.gooru.nucleus.auth.handlers.processors.repositories.activejdbc.entities.AJEntitySchool;
 import org.gooru.nucleus.auth.handlers.processors.repositories.activejdbc.entities.AJEntitySchoolDistrict;
 import org.gooru.nucleus.auth.handlers.processors.repositories.activejdbc.entities.AJEntityState;
 import org.gooru.nucleus.auth.handlers.processors.repositories.activejdbc.entities.AJEntityUser;
 import org.gooru.nucleus.auth.handlers.processors.repositories.activejdbc.entities.AJEntityUserIdentity;
+import org.javalite.activejdbc.LazyList;
 
-public final class UpdateUserExecutor extends Executor {
+public final class UpdateUserExecutor implements DBExecutor {
 
-  private UserIdentityRepo userIdentityRepo;
+  private final MessageContext messageContext;
+  private UserDTO userDTO;
+  private String userId;
+  private AJEntityUser user;
+  private EventBuilder eventBuilder;
 
-  private UserRepo userRepo;
-
-  private CountryRepo countryRepo;
-
-  private StateRepo stateRepo;
-
-  private SchoolRepo schoolRepo;
-
-  private SchoolDistrictRepo schoolDistrictRepo;
-
-  public UpdateUserExecutor() {
-    this.userRepo = UserRepo.instance();
-    this.countryRepo = CountryRepo.instance();
-    this.stateRepo = StateRepo.instance();
-    this.schoolRepo = SchoolRepo.instance();
-    this.schoolDistrictRepo = SchoolDistrictRepo.instance();
-    this.userIdentityRepo = UserIdentityRepo.instance();
+  public UpdateUserExecutor(MessageContext messageContext) {
+    this.messageContext = messageContext;
   }
 
   @Override
-  public MessageResponse execute(MessageContext messageContext) {
-    String userId = messageContext.requestParams().getString(MessageConstants.MSG_USER_ID);
+  public void checkSanity() {
+    userId = messageContext.requestParams().getString(MessageConstants.MSG_USER_ID);
     if (userId.equalsIgnoreCase(ParameterConstants.PARAM_ME)) {
       userId = messageContext.user().getString(ParameterConstants.PARAM_USER_ID);
     }
-    UserDTO userDTO = new UserDTO(messageContext.requestBody());
+    userDTO = new UserDTO(messageContext.requestBody());
 
-    return updateUser(userId, userDTO);
   }
 
-  private MessageResponse updateUser(String userId, UserDTO userDTO) {
-    ActionResponseDTO<AJEntityUser> userValidator = updateUserValidator(userId, userDTO);
+  @Override
+  public void validateRequest() {
+    ActionResponseDTO<AJEntityUser> userValidator = updateUserValidator();
     rejectError(userValidator.getErrors(), HttpConstants.HttpStatus.BAD_REQUEST.getCode());
-    AJEntityUser user = userValidator.getModel();
-    user = getUserRepo().update(user);
-    EventBuilder eventBuilder = userValidator.getEventBuilder().setEventName(Event.UPDATE_USER.getName());
+    user = userValidator.getModel();
+    eventBuilder = userValidator.getEventBuilder();
+  }
+
+  @Override
+  public MessageResponse executeRequest() {
+    user.saveIt();
+    eventBuilder.setEventName(Event.UPDATE_USER.getName());
     eventBuilder.putPayLoadObject(SchemaConstants.USER_DEMOGRAPHIC,
         AJResponseJsonTransformer.transform(user.toJson(false), HelperConstants.USERS_JSON_FIELDS));
     if (userDTO.getUsername() != null) {
-      final AJEntityUserIdentity userIdentity = getUserIdentityRepo().getUserIdentityById(userId);
+      LazyList<AJEntityUserIdentity> results = AJEntityUserIdentity.where(AJEntityUserIdentity.GET_BY_USER_ID, userId);
+      AJEntityUserIdentity userIdentity = results.get(0);
       userIdentity.setUsername(userDTO.getUsername());
-      getUserIdentityRepo().createOrUpdate(userIdentity);
+      userIdentity.saveIt();
       eventBuilder.putPayLoadObject(SchemaConstants.USER_IDENTITY, AJResponseJsonTransformer.transform(userIdentity.toJson(false)));
     }
     return new MessageResponse.Builder().setContentTypeJson().setEventData(eventBuilder.build()).setStatusNoOutput().successful().build();
   }
 
-  private ActionResponseDTO<AJEntityUser> updateUserValidator(final String userId, final UserDTO userDTO) {
-    final AJEntityUser user = getUserRepo().getUser(userId);
+  private ActionResponseDTO<AJEntityUser> updateUserValidator() {
+    LazyList<AJEntityUser> users = AJEntityUser.where(AJEntityUser.GET_USER, userId);
+    final AJEntityUser user = users.size() > 0 ? users.get(0) : null;
     rejectIfNull(user, MessageCodeConstants.AU0026, HttpConstants.HttpStatus.NOT_FOUND.getCode(), ParameterConstants.PARAM_USER);
-    final AJEntityUserIdentity userIdentity = getUserIdentityRepo().getUserIdentityById(userId);
+    LazyList<AJEntityUserIdentity> userIdentitys = AJEntityUserIdentity.where(AJEntityUserIdentity.GET_BY_USER_ID, userId);
+    final AJEntityUserIdentity userIdentity = userIdentitys.size() > 0 ? userIdentitys.get(0) : null;
     rejectIfNull(userIdentity, MessageCodeConstants.AU0026, HttpConstants.HttpStatus.NOT_FOUND.getCode(), ParameterConstants.PARAM_USER);
     reject(userIdentity.getStatus().equalsIgnoreCase(ParameterConstants.PARAM_STATUS_DEACTIVATED), MessageCodeConstants.AU0009,
         HttpConstants.HttpStatus.FORBIDDEN.getCode());
@@ -119,46 +111,59 @@ public final class UpdateUserExecutor extends Executor {
       addValidator(errors, !(username.matches("[a-zA-Z0-9]+")), ParameterConstants.PARAM_USER_USERNAME, MessageCodeConstants.AU0017);
       addValidator(errors, ((username.length() < 4 || username.length() > 20)), ParameterConstants.PARAM_USER_USERNAME, MessageCodeConstants.AU0018,
           ParameterConstants.PARAM_USER_USERNAME, "4", "20");
-      AJEntityUserIdentity userIdentityUsername = getUserIdentityRepo().getUserIdentityByUsername(username);
-      addValidator(errors, !(userIdentityUsername == null), ParameterConstants.PARAM_USER_USERNAME, MessageCodeConstants.AU0023, username,
+      LazyList<AJEntityUserIdentity> results = AJEntityUserIdentity.where(AJEntityUserIdentity.GET_BY_USERNAME, username);
+      addValidator(errors, !(results.size() == 0), ParameterConstants.PARAM_USER_USERNAME, MessageCodeConstants.AU0023, username,
           ParameterConstants.PARAM_USER_USERNAME);
     }
 
     if (userDTO.getCountryId() != null) {
-      AJEntityCountry country = getCountryRepo().getCountry(userDTO.getCountryId());
+      LazyList<AJEntityCountry> results = AJEntityCountry.where(AJEntityCountry.GET_COUNTRY_BY_ID, userDTO.getCountryId());
+      AJEntityCountry country = results.size() > 0 ? results.get(0) : null;
       addValidator(errors, (country == null), ParameterConstants.PARAM_USER_COUNTRY_ID, MessageCodeConstants.AU0027,
           ParameterConstants.PARAM_USER_COUNTRY);
-      user.setCountryId(userDTO.getCountryId());
-      user.setCountry(country.getName());
+      if (country != null) {
+        user.setCountryId(country.getId());
+        user.setCountry(country.getName());
+      }
     } else if (userDTO.getCountry() != null) {
       user.setCountry(userDTO.getCountry());
     }
 
     if (userDTO.getStateId() != null) {
-      AJEntityState state = getStateRepo().getStateById(userDTO.getStateId());
+      LazyList<AJEntityState> results = AJEntityState.where(AJEntityState.GET_STATE_BY_ID, userDTO.getStateId());
+      AJEntityState state = results.size() > 0 ? results.get(0) : null;
       addValidator(errors, (state == null), ParameterConstants.PARAM_USER_STATE_ID, MessageCodeConstants.AU0027, ParameterConstants.PARAM_USER_STATE);
-      user.setStateId(userDTO.getStateId());
-      user.setState(state.getName());
+      if (state != null) {
+        user.setStateId(state.getId());
+        user.setState(state.getName());
+      }
     } else if (userDTO.getState() != null) {
       user.setState(userDTO.getState());
     }
 
     if (userDTO.getSchoolDistrictId() != null) {
-      AJEntitySchoolDistrict schoolDistrict = getSchoolDistrictRepo().getSchoolDistrictById(userDTO.getSchoolDistrictId());
+      LazyList<AJEntitySchoolDistrict> results =
+          AJEntitySchoolDistrict.where(AJEntitySchoolDistrict.GET_SCHOOL_DISTRICT_BY_ID, userDTO.getSchoolDistrictId());
+      AJEntitySchoolDistrict schoolDistrict = results.size() > 0 ? results.get(0) : null;
       addValidator(errors, (schoolDistrict == null), ParameterConstants.PARAM_USER_SCHOOL_DISTRICT_ID, MessageCodeConstants.AU0027,
           ParameterConstants.PARAM_USER_SCHOOL_DISTRICT);
-      user.setSchoolDistrictId(userDTO.getSchoolDistrictId());
-      user.setSchoolDistrict(schoolDistrict.getName());
+      if (schoolDistrict != null) {
+        user.setSchoolDistrictId(schoolDistrict.getId());
+        user.setSchoolDistrict(schoolDistrict.getName());
+      }
     } else if (userDTO.getSchoolDistrict() != null) {
       user.setSchoolDistrict(userDTO.getSchoolDistrict());
     }
 
     if (userDTO.getSchoolId() != null) {
-      AJEntitySchool school = getSchoolRepo().getSchoolById(userDTO.getSchoolId());
+      LazyList<AJEntitySchool> results = AJEntitySchool.where(AJEntitySchool.GET_SCHOOL_BY_ID, userDTO.getSchoolId());
+      AJEntitySchool school = results.size() > 0 ? results.get(0) : null;
       addValidator(errors, (school == null), ParameterConstants.PARAM_USER_SCHOOL_ID, MessageCodeConstants.AU0027,
           ParameterConstants.PARAM_USER_SCHOOL);
-      user.setSchoolId(userDTO.getSchoolId());
-      user.setSchool(school.getName());
+      if (school != null) {
+        user.setSchoolId(school.getId());
+        user.setSchool(school.getName());
+      }
     } else if (userDTO.getSchool() != null) {
       user.setSchool(userDTO.getSchool());
     }
@@ -180,27 +185,8 @@ public final class UpdateUserExecutor extends Executor {
 
   }
 
-  public UserIdentityRepo getUserIdentityRepo() {
-    return userIdentityRepo;
-  }
-
-  public UserRepo getUserRepo() {
-    return userRepo;
-  }
-
-  public CountryRepo getCountryRepo() {
-    return countryRepo;
-  }
-
-  public StateRepo getStateRepo() {
-    return stateRepo;
-  }
-
-  public SchoolRepo getSchoolRepo() {
-    return schoolRepo;
-  }
-
-  public SchoolDistrictRepo getSchoolDistrictRepo() {
-    return schoolDistrictRepo;
+  @Override
+  public boolean handlerReadOnly() {
+    return false;
   }
 }

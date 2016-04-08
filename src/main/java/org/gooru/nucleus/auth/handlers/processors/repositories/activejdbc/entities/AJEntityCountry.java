@@ -10,6 +10,9 @@ import org.javalite.activejdbc.annotations.Table;
 @IdName(SchemaConstants.ID)
 public class AJEntityCountry extends Model {
 
+  public static final String GET_COUNTRY_BY_NAME = "name = ?";
+  public static final String GET_COUNTRY_BY_ID = "id = ?::uuid";
+  
   public String getId() {
     return getString(ParameterConstants.PARAM_ID);
   }

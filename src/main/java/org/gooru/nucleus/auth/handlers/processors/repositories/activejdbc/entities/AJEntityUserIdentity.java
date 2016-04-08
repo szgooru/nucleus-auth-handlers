@@ -12,6 +12,14 @@ import org.javalite.activejdbc.annotations.Table;
 @IdName(SchemaConstants.ID)
 public class AJEntityUserIdentity extends Model {
 
+  public static final String GET_BY_USERNAME_PASSWORD = "username = ?  and password = ? and login_type = 'credential' and status != 'deleted'";
+  public static final String GET_BY_EMAIL_PASSWORD = "email_id = ?  and password = ? and login_type = 'credential' and status != 'deleted'";
+  public static final String GET_BY_EMAIL = "email_id = ? and status != 'deleted'";
+  public static final String GET_BY_USERNAME = "username = ? and status != 'deleted'";
+  public static final String GET_BY_REFERENCE = "reference_id = ? and status != 'deleted'";
+  public static final String GET_BY_ID_PASSWORD = "user_id = ?::uuid and password = ? and status != 'deleted'";
+  public static final String GET_BY_USER_ID = "user_id = ?::uuid and  status != 'deleted'";
+  
   public String getUsername() {
     return getString(ParameterConstants.PARAM_USER_USERNAME);
   }

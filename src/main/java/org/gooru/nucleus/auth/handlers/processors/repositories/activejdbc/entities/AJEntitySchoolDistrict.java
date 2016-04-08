@@ -10,6 +10,9 @@ import org.javalite.activejdbc.annotations.Table;
 @IdName(SchemaConstants.ID)
 public class AJEntitySchoolDistrict extends Model {
 
+  public static final String GET_SCHOOL_DISTRICT_BY_NAME = "name = ?";
+  public static final String GET_SCHOOL_DISTRICT_BY_ID = "id = ?::uuid";
+  
   public String getName() {
     return getString(ParameterConstants.PARAM_NAME);
   }

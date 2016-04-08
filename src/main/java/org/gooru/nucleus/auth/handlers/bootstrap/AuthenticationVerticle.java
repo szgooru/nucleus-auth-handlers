@@ -33,7 +33,6 @@ public class AuthenticationVerticle extends AbstractVerticle {
       }, res -> {
         MessageResponse result = (MessageResponse) res.result();
         message.reply(result.reply(), result.deliveryOptions());
-
         final JsonObject eventData = result.event();
         if (eventData != null) {
           final String accessToken = getAccessToken(message, result);
@@ -51,7 +50,7 @@ public class AuthenticationVerticle extends AbstractVerticle {
       }
     });
   }
-  
+
   private String getAccessToken(Message<?> message, MessageResponse messageResponse) {
     String accessToken = ((JsonObject) message.body()).getString(MessageConstants.MSG_HEADER_TOKEN);
     if (accessToken == null || accessToken.isEmpty()) {

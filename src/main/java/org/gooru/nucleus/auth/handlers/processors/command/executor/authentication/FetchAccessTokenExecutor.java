@@ -6,31 +6,38 @@ import org.gooru.nucleus.auth.handlers.constants.MessageCodeConstants;
 import org.gooru.nucleus.auth.handlers.constants.MessageConstants;
 import org.gooru.nucleus.auth.handlers.constants.ParameterConstants;
 import org.gooru.nucleus.auth.handlers.infra.RedisClient;
-import org.gooru.nucleus.auth.handlers.processors.command.executor.Executor;
+import org.gooru.nucleus.auth.handlers.processors.command.executor.DBExecutor;
 import org.gooru.nucleus.auth.handlers.processors.command.executor.MessageResponse;
 import org.gooru.nucleus.auth.handlers.processors.messageProcessor.MessageContext;
-import org.gooru.nucleus.auth.handlers.processors.repositories.UserRepo;
 import org.gooru.nucleus.auth.handlers.processors.repositories.activejdbc.entities.AJEntityUser;
 import org.gooru.nucleus.auth.handlers.utils.ServerValidatorUtility;
+import org.javalite.activejdbc.LazyList;
 
-public final class FetchAccessTokenExecutor extends Executor {
+public final class FetchAccessTokenExecutor implements DBExecutor {
 
   private RedisClient redisClient;
-  private UserRepo userRepo;
+  private MessageContext messageContext;
+  private String token;
 
-  public FetchAccessTokenExecutor() {
+  public FetchAccessTokenExecutor(MessageContext messageContext) {
     this.redisClient = RedisClient.instance();
-    this.userRepo = UserRepo.instance();
+    this.messageContext = messageContext;
   }
 
   @Override
-  public MessageResponse execute(MessageContext messageContext) {
-    final String token = messageContext.headers().get(MessageConstants.MSG_HEADER_TOKEN);
-    return fetchAccessToken(token);
+  public void checkSanity() {
+    token = messageContext.headers().get(MessageConstants.MSG_HEADER_TOKEN);
+
   }
 
-  private MessageResponse fetchAccessToken(String token) {
-    JsonObject accessToken = getRedisClient().getJsonObject(token);
+  @Override
+  public void validateRequest() {
+
+  }
+
+  @Override
+  public MessageResponse executeRequest() {
+    JsonObject accessToken = this.redisClient.getJsonObject(token);
     ServerValidatorUtility.reject(accessToken == null, MessageCodeConstants.AU0040, 400);
     if (accessToken.containsKey(MessageConstants.MSG_KEY_PREFS)) {
       accessToken.remove(MessageConstants.MSG_KEY_PREFS);
@@ -38,7 +45,8 @@ public final class FetchAccessTokenExecutor extends Executor {
     accessToken.remove(ParameterConstants.PARAM_ACCESS_TOKEN_VALIDITY);
     final String userId = accessToken.getString(ParameterConstants.PARAM_USER_ID);
     if (!userId.equalsIgnoreCase(MessageConstants.MSG_USER_ANONYMOUS)) {
-      AJEntityUser user = getUserRepo().getUser(userId);
+      LazyList<AJEntityUser> users = AJEntityUser.where(AJEntityUser.GET_USER, userId);
+      AJEntityUser user = users.size() > 0 ? users.get(0) : null;
       if (user.getFirstname() != null) {
         accessToken.put(ParameterConstants.PARAM_USER_FIRSTNAME, user.getFirstname());
       }
@@ -49,15 +57,11 @@ public final class FetchAccessTokenExecutor extends Executor {
         accessToken.put(ParameterConstants.PARAM_USER_CATEGORY, user.getUserCategory());
       }
     }
-
     return new MessageResponse.Builder().setResponseBody(accessToken).setContentTypeJson().setStatusOkay().successful().build();
-  };
-
-  public RedisClient getRedisClient() {
-    return redisClient;
   }
 
-  public UserRepo getUserRepo() {
-    return userRepo;
+  @Override
+  public boolean handlerReadOnly() {
+    return false;
   }
 }
