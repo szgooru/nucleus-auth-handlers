@@ -12,36 +12,36 @@ import org.javalite.activejdbc.annotations.Table;
 @IdName(SchemaConstants.USER_ID)
 public class AJEntityUserPreference extends Model {
 
-  public static final String GET_USER_PREFERENCE = "user_id = ?::uuid";
-  
-  public String getUserId() {
-    return getString(ParameterConstants.PARAM_USER_ID);
-  }
+    public static final String GET_USER_PREFERENCE = "user_id = ?::uuid";
 
-  public void setUserId(Object userId) {
-    setId(userId);
-    set(ParameterConstants.PARAM_USER_ID, userId);
-  }
-
-  public JsonObject getStandardPreference() {
-    String json = getString(ParameterConstants.PARAM_STANDARD_PREFERENCE);
-    JsonObject prefs = null;
-    if (json != null) {
-      prefs = new JsonObject(json);
+    public String getUserId() {
+        return getString(ParameterConstants.PARAM_USER_ID);
     }
-    return prefs;
-  }
 
-  public void setStandardPreference(JsonObject standardPreference) {
-    set(ParameterConstants.PARAM_STANDARD_PREFERENCE, DBEnums.jsonObject(standardPreference));
-  }
+    public void setUserId(Object userId) {
+        setId(userId);
+        set(ParameterConstants.PARAM_USER_ID, userId);
+    }
 
-  public Boolean getProfileVisiblity(Boolean profileVisiblity) {
-    return getBoolean(ParameterConstants.PARAM_PROFILE_VISIBILITY);
-  }
+    public JsonObject getStandardPreference() {
+        String json = getString(ParameterConstants.PARAM_STANDARD_PREFERENCE);
+        JsonObject prefs = null;
+        if (json != null) {
+            prefs = new JsonObject(json);
+        }
+        return prefs;
+    }
 
-  public void setProfileVisiblity(Boolean profileVisiblity) {
-    set(ParameterConstants.PARAM_PROFILE_VISIBILITY, profileVisiblity);
-  }
+    public void setStandardPreference(JsonObject standardPreference) {
+        set(ParameterConstants.PARAM_STANDARD_PREFERENCE, DBEnums.jsonObject(standardPreference));
+    }
+
+    public Boolean getProfileVisiblity(Boolean profileVisiblity) {
+        return getBoolean(ParameterConstants.PARAM_PROFILE_VISIBILITY);
+    }
+
+    public void setProfileVisiblity(Boolean profileVisiblity) {
+        set(ParameterConstants.PARAM_PROFILE_VISIBILITY, profileVisiblity);
+    }
 
 }

@@ -18,49 +18,53 @@ import org.javalite.activejdbc.LazyList;
 
 class ResetUnAuthenticateUserPasswordExecutor implements DBExecutor {
 
-  private RedisClient redisClient;
-  private final MessageContext messageContext;
-  private String newPassword;
-  private String token;
-  private AJEntityUserIdentity userIdentity;
+    private RedisClient redisClient;
+    private final MessageContext messageContext;
+    private String newPassword;
+    private String token;
+    private AJEntityUserIdentity userIdentity;
 
-  public ResetUnAuthenticateUserPasswordExecutor(MessageContext messageContext) {
-    this.redisClient = RedisClient.instance();
-    this.messageContext = messageContext;
-  }
+    public ResetUnAuthenticateUserPasswordExecutor(MessageContext messageContext) {
+        this.redisClient = RedisClient.instance();
+        this.messageContext = messageContext;
+    }
 
-  @Override
-  public void checkSanity() {
-    token = messageContext.requestBody().getString(ParameterConstants.PARAM_USER_TOKEN);
-    newPassword = messageContext.requestBody().getString(ParameterConstants.PARAM_USER_NEW_PASSWORD);
-    rejectIfNull(token, MessageCodeConstants.AU0046, HttpConstants.HttpStatus.BAD_REQUEST.getCode(), ParameterConstants.PARAM_USER_TOKEN);
-    rejectIfNull(newPassword, MessageCodeConstants.AU0046, HttpConstants.HttpStatus.BAD_REQUEST.getCode(), ParameterConstants.PARAM_USER_NEW_PASSWORD);
-  }
+    @Override
+    public void checkSanity() {
+        token = messageContext.requestBody().getString(ParameterConstants.PARAM_USER_TOKEN);
+        newPassword = messageContext.requestBody().getString(ParameterConstants.PARAM_USER_NEW_PASSWORD);
+        rejectIfNull(token, MessageCodeConstants.AU0046, HttpConstants.HttpStatus.BAD_REQUEST.getCode(),
+            ParameterConstants.PARAM_USER_TOKEN);
+        rejectIfNull(newPassword, MessageCodeConstants.AU0046, HttpConstants.HttpStatus.BAD_REQUEST.getCode(),
+            ParameterConstants.PARAM_USER_NEW_PASSWORD);
+    }
 
-  @Override
-  public void validateRequest() {
-    String emailId = this.redisClient.get(token);
-    rejectIfNull(emailId, MessageCodeConstants.AU0028, HttpConstants.HttpStatus.UNAUTHORIZED.getCode());
-    LazyList<AJEntityUserIdentity> results = AJEntityUserIdentity.where(AJEntityUserIdentity.GET_BY_EMAIL, emailId);
-    userIdentity = results.size() > 0 ? results.get(0) : null;
-    ServerValidatorUtility.rejectIfNull(userIdentity, MessageCodeConstants.AU0026, HttpConstants.HttpStatus.NOT_FOUND.getCode(),
-        ParameterConstants.PARAM_USER);
-  }
+    @Override
+    public void validateRequest() {
+        String emailId = this.redisClient.get(token);
+        rejectIfNull(emailId, MessageCodeConstants.AU0028, HttpConstants.HttpStatus.UNAUTHORIZED.getCode());
+        LazyList<AJEntityUserIdentity> results = AJEntityUserIdentity.where(AJEntityUserIdentity.GET_BY_EMAIL, emailId);
+        userIdentity = results.size() > 0 ? results.get(0) : null;
+        ServerValidatorUtility.rejectIfNull(userIdentity, MessageCodeConstants.AU0026,
+            HttpConstants.HttpStatus.NOT_FOUND.getCode(), ParameterConstants.PARAM_USER);
+    }
 
-  @Override
-  public MessageResponse executeRequest() {
-    userIdentity.setPassword(InternalHelper.encryptPassword(newPassword));
-    userIdentity.saveIt();
-    this.redisClient.del(token);
-    MailNotifyBuilder mailNotifyBuilder = new MailNotifyBuilder();
-    mailNotifyBuilder.setTemplateName(MailTemplateConstants.PASSWORD_CHANGED).addToAddress(userIdentity.getEmailId())
-        .putContext(ParameterConstants.MAIL_TOKEN, token).putContext(ParameterConstants.PARAM_USER_USERNAME, userIdentity.getUsername());
-    return new MessageResponse.Builder().addMailNotify(mailNotifyBuilder.build()).setContentTypeJson().setStatusNoOutput().successful().build();
-  }
+    @Override
+    public MessageResponse executeRequest() {
+        userIdentity.setPassword(InternalHelper.encryptPassword(newPassword));
+        userIdentity.saveIt();
+        this.redisClient.del(token);
+        MailNotifyBuilder mailNotifyBuilder = new MailNotifyBuilder();
+        mailNotifyBuilder.setTemplateName(MailTemplateConstants.PASSWORD_CHANGED)
+            .addToAddress(userIdentity.getEmailId()).putContext(ParameterConstants.MAIL_TOKEN, token)
+            .putContext(ParameterConstants.PARAM_USER_USERNAME, userIdentity.getUsername());
+        return new MessageResponse.Builder().addMailNotify(mailNotifyBuilder.build()).setContentTypeJson()
+            .setStatusNoOutput().successful().build();
+    }
 
-  @Override
-  public boolean handlerReadOnly() {
-    return false;
-  }
+    @Override
+    public boolean handlerReadOnly() {
+        return false;
+    }
 
 }

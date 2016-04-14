@@ -5,19 +5,19 @@ import org.gooru.nucleus.auth.handlers.processors.messageProcessor.MessageContex
 
 public final class AuthenticationExecutorFactory {
 
-  public static DBExecutor createAnonymousAccessToken(MessageContext messageContext) {
-    return new CreateAnonymousAccessTokenExecutor(messageContext);
-  }
-  
-  public static DBExecutor createBasicAuthAccessToken(MessageContext messageContext) {
-    return new CreateBasicAuthAccessTokenExecutor(messageContext);
-  }
-  
-  public static DBExecutor deleteAccessToken(MessageContext messageContext) {
-    return new DeleteAccessTokenExecutor(messageContext);
-  }
-  
-  public static DBExecutor fetchAccessToken(MessageContext messageContext) {
-    return new FetchAccessTokenExecutor(messageContext);
-  }
+    public static DBExecutor createAnonymousAccessToken(MessageContext messageContext) {
+        return new CreateAnonymousAccessTokenExecutor(messageContext);
+    }
+
+    public static DBExecutor createBasicAuthAccessToken(MessageContext messageContext) {
+        return new CreateBasicAuthAccessTokenExecutor(messageContext);
+    }
+
+    public static DBExecutor deleteAccessToken(MessageContext messageContext) {
+        return new DeleteAccessTokenExecutor(messageContext);
+    }
+
+    public static DBExecutor fetchAccessToken(MessageContext messageContext) {
+        return new FetchAccessTokenExecutor(messageContext);
+    }
 }

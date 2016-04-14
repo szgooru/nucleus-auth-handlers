@@ -9,31 +9,31 @@ import org.gooru.nucleus.auth.handlers.infra.DataSourceRegistry;
 import org.gooru.nucleus.auth.handlers.infra.RedisClient;
 
 public class Initializers implements Iterable<Initializer> {
-  private final Iterator<Initializer> internalIterator;
+    private final Iterator<Initializer> internalIterator;
 
-  public Initializers() {
-    final List<Initializer> initializers = new ArrayList<>();
-    initializers.add(DataSourceRegistry.getInstance());
-    initializers.add(RedisClient.instance());
-    initializers.add(ConfigRegistry.instance());
-    internalIterator = initializers.iterator();
-  }
+    public Initializers() {
+        final List<Initializer> initializers = new ArrayList<>();
+        initializers.add(DataSourceRegistry.getInstance());
+        initializers.add(RedisClient.instance());
+        initializers.add(ConfigRegistry.instance());
+        internalIterator = initializers.iterator();
+    }
 
-  @Override
-  public Iterator<Initializer> iterator() {
-    return new Iterator<Initializer>() {
+    @Override
+    public Iterator<Initializer> iterator() {
+        return new Iterator<Initializer>() {
 
-      @Override
-      public boolean hasNext() {
-        return internalIterator.hasNext();
-      }
+            @Override
+            public boolean hasNext() {
+                return internalIterator.hasNext();
+            }
 
-      @Override
-      public Initializer next() {
-        return internalIterator.next();
-      }
+            @Override
+            public Initializer next() {
+                return internalIterator.next();
+            }
 
-    };
-  }
+        };
+    }
 
 }

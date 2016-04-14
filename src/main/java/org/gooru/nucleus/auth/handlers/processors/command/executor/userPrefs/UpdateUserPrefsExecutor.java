@@ -27,69 +27,73 @@ import org.javalite.activejdbc.LazyList;
 
 public final class UpdateUserPrefsExecutor implements DBExecutor {
 
-  private RedisClient redisClient;
-  private final MessageContext messageContext;
-  private String userId;
-  private UserPrefsDTO userPrefsDTO;
-  private AJEntityUserPreference userPreference;
+    private RedisClient redisClient;
+    private final MessageContext messageContext;
+    private String userId;
+    private UserPrefsDTO userPrefsDTO;
+    private AJEntityUserPreference userPreference;
 
-  public UpdateUserPrefsExecutor(MessageContext messageContext) {
-    this.redisClient = RedisClient.instance();
-    this.messageContext = messageContext;
-  }
-
-  @Override
-  public void checkSanity() {
-    userId = messageContext.requestParams().getString(MessageConstants.MSG_USER_ID);
-    if (userId.equalsIgnoreCase(ParameterConstants.PARAM_ME)) {
-      userId = messageContext.user().getUserId();
-    }
-    userPrefsDTO = new UserPrefsDTO(messageContext.requestBody());
-  }
-
-  @Override
-  public void validateRequest() {
-    LazyList<AJEntityUserIdentity> results = AJEntityUserIdentity.where(AJEntityUserIdentity.GET_BY_USER_ID, userId);
-    final AJEntityUserIdentity userIdentity = results.size() > 0 ? results.get(0) : null;
-    rejectIfNull(userIdentity, MessageCodeConstants.AU0026, HttpConstants.HttpStatus.NOT_FOUND.getCode(), ParameterConstants.PARAM_USER);
-    reject(userIdentity.getStatus().equalsIgnoreCase(ParameterConstants.PARAM_STATUS_DEACTIVATED), MessageCodeConstants.AU0009,
-        HttpConstants.HttpStatus.FORBIDDEN.getCode());
-    LazyList<AJEntityUserPreference> userPreferences = AJEntityUserPreference.where(AJEntityUserPreference.GET_USER_PREFERENCE, userId);
-    userPreference = userPreferences.size() > 0 ? userPreferences.get(0) : null;
-  }
-
-  @Override
-  public MessageResponse executeRequest() {
-    String token = messageContext.headers().get(MessageConstants.MSG_HEADER_TOKEN);
-    if (userPreference == null) {
-      userPreference = new AJEntityUserPreference();
-      userPreference.setUserId(UUID.fromString(userId));
-      if (userPrefsDTO.getStandardPreference() == null) {
-        userPreference.setStandardPreference(ConfigRegistry.instance().getDefaultUserStandardPrefs());
-      }
-    }
-    if (userPrefsDTO.getStandardPreference() != null) {
-      userPreference.setStandardPreference(userPrefsDTO.getStandardPreference());
-      JsonObject accessToken = this.redisClient.getJsonObject(token);
-      accessToken.put(ParameterConstants.PARAM_STANDARD_PREFERENCE, userPreference.getStandardPreference());
-      this.redisClient.set(token, accessToken.toString());
+    public UpdateUserPrefsExecutor(MessageContext messageContext) {
+        this.redisClient = RedisClient.instance();
+        this.messageContext = messageContext;
     }
 
-    if (userPrefsDTO.getProfileVisibility() != null) {
-      userPreference.setProfileVisiblity(userPrefsDTO.getProfileVisibility());
+    @Override
+    public void checkSanity() {
+        userId = messageContext.requestParams().getString(MessageConstants.MSG_USER_ID);
+        if (userId.equalsIgnoreCase(ParameterConstants.PARAM_ME)) {
+            userId = messageContext.user().getUserId();
+        }
+        userPrefsDTO = new UserPrefsDTO(messageContext.requestBody());
     }
-    userPreference.saveIt();
-    EventBuilder eventBuilder = new EventBuilder();
-    eventBuilder.putPayLoadObject(SchemaConstants.USER_PREFERENCE,
-        AJResponseJsonTransformer.transform(userPreference.toJson(false), HelperConstants.USERS_PREFS_JSON_FIELDS)).setEventName(
-        Event.UPDATE_USER_PREFS.getName());
-    return new MessageResponse.Builder().setContentTypeJson().setEventData(eventBuilder.build()).setStatusNoOutput().successful().build();
 
-  }
+    @Override
+    public void validateRequest() {
+        LazyList<AJEntityUserIdentity> results =
+            AJEntityUserIdentity.where(AJEntityUserIdentity.GET_BY_USER_ID, userId);
+        final AJEntityUserIdentity userIdentity = results.size() > 0 ? results.get(0) : null;
+        rejectIfNull(userIdentity, MessageCodeConstants.AU0026, HttpConstants.HttpStatus.NOT_FOUND.getCode(),
+            ParameterConstants.PARAM_USER);
+        reject(userIdentity.getStatus().equalsIgnoreCase(ParameterConstants.PARAM_STATUS_DEACTIVATED),
+            MessageCodeConstants.AU0009, HttpConstants.HttpStatus.FORBIDDEN.getCode());
+        LazyList<AJEntityUserPreference> userPreferences =
+            AJEntityUserPreference.where(AJEntityUserPreference.GET_USER_PREFERENCE, userId);
+        userPreference = userPreferences.size() > 0 ? userPreferences.get(0) : null;
+    }
 
-  @Override
-  public boolean handlerReadOnly() {
-    return false;
-  }
+    @Override
+    public MessageResponse executeRequest() {
+        String token = messageContext.headers().get(MessageConstants.MSG_HEADER_TOKEN);
+        if (userPreference == null) {
+            userPreference = new AJEntityUserPreference();
+            userPreference.setUserId(UUID.fromString(userId));
+            if (userPrefsDTO.getStandardPreference() == null) {
+                userPreference.setStandardPreference(ConfigRegistry.instance().getDefaultUserStandardPrefs());
+            }
+        }
+        if (userPrefsDTO.getStandardPreference() != null) {
+            userPreference.setStandardPreference(userPrefsDTO.getStandardPreference());
+            JsonObject accessToken = this.redisClient.getJsonObject(token);
+            accessToken.put(ParameterConstants.PARAM_STANDARD_PREFERENCE, userPreference.getStandardPreference());
+            this.redisClient.set(token, accessToken.toString());
+        }
+
+        if (userPrefsDTO.getProfileVisibility() != null) {
+            userPreference.setProfileVisiblity(userPrefsDTO.getProfileVisibility());
+        }
+        userPreference.saveIt();
+        EventBuilder eventBuilder = new EventBuilder();
+        eventBuilder.putPayLoadObject(SchemaConstants.USER_PREFERENCE,
+            AJResponseJsonTransformer.transform(userPreference.toJson(false), HelperConstants.USERS_PREFS_JSON_FIELDS))
+            .setEventName(Event.UPDATE_USER_PREFS.getName());
+        return new MessageResponse.Builder().setContentTypeJson().setEventData(eventBuilder.build())
+            .setStatusNoOutput().successful().build();
+
+    }
+
+    @Override
+    public boolean handlerReadOnly() {
+        return false;
+    }
 
 }

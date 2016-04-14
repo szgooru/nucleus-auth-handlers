@@ -20,48 +20,50 @@ import org.javalite.activejdbc.Base;
 
 class FindUsersExecutor implements DBExecutor {
 
-  private MessageContext messageContext;
-  private String ids;
+    private MessageContext messageContext;
+    private String ids;
 
-  public FindUsersExecutor(MessageContext messageContext) {
-    this.messageContext = messageContext;
-  }
-
-  @Override
-  public void checkSanity() {
-    ids = messageContext.requestParams().getString(ParameterConstants.PARAM_USER_IDS);
-    ServerValidatorUtility.rejectIfNullOrEmpty(ids, MessageCodeConstants.AU0043, 400, ParameterConstants.PARAM_USER_IDS);
-    final String[] userIds = ids.split(",");
-    ServerValidatorUtility.reject(userIds.length > 30, MessageCodeConstants.AU0044, 400);
-    Stream.of(userIds).forEach(userId -> {
-      try {
-        UUID.fromString(userId);
-      } catch (Exception e) {
-        ServerValidatorUtility.reject(true, MessageCodeConstants.AU0045, 400);
-      }
-    });
-  }
-
-  @Override
-  public void validateRequest() {
-  }
-
-  @SuppressWarnings({ "rawtypes", "unchecked" })
-  @Override
-  public MessageResponse executeRequest() {
-    ids = ids.replaceAll(",", "','");
-    List<Map> results = Base.findAll(AJEntityUser.FIND_USERS + "'" + ids + "')");
-    JsonArray users = new JsonArray();
-    if (results != null) {
-      results.forEach(user -> users.add(AJResponseJsonTransformer.transform((Map<String, Object>) user)));
+    public FindUsersExecutor(MessageContext messageContext) {
+        this.messageContext = messageContext;
     }
-    return new MessageResponse.Builder().setResponseBody(new JsonObject().put(ParameterConstants.PARAM_USERS, users)).setContentTypeJson()
-        .setStatusOkay().successful().build();
-  }
 
-  @Override
-  public boolean handlerReadOnly() {
-    return true;
-  }
+    @Override
+    public void checkSanity() {
+        ids = messageContext.requestParams().getString(ParameterConstants.PARAM_USER_IDS);
+        ServerValidatorUtility.rejectIfNullOrEmpty(ids, MessageCodeConstants.AU0043, 400,
+            ParameterConstants.PARAM_USER_IDS);
+        final String[] userIds = ids.split(",");
+        ServerValidatorUtility.reject(userIds.length > 30, MessageCodeConstants.AU0044, 400);
+        Stream.of(userIds).forEach(userId -> {
+            try {
+                UUID.fromString(userId);
+            } catch (Exception e) {
+                ServerValidatorUtility.reject(true, MessageCodeConstants.AU0045, 400);
+            }
+        });
+    }
+
+    @Override
+    public void validateRequest() {
+    }
+
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+    @Override
+    public MessageResponse executeRequest() {
+        ids = ids.replaceAll(",", "','");
+        List<Map> results = Base.findAll(AJEntityUser.FIND_USERS + "'" + ids + "')");
+        JsonArray users = new JsonArray();
+        if (results != null) {
+            results.forEach(user -> users.add(AJResponseJsonTransformer.transform((Map<String, Object>) user)));
+        }
+        return new MessageResponse.Builder()
+            .setResponseBody(new JsonObject().put(ParameterConstants.PARAM_USERS, users)).setContentTypeJson()
+            .setStatusOkay().successful().build();
+    }
+
+    @Override
+    public boolean handlerReadOnly() {
+        return true;
+    }
 
 }

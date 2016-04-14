@@ -15,53 +15,54 @@ import org.javalite.activejdbc.LazyList;
 
 public final class FetchAccessTokenExecutor implements DBExecutor {
 
-  private RedisClient redisClient;
-  private MessageContext messageContext;
-  private String token;
+    private RedisClient redisClient;
+    private MessageContext messageContext;
+    private String token;
 
-  public FetchAccessTokenExecutor(MessageContext messageContext) {
-    this.redisClient = RedisClient.instance();
-    this.messageContext = messageContext;
-  }
-
-  @Override
-  public void checkSanity() {
-    token = messageContext.headers().get(MessageConstants.MSG_HEADER_TOKEN);
-
-  }
-
-  @Override
-  public void validateRequest() {
-
-  }
-
-  @Override
-  public MessageResponse executeRequest() {
-    JsonObject accessToken = this.redisClient.getJsonObject(token);
-    ServerValidatorUtility.reject(accessToken == null, MessageCodeConstants.AU0040, 400);
-    if (accessToken.containsKey(MessageConstants.MSG_KEY_PREFS)) {
-      accessToken.remove(MessageConstants.MSG_KEY_PREFS);
+    public FetchAccessTokenExecutor(MessageContext messageContext) {
+        this.redisClient = RedisClient.instance();
+        this.messageContext = messageContext;
     }
-    accessToken.remove(ParameterConstants.PARAM_ACCESS_TOKEN_VALIDITY);
-    final String userId = accessToken.getString(ParameterConstants.PARAM_USER_ID);
-    if (!userId.equalsIgnoreCase(MessageConstants.MSG_USER_ANONYMOUS)) {
-      LazyList<AJEntityUser> users = AJEntityUser.where(AJEntityUser.GET_USER, userId);
-      AJEntityUser user = users.size() > 0 ? users.get(0) : null;
-      if (user.getFirstname() != null) {
-        accessToken.put(ParameterConstants.PARAM_USER_FIRSTNAME, user.getFirstname());
-      }
-      if (user.getLastname() != null) {
-        accessToken.put(ParameterConstants.PARAM_USER_LASTNAME, user.getLastname());
-      }
-      if (user.getUserCategory() != null) {
-        accessToken.put(ParameterConstants.PARAM_USER_CATEGORY, user.getUserCategory());
-      }
-    }
-    return new MessageResponse.Builder().setResponseBody(accessToken).setContentTypeJson().setStatusOkay().successful().build();
-  }
 
-  @Override
-  public boolean handlerReadOnly() {
-    return false;
-  }
+    @Override
+    public void checkSanity() {
+        token = messageContext.headers().get(MessageConstants.MSG_HEADER_TOKEN);
+
+    }
+
+    @Override
+    public void validateRequest() {
+
+    }
+
+    @Override
+    public MessageResponse executeRequest() {
+        JsonObject accessToken = this.redisClient.getJsonObject(token);
+        ServerValidatorUtility.reject(accessToken == null, MessageCodeConstants.AU0040, 400);
+        if (accessToken.containsKey(MessageConstants.MSG_KEY_PREFS)) {
+            accessToken.remove(MessageConstants.MSG_KEY_PREFS);
+        }
+        accessToken.remove(ParameterConstants.PARAM_ACCESS_TOKEN_VALIDITY);
+        final String userId = accessToken.getString(ParameterConstants.PARAM_USER_ID);
+        if (!userId.equalsIgnoreCase(MessageConstants.MSG_USER_ANONYMOUS)) {
+            LazyList<AJEntityUser> users = AJEntityUser.where(AJEntityUser.GET_USER, userId);
+            AJEntityUser user = users.size() > 0 ? users.get(0) : null;
+            if (user.getFirstname() != null) {
+                accessToken.put(ParameterConstants.PARAM_USER_FIRSTNAME, user.getFirstname());
+            }
+            if (user.getLastname() != null) {
+                accessToken.put(ParameterConstants.PARAM_USER_LASTNAME, user.getLastname());
+            }
+            if (user.getUserCategory() != null) {
+                accessToken.put(ParameterConstants.PARAM_USER_CATEGORY, user.getUserCategory());
+            }
+        }
+        return new MessageResponse.Builder().setResponseBody(accessToken).setContentTypeJson().setStatusOkay()
+            .successful().build();
+    }
+
+    @Override
+    public boolean handlerReadOnly() {
+        return false;
+    }
 }

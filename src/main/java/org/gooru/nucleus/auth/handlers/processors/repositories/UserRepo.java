@@ -3,25 +3,25 @@ package org.gooru.nucleus.auth.handlers.processors.repositories;
 import org.gooru.nucleus.auth.handlers.processors.command.executor.MessageResponse;
 
 public interface UserRepo {
-  MessageResponse createUser();
+    MessageResponse createUser();
 
-  MessageResponse updateUser();
+    MessageResponse updateUser();
 
-  MessageResponse findUser();
+    MessageResponse findUser();
 
-  MessageResponse findUsers();
+    MessageResponse findUsers();
 
-  MessageResponse fetchUser();
+    MessageResponse fetchUser();
 
-  MessageResponse resetAuthenticateUserPassword();
+    MessageResponse resetAuthenticateUserPassword();
 
-  MessageResponse resetPassword();
+    MessageResponse resetPassword();
 
-  MessageResponse resetUnAuthenticateUserPassword();
+    MessageResponse resetUnAuthenticateUserPassword();
 
-  MessageResponse updateUserEmail();
+    MessageResponse updateUserEmail();
 
-  MessageResponse confirmUserEmail();
+    MessageResponse confirmUserEmail();
 
-  MessageResponse resendConfirmationEmail();
+    MessageResponse resendConfirmationEmail();
 }

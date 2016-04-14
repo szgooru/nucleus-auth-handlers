@@ -9,22 +9,22 @@ import org.slf4j.LoggerFactory;
 
 public final class UserPrefsMessageProcessor implements MessageProcessorHandler {
 
-  private static final Logger LOG = LoggerFactory.getLogger(UserPrefsMessageProcessor.class);
+    private static final Logger LOG = LoggerFactory.getLogger(UserPrefsMessageProcessor.class);
 
-  @Override
-  public MessageResponse process(MessageContext messageContext) {
-    MessageResponse result = null;
-    switch (messageContext.command()) {
-    case CommandConstants.UPDATE_USER_PREFERENCE:
-      result = RepoFactory.getUserPrefsRepo(messageContext).updateUserPrefs();
-      break;
-    case CommandConstants.GET_USER_PREFERENCE:
-      result = RepoFactory.getUserPrefsRepo(messageContext).fetchUserPrefs();
-      break;
-    default:
-      LOG.error("Invalid command type passed in, not able to handle");
-      throw new InvalidRequestException();
+    @Override
+    public MessageResponse process(MessageContext messageContext) {
+        MessageResponse result = null;
+        switch (messageContext.command()) {
+        case CommandConstants.UPDATE_USER_PREFERENCE:
+            result = RepoFactory.getUserPrefsRepo(messageContext).updateUserPrefs();
+            break;
+        case CommandConstants.GET_USER_PREFERENCE:
+            result = RepoFactory.getUserPrefsRepo(messageContext).fetchUserPrefs();
+            break;
+        default:
+            LOG.error("Invalid command type passed in, not able to handle");
+            throw new InvalidRequestException();
+        }
+        return result;
     }
-    return result;
-  }
 }

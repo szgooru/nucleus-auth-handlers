@@ -17,40 +17,40 @@ import org.javalite.activejdbc.Base;
 
 class FetchUserExecutor implements DBExecutor {
 
-  private final MessageContext messageContext;
-  private String userId;
-  private Map<String, Object> user;
+    private final MessageContext messageContext;
+    private String userId;
+    private Map<String, Object> user;
 
-  public FetchUserExecutor(MessageContext messageContext) {
-    this.messageContext = messageContext;
-  }
-
-  @Override
-  public void checkSanity() {
-    userId = messageContext.requestParams().getString(MessageConstants.MSG_USER_ID);
-    if (userId.equalsIgnoreCase(ParameterConstants.PARAM_ME)) {
-      userId = messageContext.user().getString(ParameterConstants.PARAM_USER_ID);
+    public FetchUserExecutor(MessageContext messageContext) {
+        this.messageContext = messageContext;
     }
-  }
 
-  @SuppressWarnings({ "unchecked", "rawtypes" })
-  @Override
-  public void validateRequest() {
-    List<Map> results = Base.findAll(AJEntityUser.FIND_USER, userId);
-    user = results.size() > 0 ? results.get(0) : null;
-    ServerValidatorUtility.rejectIfNull(user, MessageCodeConstants.AU0026, HttpConstants.HttpStatus.NOT_FOUND.getCode(),
-        ParameterConstants.PARAM_USER);
-  }
+    @Override
+    public void checkSanity() {
+        userId = messageContext.requestParams().getString(MessageConstants.MSG_USER_ID);
+        if (userId.equalsIgnoreCase(ParameterConstants.PARAM_ME)) {
+            userId = messageContext.user().getString(ParameterConstants.PARAM_USER_ID);
+        }
+    }
 
-  @Override
-  public MessageResponse executeRequest() {
-    return new MessageResponse.Builder().setResponseBody(AJResponseJsonTransformer.transform(user)).setContentTypeJson().setStatusOkay().successful()
-        .build();
-  }
+    @SuppressWarnings({ "unchecked", "rawtypes" })
+    @Override
+    public void validateRequest() {
+        List<Map> results = Base.findAll(AJEntityUser.FIND_USER, userId);
+        user = results.size() > 0 ? results.get(0) : null;
+        ServerValidatorUtility.rejectIfNull(user, MessageCodeConstants.AU0026,
+            HttpConstants.HttpStatus.NOT_FOUND.getCode(), ParameterConstants.PARAM_USER);
+    }
 
-  @Override
-  public boolean handlerReadOnly() {
-    return true;
-  }
+    @Override
+    public MessageResponse executeRequest() {
+        return new MessageResponse.Builder().setResponseBody(AJResponseJsonTransformer.transform(user))
+            .setContentTypeJson().setStatusOkay().successful().build();
+    }
+
+    @Override
+    public boolean handlerReadOnly() {
+        return true;
+    }
 
 }

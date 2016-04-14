@@ -19,48 +19,55 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class UserPrefsVerticle extends AbstractVerticle {
-  private static final Logger LOG = LoggerFactory.getLogger(UserPrefsVerticle.class);
-  @Override
-  public void start(Future<Void> voidFuture) throws Exception {
-    final EventBus eb = vertx.eventBus();
-    final ConfigRegistry configRegistry = ConfigRegistry.instance();
+    private static final Logger LOG = LoggerFactory.getLogger(UserPrefsVerticle.class);
 
-    eb.consumer(MessagebusEndpoints.MBEP_USER_PREFS, message -> {
-      LOG.debug("Received message: " + message.body());
-      vertx.executeBlocking(future -> {
-        MessageResponse result = new ProcessorBuilder(ProcessorHandlerType.USER_PREFS, message).build().process();
-        future.complete(result);
-      }, res -> {
-        MessageResponse result = (MessageResponse) res.result();
-        message.reply(result.reply(), result.deliveryOptions());
+    @Override
+    public void start(Future<Void> voidFuture) throws Exception {
+        final EventBus eb = vertx.eventBus();
+        final ConfigRegistry configRegistry = ConfigRegistry.instance();
 
-        final JsonObject eventData = result.event();
-        if (eventData != null) {
-          final String accessToken = getAccessToken(message, result);
-          InternalHelper.executeHTTPClientPost(configRegistry.getEventRestApiUrl(), eventData.toString(), accessToken);
-        }
-      });
-    }).completionHandler(result -> {
-      if (result.succeeded()) {
-        LOG.info("User prefs end point ready to listen");
-      } else {
-        LOG.error("Error registering the user prefs handler. Halting the user prefs machinery");
-        Runtime.getRuntime().halt(1);
-      }
-    });
-  }
+        eb.consumer(
+            MessagebusEndpoints.MBEP_USER_PREFS,
+            message -> {
+                LOG.debug("Received message: " + message.body());
+                vertx.executeBlocking(
+                    future -> {
+                        MessageResponse result =
+                            new ProcessorBuilder(ProcessorHandlerType.USER_PREFS, message).build().process();
+                        future.complete(result);
+                    },
+                    res -> {
+                        MessageResponse result = (MessageResponse) res.result();
+                        message.reply(result.reply(), result.deliveryOptions());
 
-  private String getAccessToken(Message<?> message, MessageResponse messageResponse) {
-    String accessToken = ((JsonObject) message.body()).getString(MessageConstants.MSG_HEADER_TOKEN);
-    if (accessToken == null || accessToken.isEmpty()) {
-      final JsonObject result = (JsonObject) messageResponse.reply();
-      final JsonObject resultHttpBody = result.getJsonObject(MessageConstants.MSG_HTTP_BODY);
-      final JsonObject resultHttpRes = resultHttpBody.getJsonObject(MessageConstants.MSG_HTTP_RESPONSE);
-      if (resultHttpRes != null) {
-        accessToken = resultHttpRes.getString(ParameterConstants.PARAM_ACCESS_TOKEN);
-      }
+                        final JsonObject eventData = result.event();
+                        if (eventData != null) {
+                            final String accessToken = getAccessToken(message, result);
+                            InternalHelper.executeHTTPClientPost(configRegistry.getEventRestApiUrl(),
+                                eventData.toString(), accessToken);
+                        }
+                    });
+            }).completionHandler(result -> {
+            if (result.succeeded()) {
+                LOG.info("User prefs end point ready to listen");
+            } else {
+                LOG.error("Error registering the user prefs handler. Halting the user prefs machinery");
+                Runtime.getRuntime().halt(1);
+            }
+        });
     }
-    return (HelperConstants.HEADER_TOKEN + accessToken);
-  }
+
+    private String getAccessToken(Message<?> message, MessageResponse messageResponse) {
+        String accessToken = ((JsonObject) message.body()).getString(MessageConstants.MSG_HEADER_TOKEN);
+        if (accessToken == null || accessToken.isEmpty()) {
+            final JsonObject result = (JsonObject) messageResponse.reply();
+            final JsonObject resultHttpBody = result.getJsonObject(MessageConstants.MSG_HTTP_BODY);
+            final JsonObject resultHttpRes = resultHttpBody.getJsonObject(MessageConstants.MSG_HTTP_RESPONSE);
+            if (resultHttpRes != null) {
+                accessToken = resultHttpRes.getString(ParameterConstants.PARAM_ACCESS_TOKEN);
+            }
+        }
+        return (HelperConstants.HEADER_TOKEN + accessToken);
+    }
 
 }

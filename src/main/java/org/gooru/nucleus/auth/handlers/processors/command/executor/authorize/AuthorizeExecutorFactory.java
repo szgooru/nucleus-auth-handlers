@@ -5,9 +5,8 @@ import org.gooru.nucleus.auth.handlers.processors.messageProcessor.MessageContex
 
 public final class AuthorizeExecutorFactory {
 
-  
-  public static DBExecutor AuthorizeUser(MessageContext messageContext) {
-    return new AuthorizeUserExecutor(messageContext);
-  }
+    public static DBExecutor AuthorizeUser(MessageContext messageContext) {
+        return new AuthorizeUserExecutor(messageContext);
+    }
 
 }

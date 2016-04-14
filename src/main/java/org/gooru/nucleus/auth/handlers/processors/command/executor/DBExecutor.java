@@ -1,12 +1,11 @@
 package org.gooru.nucleus.auth.handlers.processors.command.executor;
 
-
 public interface DBExecutor {
-  void checkSanity();
+    void checkSanity();
 
-  void validateRequest();
+    void validateRequest();
 
-  MessageResponse executeRequest();
+    MessageResponse executeRequest();
 
-  boolean handlerReadOnly();
+    boolean handlerReadOnly();
 }

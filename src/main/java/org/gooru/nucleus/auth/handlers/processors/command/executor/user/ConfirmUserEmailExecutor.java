@@ -21,64 +21,69 @@ import org.javalite.activejdbc.LazyList;
 
 class ConfirmUserEmailExecutor implements DBExecutor {
 
-  private RedisClient redisClient;
-  private MessageContext messageContext;
-  private JsonObject accessToken;
-  private AJEntityUserIdentity userIdentity;
-  private String token;
+    private RedisClient redisClient;
+    private MessageContext messageContext;
+    private JsonObject accessToken;
+    private AJEntityUserIdentity userIdentity;
+    private String token;
 
-   public ConfirmUserEmailExecutor(MessageContext messageContext) {
-    this.redisClient = RedisClient.instance();
-    this.messageContext = messageContext;
-  }
-
-  @Override
-  public void checkSanity() {
-    if (messageContext.requestBody() != null) {
-      token = messageContext.requestBody().getString(ParameterConstants.PARAM_USER_TOKEN);
+    public ConfirmUserEmailExecutor(MessageContext messageContext) {
+        this.redisClient = RedisClient.instance();
+        this.messageContext = messageContext;
     }
-    rejectIfNull(token, MessageCodeConstants.AU0030, HttpConstants.HttpStatus.UNAUTHORIZED.getCode());
-    final String tokenData = this.redisClient.get(token);
-    rejectIfNull(tokenData, MessageCodeConstants.AU0030, HttpConstants.HttpStatus.UNAUTHORIZED.getCode());
-    this.accessToken = new JsonObject(tokenData);
-  }
 
-  @Override
-  public void validateRequest() {
-    final String userId = accessToken.getString(ParameterConstants.PARAM_USER_ID);
-    LazyList<AJEntityUserIdentity> results = AJEntityUserIdentity.where(AJEntityUserIdentity.GET_BY_USER_ID, userId);
-    userIdentity = (results.size() > 0) ? results.get(0) : null;
-    rejectIfNull(userIdentity, MessageCodeConstants.AU0026, HttpConstants.HttpStatus.NOT_FOUND.getCode(), ParameterConstants.PARAM_USER);
-  }
-
-  @Override
-  public MessageResponse executeRequest() {
-
-    return confirmUserEmail();
-  }
-
-  private MessageResponse confirmUserEmail() {
-    final String emailId = accessToken.getString(ParameterConstants.PARAM_USER_EMAIL_ID);
-    EventBuilder eventBuilder = new EventBuilder();
-    eventBuilder.setEventName(Event.UPDATE_USER_EMAIL_CONFIRM.getName());
-    
-    if (!userIdentity.getEmailId().equalsIgnoreCase(emailId)) {
-      userIdentity.setEmailId(emailId);
-      LazyList<AJEntityUser> results = AJEntityUser.where(AJEntityUser.GET_USER, userIdentity.getUserId());
-      AJEntityUser user = (results.size() > 0) ? results.get(0) : null;
-      user.setEmailId(emailId);
-      user.saveIt();
-      eventBuilder.put(SchemaConstants.USER_DEMOGRAPHIC, AJResponseJsonTransformer.transform(user.toJson(false), HelperConstants.USERS_JSON_FIELDS));
+    @Override
+    public void checkSanity() {
+        if (messageContext.requestBody() != null) {
+            token = messageContext.requestBody().getString(ParameterConstants.PARAM_USER_TOKEN);
+        }
+        rejectIfNull(token, MessageCodeConstants.AU0030, HttpConstants.HttpStatus.UNAUTHORIZED.getCode());
+        final String tokenData = this.redisClient.get(token);
+        rejectIfNull(tokenData, MessageCodeConstants.AU0030, HttpConstants.HttpStatus.UNAUTHORIZED.getCode());
+        this.accessToken = new JsonObject(tokenData);
     }
-    userIdentity.setEmailConfirmStatus(true);
-    userIdentity.saveIt();
-    this.redisClient.del(token);
-    eventBuilder.put(SchemaConstants.USER_IDENTITY, AJResponseJsonTransformer.transform(userIdentity.toJson(false)));
-    return new MessageResponse.Builder().setEventData(eventBuilder.build()).setContentTypeJson().setStatusNoOutput().successful().build();
-  }
 
-  @Override
-  public boolean handlerReadOnly() {
-    return false;
-  }
+    @Override
+    public void validateRequest() {
+        final String userId = accessToken.getString(ParameterConstants.PARAM_USER_ID);
+        LazyList<AJEntityUserIdentity> results =
+            AJEntityUserIdentity.where(AJEntityUserIdentity.GET_BY_USER_ID, userId);
+        userIdentity = (results.size() > 0) ? results.get(0) : null;
+        rejectIfNull(userIdentity, MessageCodeConstants.AU0026, HttpConstants.HttpStatus.NOT_FOUND.getCode(),
+            ParameterConstants.PARAM_USER);
+    }
+
+    @Override
+    public MessageResponse executeRequest() {
+
+        return confirmUserEmail();
+    }
+
+    private MessageResponse confirmUserEmail() {
+        final String emailId = accessToken.getString(ParameterConstants.PARAM_USER_EMAIL_ID);
+        EventBuilder eventBuilder = new EventBuilder();
+        eventBuilder.setEventName(Event.UPDATE_USER_EMAIL_CONFIRM.getName());
+
+        if (!userIdentity.getEmailId().equalsIgnoreCase(emailId)) {
+            userIdentity.setEmailId(emailId);
+            LazyList<AJEntityUser> results = AJEntityUser.where(AJEntityUser.GET_USER, userIdentity.getUserId());
+            AJEntityUser user = (results.size() > 0) ? results.get(0) : null;
+            user.setEmailId(emailId);
+            user.saveIt();
+            eventBuilder.put(SchemaConstants.USER_DEMOGRAPHIC,
+                AJResponseJsonTransformer.transform(user.toJson(false), HelperConstants.USERS_JSON_FIELDS));
+        }
+        userIdentity.setEmailConfirmStatus(true);
+        userIdentity.saveIt();
+        this.redisClient.del(token);
+        eventBuilder
+            .put(SchemaConstants.USER_IDENTITY, AJResponseJsonTransformer.transform(userIdentity.toJson(false)));
+        return new MessageResponse.Builder().setEventData(eventBuilder.build()).setContentTypeJson()
+            .setStatusNoOutput().successful().build();
+    }
+
+    @Override
+    public boolean handlerReadOnly() {
+        return false;
+    }
 }

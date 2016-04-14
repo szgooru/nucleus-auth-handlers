@@ -4,19 +4,19 @@ import io.vertx.core.json.JsonObject;
 
 import org.gooru.nucleus.auth.handlers.constants.ParameterConstants;
 
-public class UserPrefsDTO  {
+public class UserPrefsDTO {
 
-  private JsonObject requestBody;
-  
-  public UserPrefsDTO(JsonObject requestBody) {
-    this.requestBody = requestBody;
-  }
+    private JsonObject requestBody;
 
-  public JsonObject getStandardPreference() {
-    return this.requestBody.getJsonObject(ParameterConstants.PARAM_STANDARD_PREFERENCE);
-  }
+    public UserPrefsDTO(JsonObject requestBody) {
+        this.requestBody = requestBody;
+    }
 
-  public Boolean getProfileVisibility() {
-    return this.requestBody.getBoolean(ParameterConstants.PARAM_PROFILE_VISIBILITY);
-  }
+    public JsonObject getStandardPreference() {
+        return this.requestBody.getJsonObject(ParameterConstants.PARAM_STANDARD_PREFERENCE);
+    }
+
+    public Boolean getProfileVisibility() {
+        return this.requestBody.getBoolean(ParameterConstants.PARAM_PROFILE_VISIBILITY);
+    }
 }

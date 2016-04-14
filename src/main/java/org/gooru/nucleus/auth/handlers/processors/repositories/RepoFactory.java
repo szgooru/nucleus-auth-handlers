@@ -5,27 +5,27 @@ import org.gooru.nucleus.auth.handlers.processors.repositories.activejdbc.AJRepo
 
 public final class RepoFactory {
 
-  public static UserRepo getUserRepo(MessageContext messageContext) {
-    return AJRepoFactory.getUserRepo(messageContext);
-  }
+    public static UserRepo getUserRepo(MessageContext messageContext) {
+        return AJRepoFactory.getUserRepo(messageContext);
+    }
 
-  public static UserPrefsRepo getUserPrefsRepo(MessageContext messageContext) {
-    return AJRepoFactory.getUserPrefsRepo(messageContext);
-  }
+    public static UserPrefsRepo getUserPrefsRepo(MessageContext messageContext) {
+        return AJRepoFactory.getUserPrefsRepo(messageContext);
+    }
 
-  public static AuthenticationRepo getAuthenticationRepo(MessageContext messageContext) {
-    return AJRepoFactory.getAuthenticationRepo(messageContext);
-  }
+    public static AuthenticationRepo getAuthenticationRepo(MessageContext messageContext) {
+        return AJRepoFactory.getAuthenticationRepo(messageContext);
+    }
 
-  public static AuthenticationGLARepo getAuthenticationGLARepo(MessageContext messageContext) {
-    return AJRepoFactory.getAuthenticationGLARepo(messageContext);
-  }
+    public static AuthenticationGLARepo getAuthenticationGLARepo(MessageContext messageContext) {
+        return AJRepoFactory.getAuthenticationGLARepo(messageContext);
+    }
 
-  public static AuthorizeRepo getAuthorizeRepo(MessageContext messageContext) {
-    return AJRepoFactory.getAuthorizeRepo(messageContext);
-  }
+    public static AuthorizeRepo getAuthorizeRepo(MessageContext messageContext) {
+        return AJRepoFactory.getAuthorizeRepo(messageContext);
+    }
 
-  private RepoFactory() {
-    throw new AssertionError();
-  }
+    private RepoFactory() {
+        throw new AssertionError();
+    }
 }

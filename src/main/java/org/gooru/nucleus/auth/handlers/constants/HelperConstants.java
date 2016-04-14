@@ -6,109 +6,109 @@ import java.util.Map;
 
 public final class HelperConstants {
 
-  public static final Map<String, String> USER_GENDER;
+    public static final Map<String, String> USER_GENDER;
 
-  public static final Map<String, String> USER_CATEGORY;
+    public static final Map<String, String> USER_CATEGORY;
 
-  public static final Map<String, String> SSO_CONNECT_GRANT_TYPES;
+    public static final Map<String, String> SSO_CONNECT_GRANT_TYPES;
 
-  public static final String LOCATION = "Location";
+    public static final String LOCATION = "Location";
 
-  public static final String USER_ENTITY_URI = "/users/";
+    public static final String USER_ENTITY_URI = "/users/";
 
-  public static final String USERS_JSON_FIELDS[] = { "course", "grade" };
+    public static final String USERS_JSON_FIELDS[] = { "course", "grade" };
 
-  public static final String USERS_PREFS_JSON_FIELDS[] = { "standard_preference" };
+    public static final String USERS_PREFS_JSON_FIELDS[] = { "standard_preference" };
 
-  public static final String HEADER_AUTHORIZATION = "Authorization";
+    public static final String HEADER_AUTHORIZATION = "Authorization";
 
-  public static final String HEADER_TOKEN = "Token ";
+    public static final String HEADER_TOKEN = "Token ";
 
-  public static final int EXPIRE_IN_SECONDS = 86400;
-  
-  static {
-    Map<String, String> gender = new HashMap<>();
-    gender.put("male", "male");
-    gender.put("female", "female");
-    gender.put("other", "not wise to share");
-    USER_GENDER = Collections.unmodifiableMap(gender);
-  }
+    public static final int EXPIRE_IN_SECONDS = 86400;
 
-  static {
-    Map<String, String> gender = new HashMap<>();
-    gender.put("teacher", "Teacher");
-    gender.put("student", "Student");
-    gender.put("parent", "Parent");
-    gender.put("other", "Other");
-    USER_CATEGORY = Collections.unmodifiableMap(gender);
-  }
-
-  static {
-    Map<String, String> ssoGrantType = new HashMap<>();
-    ssoGrantType.put("google", "grant type used to connect with google authentication");
-    ssoGrantType.put("wsfed", "grant type used to connect with wsfed authentication");
-    ssoGrantType.put("saml", "grant type used to connect with saml authentication");
-    SSO_CONNECT_GRANT_TYPES = Collections.unmodifiableMap(ssoGrantType);
-  }
-
-  public enum UserIdentityProvisionType {
-    GOOGLE("google"), WSFED("wsfed"), SAML("saml"), REGISTERED("registered");
-
-    public final String type;
-
-    UserIdentityProvisionType(String type) {
-      this.type = type;
+    static {
+        Map<String, String> gender = new HashMap<>();
+        gender.put("male", "male");
+        gender.put("female", "female");
+        gender.put("other", "not wise to share");
+        USER_GENDER = Collections.unmodifiableMap(gender);
     }
 
-    public String getType() {
-      return this.type;
-    }
-  }
-
-  public enum UserIdentityLoginType {
-    GOOGLE("google"), WSFED("wsfed"), SAML("saml"), CREDENTIAL("credential");
-
-    public final String type;
-
-    UserIdentityLoginType(String type) {
-      this.type = type;
+    static {
+        Map<String, String> gender = new HashMap<>();
+        gender.put("teacher", "Teacher");
+        gender.put("student", "Student");
+        gender.put("parent", "Parent");
+        gender.put("other", "Other");
+        USER_CATEGORY = Collections.unmodifiableMap(gender);
     }
 
-    public String getType() {
-      return this.type;
-    }
-  }
-
-  public enum UserIdentityStatus {
-    ACTIVE("active"), DEACTIVED("deactived"), DELETED("deleted");
-
-    public final String status;
-
-    UserIdentityStatus(String status) {
-      this.status = status;
+    static {
+        Map<String, String> ssoGrantType = new HashMap<>();
+        ssoGrantType.put("google", "grant type used to connect with google authentication");
+        ssoGrantType.put("wsfed", "grant type used to connect with wsfed authentication");
+        ssoGrantType.put("saml", "grant type used to connect with saml authentication");
+        SSO_CONNECT_GRANT_TYPES = Collections.unmodifiableMap(ssoGrantType);
     }
 
-    public String getStatus() {
-      return this.status;
+    public enum UserIdentityProvisionType {
+        GOOGLE("google"), WSFED("wsfed"), SAML("saml"), REGISTERED("registered");
+
+        public final String type;
+
+        UserIdentityProvisionType(String type) {
+            this.type = type;
+        }
+
+        public String getType() {
+            return this.type;
+        }
     }
-  }
 
-  public enum GrantType {
-    ANONYMOUS("anonymous"), CREDENTIAL("credential"), GOOGLE("google"), WSFED("wsfed"), SAML("saml");
+    public enum UserIdentityLoginType {
+        GOOGLE("google"), WSFED("wsfed"), SAML("saml"), CREDENTIAL("credential");
 
-    public final String type;
+        public final String type;
 
-    GrantType(String type) {
-      this.type = type;
+        UserIdentityLoginType(String type) {
+            this.type = type;
+        }
+
+        public String getType() {
+            return this.type;
+        }
     }
 
-    public String getType() {
-      return this.type;
-    }
-  }
+    public enum UserIdentityStatus {
+        ACTIVE("active"), DEACTIVED("deactived"), DELETED("deleted");
 
-  private HelperConstants() {
-    throw new AssertionError();
-  }
+        public final String status;
+
+        UserIdentityStatus(String status) {
+            this.status = status;
+        }
+
+        public String getStatus() {
+            return this.status;
+        }
+    }
+
+    public enum GrantType {
+        ANONYMOUS("anonymous"), CREDENTIAL("credential"), GOOGLE("google"), WSFED("wsfed"), SAML("saml");
+
+        public final String type;
+
+        GrantType(String type) {
+            this.type = type;
+        }
+
+        public String getType() {
+            return this.type;
+        }
+    }
+
+    private HelperConstants() {
+        throw new AssertionError();
+    }
 
 }

@@ -20,50 +20,55 @@ import org.javalite.activejdbc.LazyList;
 
 class ResendConfirmationEmailExecutor implements DBExecutor {
 
-  private RedisClient redisClient;
-  private MessageContext messageContext;
-  private AJEntityUser user;
-  private AJEntityUserIdentity userIdentity;
-  private static final int EXPIRE_IN_SECONDS = 86400;
+    private RedisClient redisClient;
+    private MessageContext messageContext;
+    private AJEntityUser user;
+    private AJEntityUserIdentity userIdentity;
+    private static final int EXPIRE_IN_SECONDS = 86400;
 
-  public ResendConfirmationEmailExecutor(MessageContext messageContext) {
-    this.redisClient = RedisClient.instance();
-    this.messageContext = messageContext;
-  }
+    public ResendConfirmationEmailExecutor(MessageContext messageContext) {
+        this.redisClient = RedisClient.instance();
+        this.messageContext = messageContext;
+    }
 
-  @Override
-  public void checkSanity() {
+    @Override
+    public void checkSanity() {
 
-  }
+    }
 
-  @Override
-  public void validateRequest() {
-    LazyList<AJEntityUser> results = AJEntityUser.where(AJEntityUser.GET_USER, messageContext.user().getUserId());
-    System.out.println(messageContext.user().getUserId());
-    user = results.size() > 0 ? results.get(0) : null;
-    rejectIfNull(user, MessageCodeConstants.AU0026, HttpConstants.HttpStatus.NOT_FOUND.getCode(), ParameterConstants.PARAM_USER);
-    LazyList<AJEntityUserIdentity> userIdentitys = AJEntityUserIdentity.where(AJEntityUserIdentity.GET_BY_EMAIL, user.getEmailId());
-    userIdentity = userIdentitys.size() > 0 ? userIdentitys.get(0) : null;
-    rejectIfNull(userIdentity, MessageCodeConstants.AU0026, HttpConstants.HttpStatus.NOT_FOUND.getCode(), ParameterConstants.PARAM_USER);
-    reject(userIdentity.getStatus().equalsIgnoreCase(ParameterConstants.PARAM_STATUS_DEACTIVATED), MessageCodeConstants.AU0009,
-        HttpConstants.HttpStatus.FORBIDDEN.getCode());
-  }
+    @Override
+    public void validateRequest() {
+        LazyList<AJEntityUser> results = AJEntityUser.where(AJEntityUser.GET_USER, messageContext.user().getUserId());
+        System.out.println(messageContext.user().getUserId());
+        user = results.size() > 0 ? results.get(0) : null;
+        rejectIfNull(user, MessageCodeConstants.AU0026, HttpConstants.HttpStatus.NOT_FOUND.getCode(),
+            ParameterConstants.PARAM_USER);
+        LazyList<AJEntityUserIdentity> userIdentitys =
+            AJEntityUserIdentity.where(AJEntityUserIdentity.GET_BY_EMAIL, user.getEmailId());
+        userIdentity = userIdentitys.size() > 0 ? userIdentitys.get(0) : null;
+        rejectIfNull(userIdentity, MessageCodeConstants.AU0026, HttpConstants.HttpStatus.NOT_FOUND.getCode(),
+            ParameterConstants.PARAM_USER);
+        reject(userIdentity.getStatus().equalsIgnoreCase(ParameterConstants.PARAM_STATUS_DEACTIVATED),
+            MessageCodeConstants.AU0009, HttpConstants.HttpStatus.FORBIDDEN.getCode());
+    }
 
-  @Override
-  public MessageResponse executeRequest() {
-    final String token = InternalHelper.generateEmailConfirmToken(messageContext.user().getUserId());
-    JsonObject tokenData = new JsonObject();
-    tokenData.put(ParameterConstants.PARAM_USER_EMAIL_ID, userIdentity.getEmailId());
-    tokenData.put(ParameterConstants.PARAM_USER_ID, user.getId().toString());
-    this.redisClient.set(token, tokenData.toString(), EXPIRE_IN_SECONDS);
-    MailNotifyBuilder mailConfirmNotifyBuilder = new MailNotifyBuilder();
-    mailConfirmNotifyBuilder.setTemplateName(MailTemplateConstants.USER_REGISTARTION_CONFIRMATION).addToAddress(userIdentity.getEmailId())
-        .putContext(ParameterConstants.MAIL_TOKEN, token).putContext(ParameterConstants.PARAM_USER_ID, user.getId().toString());
-    return new MessageResponse.Builder().addMailNotify(mailConfirmNotifyBuilder.build()).setContentTypeJson().setStatusOkay().successful().build();
-  }
+    @Override
+    public MessageResponse executeRequest() {
+        final String token = InternalHelper.generateEmailConfirmToken(messageContext.user().getUserId());
+        JsonObject tokenData = new JsonObject();
+        tokenData.put(ParameterConstants.PARAM_USER_EMAIL_ID, userIdentity.getEmailId());
+        tokenData.put(ParameterConstants.PARAM_USER_ID, user.getId().toString());
+        this.redisClient.set(token, tokenData.toString(), EXPIRE_IN_SECONDS);
+        MailNotifyBuilder mailConfirmNotifyBuilder = new MailNotifyBuilder();
+        mailConfirmNotifyBuilder.setTemplateName(MailTemplateConstants.USER_REGISTARTION_CONFIRMATION)
+            .addToAddress(userIdentity.getEmailId()).putContext(ParameterConstants.MAIL_TOKEN, token)
+            .putContext(ParameterConstants.PARAM_USER_ID, user.getId().toString());
+        return new MessageResponse.Builder().addMailNotify(mailConfirmNotifyBuilder.build()).setContentTypeJson()
+            .setStatusOkay().successful().build();
+    }
 
-  @Override
-  public boolean handlerReadOnly() {
-    return true;
-  }
+    @Override
+    public boolean handlerReadOnly() {
+        return true;
+    }
 }

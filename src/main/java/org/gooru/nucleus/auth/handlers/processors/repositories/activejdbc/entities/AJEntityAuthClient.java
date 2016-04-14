@@ -13,40 +13,40 @@ import org.javalite.activejdbc.annotations.Table;
 @IdName(SchemaConstants.CLIENT_ID)
 public class AJEntityAuthClient extends Model {
 
-  public static final String GET_AUTH_CLIENT_ID_AND_KEY = "client_id = ?::uuid and client_key = ?";
-  public static final String GET_AUTH_CLIENT_KEY = "client_key = ?";
-  
-  public String getClientId() {
-    return getString(ParameterConstants.PARAM_CLIENT_ID);
-  }
+    public static final String GET_AUTH_CLIENT_ID_AND_KEY = "client_id = ?::uuid and client_key = ?";
+    public static final String GET_AUTH_CLIENT_KEY = "client_key = ?";
 
-  public String getClientKey() {
-    return getString(ParameterConstants.PARAM_CLIENT_KEY);
-  }
-
-  public JsonArray getGrantTypes() {
-    return new JsonArray(getString(ParameterConstants.PARAM_GRANT_TYPES));
-  }
-
-  public JsonArray getRefererDomains() {
-    String json = getString(ParameterConstants.PARAM_REFERER_DOMAINS);
-    JsonArray refererDomains = null;
-    if (json != null) {
-      refererDomains = new JsonArray(json);
+    public String getClientId() {
+        return getString(ParameterConstants.PARAM_CLIENT_ID);
     }
-    return refererDomains;
-  }
 
-  public int getAccessTokenValidity() {
-    return getInteger(ParameterConstants.PARAM_ACCESS_TOKEN_VALIDITY);
-  }
-
-  public JsonObject getCdnUrls() {
-    String json = getString(ParameterConstants.PARAM_CDN_URLS);
-    JsonObject cdnUrls = null;
-    if (json != null) {
-      cdnUrls = new JsonObject(json);
+    public String getClientKey() {
+        return getString(ParameterConstants.PARAM_CLIENT_KEY);
     }
-    return cdnUrls;
-  }
+
+    public JsonArray getGrantTypes() {
+        return new JsonArray(getString(ParameterConstants.PARAM_GRANT_TYPES));
+    }
+
+    public JsonArray getRefererDomains() {
+        String json = getString(ParameterConstants.PARAM_REFERER_DOMAINS);
+        JsonArray refererDomains = null;
+        if (json != null) {
+            refererDomains = new JsonArray(json);
+        }
+        return refererDomains;
+    }
+
+    public int getAccessTokenValidity() {
+        return getInteger(ParameterConstants.PARAM_ACCESS_TOKEN_VALIDITY);
+    }
+
+    public JsonObject getCdnUrls() {
+        String json = getString(ParameterConstants.PARAM_CDN_URLS);
+        JsonObject cdnUrls = null;
+        if (json != null) {
+            cdnUrls = new JsonObject(json);
+        }
+        return cdnUrls;
+    }
 }

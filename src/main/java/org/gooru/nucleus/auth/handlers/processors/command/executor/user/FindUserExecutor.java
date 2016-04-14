@@ -14,46 +14,46 @@ import org.javalite.activejdbc.Base;
 
 class FindUserExecutor implements DBExecutor {
 
-  private final MessageContext messageContext;
-  private String username;
-  private String email;
+    private final MessageContext messageContext;
+    private String username;
+    private String email;
 
-  public FindUserExecutor(MessageContext messageContext) {
-    this.messageContext = messageContext;
-  }
-
-  @Override
-  public void checkSanity() {
-    username = messageContext.requestParams().getString(ParameterConstants.PARAM_USER_USERNAME);
-    email = messageContext.requestParams().getString(ParameterConstants.PARAM_USER_EMAIL);
-    if (username == null && email == null) {
-      throw new BadRequestException("Invalid param type passed");
+    public FindUserExecutor(MessageContext messageContext) {
+        this.messageContext = messageContext;
     }
-  }
 
-  @Override
-  public void validateRequest() {
-
-  }
-
-  @SuppressWarnings({ "unchecked", "rawtypes" })
-  @Override
-  public MessageResponse executeRequest() {
-    Map<String, Object> user = null;
-    if (email != null) {
-      List<Map> results = Base.findAll(AJEntityUser.FIND_USER_USING_EMAIL, email);
-      user = results.size() > 0 ? results.get(0) : null;
-    } else if (username != null) {
-      List<Map> results = Base.findAll(AJEntityUser.FIND_USER_USING_USERNAME, username);
-      user = results.size() > 0 ? results.get(0) : null;
+    @Override
+    public void checkSanity() {
+        username = messageContext.requestParams().getString(ParameterConstants.PARAM_USER_USERNAME);
+        email = messageContext.requestParams().getString(ParameterConstants.PARAM_USER_EMAIL);
+        if (username == null && email == null) {
+            throw new BadRequestException("Invalid param type passed");
+        }
     }
-    return new MessageResponse.Builder().setResponseBody(AJResponseJsonTransformer.transform(user)).setContentTypeJson().setStatusOkay().successful()
-        .build();
-  }
 
-  @Override
-  public boolean handlerReadOnly() {
-    return true;
-  }
+    @Override
+    public void validateRequest() {
+
+    }
+
+    @SuppressWarnings({ "unchecked", "rawtypes" })
+    @Override
+    public MessageResponse executeRequest() {
+        Map<String, Object> user = null;
+        if (email != null) {
+            List<Map> results = Base.findAll(AJEntityUser.FIND_USER_USING_EMAIL, email);
+            user = results.size() > 0 ? results.get(0) : null;
+        } else if (username != null) {
+            List<Map> results = Base.findAll(AJEntityUser.FIND_USER_USING_USERNAME, username);
+            user = results.size() > 0 ? results.get(0) : null;
+        }
+        return new MessageResponse.Builder().setResponseBody(AJResponseJsonTransformer.transform(user))
+            .setContentTypeJson().setStatusOkay().successful().build();
+    }
+
+    @Override
+    public boolean handlerReadOnly() {
+        return true;
+    }
 
 }

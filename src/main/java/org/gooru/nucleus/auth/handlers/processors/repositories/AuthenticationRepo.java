@@ -3,11 +3,11 @@ package org.gooru.nucleus.auth.handlers.processors.repositories;
 import org.gooru.nucleus.auth.handlers.processors.command.executor.MessageResponse;
 
 public interface AuthenticationRepo {
-  MessageResponse createAnonymousAccessToken();
+    MessageResponse createAnonymousAccessToken();
 
-  MessageResponse deleteAccessToken();
+    MessageResponse deleteAccessToken();
 
-  MessageResponse fetchAccessToken();
+    MessageResponse fetchAccessToken();
 
-  MessageResponse createBasicAuthAccessToken();
+    MessageResponse createBasicAuthAccessToken();
 }

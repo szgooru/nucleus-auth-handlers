@@ -20,70 +20,75 @@ import org.javalite.activejdbc.LazyList;
 
 class CreateGLAAnonymousAccessTokenExecutor implements DBExecutor {
 
-  private RedisClient redisClient;
-  private MessageContext messageContext;
-  private String clientKey;
-  private AJEntityAuthClient authClient;
+    private RedisClient redisClient;
+    private MessageContext messageContext;
+    private String clientKey;
+    private AJEntityAuthClient authClient;
 
-  public CreateGLAAnonymousAccessTokenExecutor(MessageContext messageContext) {
-    this.redisClient = RedisClient.instance();
-    this.messageContext = messageContext;
-  }
-
-  @Override
-  public void checkSanity() {
-    clientKey = messageContext.headers().get(MessageConstants.MSG_HEADER_API_KEY);
-    if (clientKey == null) {
-      clientKey = messageContext.requestParams().getString(ParameterConstants.PARAM_API_KEY);
+    public CreateGLAAnonymousAccessTokenExecutor(MessageContext messageContext) {
+        this.redisClient = RedisClient.instance();
+        this.messageContext = messageContext;
     }
-  }
 
-  @Override
-  public void validateRequest() {
-    String requestDomain = messageContext.headers().get(MessageConstants.MSG_HEADER_REQUEST_DOMAIN);
-    rejectIfNullOrEmpty(clientKey, MessageCodeConstants.AU0034, HttpConstants.HttpStatus.UNAUTHORIZED.getCode());
-    LazyList<AJEntityAuthClient> authClients = AJEntityAuthClient.where(AJEntityAuthClient.GET_AUTH_CLIENT_KEY, InternalHelper.encryptClientKey(clientKey));
-    authClient = authClients.size() > 0 ? authClients.get(0) : null;
-    rejectIfNull(authClient, MessageCodeConstants.AU0004, HttpConstants.HttpStatus.UNAUTHORIZED.getCode());
-    if (requestDomain != null && authClient.getRefererDomains() != null) {
-      boolean isValidReferrer = false;
-      for (Object whitelistedDomain : authClient.getRefererDomains()) {
-        if (requestDomain.endsWith(((String) whitelistedDomain))) {
-          isValidReferrer = true;
-          break;
+    @Override
+    public void checkSanity() {
+        clientKey = messageContext.headers().get(MessageConstants.MSG_HEADER_API_KEY);
+        if (clientKey == null) {
+            clientKey = messageContext.requestParams().getString(ParameterConstants.PARAM_API_KEY);
         }
-      }
-      reject(!isValidReferrer, MessageCodeConstants.AU0009, HttpConstants.HttpStatus.FORBIDDEN.getCode());
     }
 
-  }
+    @Override
+    public void validateRequest() {
+        String requestDomain = messageContext.headers().get(MessageConstants.MSG_HEADER_REQUEST_DOMAIN);
+        rejectIfNullOrEmpty(clientKey, MessageCodeConstants.AU0034, HttpConstants.HttpStatus.UNAUTHORIZED.getCode());
+        LazyList<AJEntityAuthClient> authClients =
+            AJEntityAuthClient
+                .where(AJEntityAuthClient.GET_AUTH_CLIENT_KEY, InternalHelper.encryptClientKey(clientKey));
+        authClient = authClients.size() > 0 ? authClients.get(0) : null;
+        rejectIfNull(authClient, MessageCodeConstants.AU0004, HttpConstants.HttpStatus.UNAUTHORIZED.getCode());
+        if (requestDomain != null && authClient.getRefererDomains() != null) {
+            boolean isValidReferrer = false;
+            for (Object whitelistedDomain : authClient.getRefererDomains()) {
+                if (requestDomain.endsWith(((String) whitelistedDomain))) {
+                    isValidReferrer = true;
+                    break;
+                }
+            }
+            reject(!isValidReferrer, MessageCodeConstants.AU0009, HttpConstants.HttpStatus.FORBIDDEN.getCode());
+        }
 
-  @Override
-  public MessageResponse executeRequest() {
-    final JsonObject accessToken = new JsonObject();
-    accessToken.put(ParameterConstants.PARAM_USER_ID, MessageConstants.MSG_USER_ANONYMOUS);
-    accessToken.put(ParameterConstants.PARAM_CLIENT_ID, authClient.getClientId());
-    accessToken.put(ParameterConstants.PARAM_PROVIDED_AT, System.currentTimeMillis());
-    accessToken.put(ParameterConstants.PARAM_CDN_URLS, authClient.getCdnUrls());
-    final String token = InternalHelper.generateToken(authClient.getClientId(), MessageConstants.MSG_USER_ANONYMOUS);
-    JsonObject prefs = new JsonObject();
-    prefs.put(ParameterConstants.PARAM_STANDARD_PREFERENCE, ConfigRegistry.instance().getDefaultUserStandardPrefs());
-    accessToken.put(ParameterConstants.PARAM_USER_PREFERENCE, prefs);
-    saveAccessToken(token, accessToken, authClient.getAccessTokenValidity());
-    accessToken.put(ParameterConstants.PARAM_ACCESS_TOKEN, token);
-    return new MessageResponse.Builder().setResponseBody(accessToken).setContentTypeJson().setStatusOkay().successful().build();
+    }
 
-  }
+    @Override
+    public MessageResponse executeRequest() {
+        final JsonObject accessToken = new JsonObject();
+        accessToken.put(ParameterConstants.PARAM_USER_ID, MessageConstants.MSG_USER_ANONYMOUS);
+        accessToken.put(ParameterConstants.PARAM_CLIENT_ID, authClient.getClientId());
+        accessToken.put(ParameterConstants.PARAM_PROVIDED_AT, System.currentTimeMillis());
+        accessToken.put(ParameterConstants.PARAM_CDN_URLS, authClient.getCdnUrls());
+        final String token =
+            InternalHelper.generateToken(authClient.getClientId(), MessageConstants.MSG_USER_ANONYMOUS);
+        JsonObject prefs = new JsonObject();
+        prefs
+            .put(ParameterConstants.PARAM_STANDARD_PREFERENCE, ConfigRegistry.instance().getDefaultUserStandardPrefs());
+        accessToken.put(ParameterConstants.PARAM_USER_PREFERENCE, prefs);
+        saveAccessToken(token, accessToken, authClient.getAccessTokenValidity());
+        accessToken.put(ParameterConstants.PARAM_ACCESS_TOKEN, token);
+        return new MessageResponse.Builder().setResponseBody(accessToken).setContentTypeJson().setStatusOkay()
+            .successful().build();
 
-  private void saveAccessToken(String token, JsonObject accessToken, Integer expireAtInSeconds) {
-    JsonObject data = new JsonObject(accessToken.toString());
-    data.put(ParameterConstants.PARAM_ACCESS_TOKEN_VALIDITY, expireAtInSeconds);
-    this.redisClient.set(token, data.toString(), expireAtInSeconds);
-  }
+    }
 
-  @Override
-  public boolean handlerReadOnly() {
-    return false;
-  }
+    private void saveAccessToken(String token, JsonObject accessToken, Integer expireAtInSeconds) {
+        JsonObject data = new JsonObject(accessToken.toString());
+        data.put(ParameterConstants.PARAM_ACCESS_TOKEN_VALIDITY, expireAtInSeconds);
+        this.redisClient.set(token, data.toString(), expireAtInSeconds);
+    }
+
+    @Override
+    public boolean handlerReadOnly() {
+        return false;
+    }
 
 }
