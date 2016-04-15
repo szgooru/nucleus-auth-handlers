@@ -5,6 +5,7 @@ import io.vertx.core.json.JsonObject;
 
 import org.gooru.nucleus.auth.handlers.constants.HelperConstants;
 import org.gooru.nucleus.auth.handlers.constants.HttpConstants;
+import org.gooru.nucleus.auth.handlers.constants.MailTemplateConstants;
 import org.gooru.nucleus.auth.handlers.constants.MessageCodeConstants;
 import org.gooru.nucleus.auth.handlers.constants.ParameterConstants;
 import org.gooru.nucleus.auth.handlers.constants.SchemaConstants;
@@ -12,6 +13,7 @@ import org.gooru.nucleus.auth.handlers.infra.RedisClient;
 import org.gooru.nucleus.auth.handlers.processors.command.executor.AJResponseJsonTransformer;
 import org.gooru.nucleus.auth.handlers.processors.command.executor.DBExecutor;
 import org.gooru.nucleus.auth.handlers.processors.command.executor.MessageResponse;
+import org.gooru.nucleus.auth.handlers.processors.email.notify.MailNotifyBuilder;
 import org.gooru.nucleus.auth.handlers.processors.event.Event;
 import org.gooru.nucleus.auth.handlers.processors.event.EventBuilder;
 import org.gooru.nucleus.auth.handlers.processors.messageProcessor.MessageContext;
@@ -73,12 +75,18 @@ class ConfirmUserEmailExecutor implements DBExecutor {
             eventBuilder.put(SchemaConstants.USER_DEMOGRAPHIC,
                 AJResponseJsonTransformer.transform(user.toJson(false), HelperConstants.USERS_JSON_FIELDS));
         }
+        MailNotifyBuilder mailNotifyBuilder = null;
+        if (!userIdentity.getEmailConfirmStatus()) { 
+            // build the mail notify for welcome email.
+            mailNotifyBuilder = new MailNotifyBuilder();
+            mailNotifyBuilder.setTemplateName(MailTemplateConstants.WELCOME_MAIL).addToAddress(userIdentity.getEmailId());
+        }
         userIdentity.setEmailConfirmStatus(true);
         userIdentity.saveIt();
         this.redisClient.del(token);
         eventBuilder
             .put(SchemaConstants.USER_IDENTITY, AJResponseJsonTransformer.transform(userIdentity.toJson(false)));
-        return new MessageResponse.Builder().setEventData(eventBuilder.build()).setContentTypeJson()
+        return new MessageResponse.Builder().setEventData(eventBuilder.build()).addMailNotify(mailNotifyBuilder.build()).setContentTypeJson()
             .setStatusNoOutput().successful().build();
     }
 
