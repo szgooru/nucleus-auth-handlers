@@ -1,7 +1,5 @@
 package org.gooru.nucleus.auth.handlers.processors.repositories.activejdbc.entities;
 
-import io.vertx.core.json.JsonObject;
-
 import org.gooru.nucleus.auth.handlers.constants.ParameterConstants;
 import org.gooru.nucleus.auth.handlers.constants.SchemaConstants;
 import org.javalite.activejdbc.Model;
@@ -21,19 +19,6 @@ public class AJEntityUserPreference extends Model {
     public void setUserId(Object userId) {
         setId(userId);
         set(ParameterConstants.PARAM_USER_ID, userId);
-    }
-
-    public JsonObject getStandardPreference() {
-        String json = getString(ParameterConstants.PARAM_STANDARD_PREFERENCE);
-        JsonObject prefs = null;
-        if (json != null) {
-            prefs = new JsonObject(json);
-        }
-        return prefs;
-    }
-
-    public void setStandardPreference(JsonObject standardPreference) {
-        set(ParameterConstants.PARAM_STANDARD_PREFERENCE, DBEnums.jsonObject(standardPreference));
     }
 
     public Boolean getProfileVisiblity(Boolean profileVisiblity) {

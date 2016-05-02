@@ -16,7 +16,6 @@ public class ParameterConstants {
     public static final String PARAM_CDN_URLS = "cdn_urls";
     public static final String PARAM_API_KEY = "apiKey";
     public static final String PARAM_LOGIN_TYPE = "login_type";
-    public static final String PARAM_STANDARD_PREFERENCE = "standard_preference";
     public static final String PARAM_PROFILE_VISIBILITY = "profile_visibility";
     public static final String PARAM_REFERER_DOMAINS = "referer_domains";
 

@@ -10,7 +10,6 @@ import org.gooru.nucleus.auth.handlers.constants.HttpConstants;
 import org.gooru.nucleus.auth.handlers.constants.MessageCodeConstants;
 import org.gooru.nucleus.auth.handlers.constants.MessageConstants;
 import org.gooru.nucleus.auth.handlers.constants.ParameterConstants;
-import org.gooru.nucleus.auth.handlers.infra.ConfigRegistry;
 import org.gooru.nucleus.auth.handlers.infra.RedisClient;
 import org.gooru.nucleus.auth.handlers.processors.command.executor.DBExecutor;
 import org.gooru.nucleus.auth.handlers.processors.command.executor.MessageResponse;
@@ -19,7 +18,6 @@ import org.gooru.nucleus.auth.handlers.processors.event.EventBuilder;
 import org.gooru.nucleus.auth.handlers.processors.messageProcessor.MessageContext;
 import org.gooru.nucleus.auth.handlers.processors.repositories.activejdbc.entities.AJEntityAuthClient;
 import org.gooru.nucleus.auth.handlers.processors.repositories.activejdbc.entities.AJEntityUserIdentity;
-import org.gooru.nucleus.auth.handlers.processors.repositories.activejdbc.entities.AJEntityUserPreference;
 import org.gooru.nucleus.auth.handlers.utils.InternalHelper;
 import org.javalite.activejdbc.LazyList;
 
@@ -96,16 +94,7 @@ class CreateGLABasicAuthAccessTokenExecutor implements DBExecutor {
         accessToken.put(ParameterConstants.PARAM_CLIENT_ID, authClient.getClientId());
         accessToken.put(ParameterConstants.PARAM_PROVIDED_AT, System.currentTimeMillis());
         final String token = InternalHelper.generateToken(authClient.getClientId(), userIdentity.getUserId());
-        LazyList<AJEntityUserPreference> userPreferences =
-            AJEntityUserPreference.where(AJEntityUserPreference.GET_USER_PREFERENCE, userIdentity.getUserId());
-        final AJEntityUserPreference userPreference = userPreferences.size() > 0 ? userPreferences.get(0) : null;
         JsonObject prefs = new JsonObject();
-        if (userPreference != null) {
-            prefs.put(ParameterConstants.PARAM_STANDARD_PREFERENCE, userPreference.getStandardPreference());
-        } else {
-            prefs.put(ParameterConstants.PARAM_STANDARD_PREFERENCE, ConfigRegistry.instance()
-                .getDefaultUserStandardPrefs());
-        }
         prefs.put(ParameterConstants.PARAM_USER_EMAIL_ID, userIdentity.getEmailId());
         accessToken.put(ParameterConstants.PARAM_USER_PREFERENCE, prefs);
         accessToken.put(ParameterConstants.PARAM_CDN_URLS, authClient.getCdnUrls());

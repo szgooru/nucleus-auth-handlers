@@ -10,7 +10,6 @@ import org.gooru.nucleus.auth.handlers.constants.HttpConstants;
 import org.gooru.nucleus.auth.handlers.constants.MessageCodeConstants;
 import org.gooru.nucleus.auth.handlers.constants.MessageConstants;
 import org.gooru.nucleus.auth.handlers.constants.ParameterConstants;
-import org.gooru.nucleus.auth.handlers.infra.ConfigRegistry;
 import org.gooru.nucleus.auth.handlers.infra.RedisClient;
 import org.gooru.nucleus.auth.handlers.processors.command.executor.DBExecutor;
 import org.gooru.nucleus.auth.handlers.processors.command.executor.MessageResponse;
@@ -76,8 +75,7 @@ public final class CreateAnonymousAccessTokenExecutor implements DBExecutor {
         accessToken.put(ParameterConstants.PARAM_PROVIDED_AT, System.currentTimeMillis());
         accessToken.put(ParameterConstants.PARAM_CDN_URLS, authClient.getCdnUrls());
         JsonObject prefs = new JsonObject();
-        prefs
-            .put(ParameterConstants.PARAM_STANDARD_PREFERENCE, ConfigRegistry.instance().getDefaultUserStandardPrefs());
+        prefs.put(ParameterConstants.PARAM_USER_EMAIL_ID, "");
         accessToken.put(ParameterConstants.PARAM_USER_PREFERENCE, prefs);
         final String token =
             InternalHelper.generateToken(authClient.getClientId(), MessageConstants.MSG_USER_ANONYMOUS);

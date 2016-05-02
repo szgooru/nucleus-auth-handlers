@@ -12,9 +12,6 @@ public class UserPrefsDTO {
         this.requestBody = requestBody;
     }
 
-    public JsonObject getStandardPreference() {
-        return this.requestBody.getJsonObject(ParameterConstants.PARAM_STANDARD_PREFERENCE);
-    }
 
     public Boolean getProfileVisibility() {
         return this.requestBody.getBoolean(ParameterConstants.PARAM_PROFILE_VISIBILITY);

@@ -15,7 +15,6 @@ import org.gooru.nucleus.auth.handlers.constants.MailTemplateConstants;
 import org.gooru.nucleus.auth.handlers.constants.MessageCodeConstants;
 import org.gooru.nucleus.auth.handlers.constants.ParameterConstants;
 import org.gooru.nucleus.auth.handlers.constants.SchemaConstants;
-import org.gooru.nucleus.auth.handlers.infra.ConfigRegistry;
 import org.gooru.nucleus.auth.handlers.infra.RedisClient;
 import org.gooru.nucleus.auth.handlers.processors.command.executor.AJResponseJsonTransformer;
 import org.gooru.nucleus.auth.handlers.processors.command.executor.ActionResponseDTO;
@@ -79,8 +78,6 @@ class CreateUserExecutor implements DBExecutor {
         accessToken.put(ParameterConstants.PARAM_PROVIDED_AT, System.currentTimeMillis());
         accessToken.put(ParameterConstants.PARAM_CDN_URLS, userContext.getCdnUrls());
         JsonObject prefs = new JsonObject();
-        prefs
-            .put(ParameterConstants.PARAM_STANDARD_PREFERENCE, ConfigRegistry.instance().getDefaultUserStandardPrefs());
         prefs.put(ParameterConstants.PARAM_USER_EMAIL_ID, userIdentity.getEmailId());
         accessToken.put(ParameterConstants.PARAM_USER_PREFERENCE, prefs);
         final String token = InternalHelper.generateToken(userContext.getClientId(), userIdentity.getUserId());
