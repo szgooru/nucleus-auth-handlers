@@ -141,7 +141,7 @@ public final class UpdateUserExecutor implements DBExecutor {
             user.setCountry(userDTO.getCountry());
         }
 
-        if (userDTO.getStateId() != null) {
+        if (userDTO.getStateId() != null && !userDTO.getStateId().isEmpty()) {
             LazyList<AJEntityState> results = AJEntityState.where(AJEntityState.GET_STATE_BY_ID, userDTO.getStateId());
             AJEntityState state = results.size() > 0 ? results.get(0) : null;
             addValidator(errors, (state == null), ParameterConstants.PARAM_USER_STATE_ID, MessageCodeConstants.AU0027,
@@ -152,9 +152,12 @@ public final class UpdateUserExecutor implements DBExecutor {
             }
         } else if (userDTO.getState() != null) {
             user.setState(userDTO.getState());
+        }  else if (userDTO.getStateId() != null && userDTO.getStateId().isEmpty()) {
+            user.setStateId(null);
+            user.setState(null);
         }
 
-        if (userDTO.getSchoolDistrictId() != null) {
+        if (userDTO.getSchoolDistrictId() != null && !userDTO.getSchoolDistrictId().isEmpty()) {
             LazyList<AJEntitySchoolDistrict> results =
                 AJEntitySchoolDistrict.where(AJEntitySchoolDistrict.GET_SCHOOL_DISTRICT_BY_ID,
                     userDTO.getSchoolDistrictId());
@@ -167,6 +170,9 @@ public final class UpdateUserExecutor implements DBExecutor {
             }
         } else if (userDTO.getSchoolDistrict() != null) {
             user.setSchoolDistrict(userDTO.getSchoolDistrict());
+        }  else if (userDTO.getSchoolDistrictId() != null && userDTO.getSchoolDistrictId().isEmpty()) {
+            user.setSchoolDistrictId(null);
+            user.setSchoolDistrict(null);
         }
 
         if (userDTO.getSchoolId() != null) {
