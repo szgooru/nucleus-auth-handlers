@@ -12,7 +12,6 @@ public class UserPrefsDTO {
         this.requestBody = requestBody;
     }
 
-
     public Boolean getProfileVisibility() {
         return this.requestBody.getBoolean(ParameterConstants.PARAM_PROFILE_VISIBILITY);
     }

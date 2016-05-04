@@ -76,18 +76,19 @@ class ConfirmUserEmailExecutor implements DBExecutor {
                 AJResponseJsonTransformer.transform(user.toJson(false), HelperConstants.USERS_JSON_FIELDS));
         }
         MailNotifyBuilder mailNotifyBuilder = null;
-        if (!userIdentity.getEmailConfirmStatus()) { 
+        if (!userIdentity.getEmailConfirmStatus()) {
             // build the mail notify for welcome email.
             mailNotifyBuilder = new MailNotifyBuilder();
-            mailNotifyBuilder.setTemplateName(MailTemplateConstants.WELCOME_MAIL).addToAddress(userIdentity.getEmailId());
+            mailNotifyBuilder.setTemplateName(MailTemplateConstants.WELCOME_MAIL).addToAddress(
+                userIdentity.getEmailId());
         }
         userIdentity.setEmailConfirmStatus(true);
         userIdentity.saveIt();
         this.redisClient.del(token);
         eventBuilder
             .put(SchemaConstants.USER_IDENTITY, AJResponseJsonTransformer.transform(userIdentity.toJson(false)));
-        return new MessageResponse.Builder().setEventData(eventBuilder.build()).addMailNotify(mailNotifyBuilder.build()).setContentTypeJson()
-            .setStatusNoOutput().successful().build();
+        return new MessageResponse.Builder().setEventData(eventBuilder.build())
+            .addMailNotify(mailNotifyBuilder.build()).setContentTypeJson().setStatusNoOutput().successful().build();
     }
 
     @Override

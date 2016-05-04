@@ -99,7 +99,7 @@ public final class CreateBasicAuthAccessTokenExecutor implements DBExecutor {
         accessToken.put(ParameterConstants.PARAM_CLIENT_ID, authClient.getClientId());
         accessToken.put(ParameterConstants.PARAM_PROVIDED_AT, System.currentTimeMillis());
         final String token = InternalHelper.generateToken(authClient.getClientId(), userIdentity.getUserId());
-        JsonObject prefs = new JsonObject(); 
+        JsonObject prefs = new JsonObject();
         prefs.put(ParameterConstants.PARAM_USER_EMAIL_ID, userIdentity.getEmailId());
         accessToken.put(ParameterConstants.PARAM_USER_PREFERENCE, prefs);
         accessToken.put(ParameterConstants.PARAM_CDN_URLS, authClient.getCdnUrls());
