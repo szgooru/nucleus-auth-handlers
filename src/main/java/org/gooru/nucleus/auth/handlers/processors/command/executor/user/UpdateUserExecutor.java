@@ -152,6 +152,7 @@ public final class UpdateUserExecutor implements DBExecutor {
             }
         } else if (userDTO.getState() != null) {
             user.setState(userDTO.getState());
+            user.setStateId(null);
         }  else if (userDTO.getStateId() != null && userDTO.getStateId().isEmpty()) {
             user.setStateId(null);
             user.setState(null);
@@ -170,6 +171,7 @@ public final class UpdateUserExecutor implements DBExecutor {
             }
         } else if (userDTO.getSchoolDistrict() != null) {
             user.setSchoolDistrict(userDTO.getSchoolDistrict());
+            user.setSchoolDistrictId(null);
         }  else if (userDTO.getSchoolDistrictId() != null && userDTO.getSchoolDistrictId().isEmpty()) {
             user.setSchoolDistrictId(null);
             user.setSchoolDistrict(null);
