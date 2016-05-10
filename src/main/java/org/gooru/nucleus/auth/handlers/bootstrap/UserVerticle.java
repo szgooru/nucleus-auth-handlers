@@ -1,12 +1,5 @@
 package org.gooru.nucleus.auth.handlers.bootstrap;
 
-import io.vertx.core.AbstractVerticle;
-import io.vertx.core.Future;
-import io.vertx.core.eventbus.EventBus;
-import io.vertx.core.eventbus.Message;
-import io.vertx.core.json.JsonArray;
-import io.vertx.core.json.JsonObject;
-
 import java.util.stream.Stream;
 
 import org.gooru.nucleus.auth.handlers.constants.HelperConstants;
@@ -21,6 +14,13 @@ import org.gooru.nucleus.auth.handlers.utils.InternalHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import io.vertx.core.AbstractVerticle;
+import io.vertx.core.Future;
+import io.vertx.core.eventbus.EventBus;
+import io.vertx.core.eventbus.Message;
+import io.vertx.core.json.JsonArray;
+import io.vertx.core.json.JsonObject;
+
 public class UserVerticle extends AbstractVerticle {
     private static final Logger LOG = LoggerFactory.getLogger(UserVerticle.class);
 
@@ -28,44 +28,39 @@ public class UserVerticle extends AbstractVerticle {
     public void start(Future<Void> voidFuture) throws Exception {
         final EventBus eb = vertx.eventBus();
         final ConfigRegistry configRegistry = ConfigRegistry.instance();
-        eb.consumer(
-            MessagebusEndpoints.MBEP_USER,
-            message -> {
-                LOG.debug("Received message: " + message.body());
-                vertx.executeBlocking(
-                    future -> {
-                        MessageResponse result =
-                            new ProcessorBuilder(ProcessorHandlerType.USER, message).build().process();
-                        future.complete(result);
-                    },
-                    res -> {
-                        MessageResponse result = (MessageResponse) res.result();
-                        message.reply(result.reply(), result.deliveryOptions());
+        eb.consumer(MessagebusEndpoints.MBEP_USER, message -> {
+            LOG.debug("Received message: " + message.body());
+            vertx.executeBlocking(future -> {
+                MessageResponse result = new ProcessorBuilder(ProcessorHandlerType.USER, message).build().process();
+                future.complete(result);
+            }, res -> {
+                MessageResponse result = (MessageResponse) res.result();
+                message.reply(result.reply(), result.deliveryOptions());
 
-                        JsonObject eventData = result.event();
-                        if (eventData != null) {
-                            final String accessToken = getAccessToken(message, result);
-                            InternalHelper.executeHTTPClientPost(configRegistry.getEventRestApiUrl(),
-                                eventData.toString(), accessToken);
-                        }
-                        if (result.mailNotify() != null && result.mailNotify().size() > 0) {
-                            final String accessToken = getAccessToken(message, result);
-                            final JsonArray mailNotifies = result.mailNotify();
-                            Stream<JsonObject> stream =
-                                mailNotifies.stream().map(mailNotify -> (JsonObject) mailNotify);
-                            stream.forEach((JsonObject mailNotify) -> {
-                                InternalHelper.executeHTTPClientPost(configRegistry.getMailRestApiUrl(),
-                                    mailNotify.toString(), accessToken);
-                            });
-                        }
+                JsonObject eventData = result.event();
+                if (eventData != null) {
+                    final String accessToken = getAccessToken(message, result);
+                    InternalHelper
+                        .executeHTTPClientPost(configRegistry.getEventRestApiUrl(), eventData.toString(), accessToken);
+                }
+                if (result.mailNotify() != null && result.mailNotify().size() > 0) {
+                    final String accessToken = getAccessToken(message, result);
+                    final JsonArray mailNotifies = result.mailNotify();
+                    Stream<JsonObject> stream = mailNotifies.stream().map(mailNotify -> (JsonObject) mailNotify);
+                    stream.forEach((JsonObject mailNotify) -> {
+                        InternalHelper.executeHTTPClientPost(configRegistry.getMailRestApiUrl(), mailNotify.toString(),
+                            accessToken);
                     });
+                }
+            });
 
-            }).completionHandler(result -> {
+        }).completionHandler(result -> {
             if (result.succeeded()) {
                 LOG.info("User end point ready to listen");
+                voidFuture.complete();
             } else {
                 LOG.error("Error registering the user handler. Halting the user machinery");
-                Runtime.getRuntime().halt(1);
+                voidFuture.fail(result.cause());
             }
         });
     }

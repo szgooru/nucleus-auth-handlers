@@ -1,11 +1,5 @@
 package org.gooru.nucleus.auth.handlers.bootstrap;
 
-import io.vertx.core.AbstractVerticle;
-import io.vertx.core.Future;
-import io.vertx.core.eventbus.EventBus;
-import io.vertx.core.eventbus.Message;
-import io.vertx.core.json.JsonObject;
-
 import org.gooru.nucleus.auth.handlers.constants.HelperConstants;
 import org.gooru.nucleus.auth.handlers.constants.MessageConstants;
 import org.gooru.nucleus.auth.handlers.constants.MessagebusEndpoints;
@@ -18,6 +12,12 @@ import org.gooru.nucleus.auth.handlers.utils.InternalHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import io.vertx.core.AbstractVerticle;
+import io.vertx.core.Future;
+import io.vertx.core.eventbus.EventBus;
+import io.vertx.core.eventbus.Message;
+import io.vertx.core.json.JsonObject;
+
 public class AuthenticationVerticle extends AbstractVerticle {
     private static final Logger LOG = LoggerFactory.getLogger(AuthenticationVerticle.class);
 
@@ -25,34 +25,31 @@ public class AuthenticationVerticle extends AbstractVerticle {
     public void start(Future<Void> voidFuture) throws Exception {
         final EventBus eb = vertx.eventBus();
         final ConfigRegistry configRegistry = ConfigRegistry.instance();
-        eb.consumer(
-            MessagebusEndpoints.MBEP_AUTHENTICATION,
-            message -> {
-                LOG.debug("Received message: " + message.body());
-                vertx.executeBlocking(
-                    future -> {
-                        MessageResponse result =
-                            new ProcessorBuilder(ProcessorHandlerType.AUTHENTICATION, message).build().process();
-                        future.complete(result);
-                    },
-                    res -> {
-                        MessageResponse result = (MessageResponse) res.result();
-                        message.reply(result.reply(), result.deliveryOptions());
-                        final JsonObject eventData = result.event();
-                        if (eventData != null) {
-                            final String accessToken = getAccessToken(message, result);
-                            InternalHelper.executeHTTPClientPost(configRegistry.getEventRestApiUrl(),
-                                eventData.toString(), accessToken);
-                        }
+        eb.consumer(MessagebusEndpoints.MBEP_AUTHENTICATION, message -> {
+            LOG.debug("Received message: " + message.body());
+            vertx.executeBlocking(future -> {
+                MessageResponse result =
+                    new ProcessorBuilder(ProcessorHandlerType.AUTHENTICATION, message).build().process();
+                future.complete(result);
+            }, res -> {
+                MessageResponse result = (MessageResponse) res.result();
+                message.reply(result.reply(), result.deliveryOptions());
+                final JsonObject eventData = result.event();
+                if (eventData != null) {
+                    final String accessToken = getAccessToken(message, result);
+                    InternalHelper
+                        .executeHTTPClientPost(configRegistry.getEventRestApiUrl(), eventData.toString(), accessToken);
+                }
 
-                    });
+            });
 
-            }).completionHandler(result -> {
+        }).completionHandler(result -> {
             if (result.succeeded()) {
                 LOG.info("authentication end point ready to listen");
+                voidFuture.complete();
             } else {
                 LOG.error("Error registering the authentication handler. Halting the authentication machinery");
-                Runtime.getRuntime().halt(1);
+                voidFuture.fail(result.cause());
             }
         });
     }

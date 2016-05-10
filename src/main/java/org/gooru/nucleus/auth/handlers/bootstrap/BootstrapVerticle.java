@@ -23,17 +23,17 @@ public class BootstrapVerticle extends AbstractVerticle {
     public void start(Future<Void> voidFuture) throws Exception {
         vertx.executeBlocking(blockingFuture -> {
             startApplication();
+            blockingFuture.complete();
         }, future -> {
             if (future.succeeded()) {
-                voidFuture.complete();
+                deployVerticles(voidFuture);
             } else {
                 voidFuture.fail("Not able to initialize the auth handlers machiners properly");
             }
         });
-        deployVerticles();
     }
 
-    private void deployVerticles() {
+    private void deployVerticles(Future<Void> voidFuture) {
         LOG.debug("Starting to deploy other verticles...");
         final JsonArray verticlesList = config().getJsonArray(ConfigConstants.VERTICLES_DEPLOY_LIST);
         @SuppressWarnings("unchecked")
@@ -63,19 +63,21 @@ public class BootstrapVerticle extends AbstractVerticle {
             }
         }
         vertx.executeBlocking(future -> {
-            future.complete();
             try {
                 CompletableFuture.allOf(resultFutures).join();
+                future.complete();
             } catch (CompletionException e) {
                 e.printStackTrace();
-                throw e;
+                future.fail(e.getCause());
             }
 
         }, blockingResult -> {
             if (blockingResult.succeeded()) {
                 LOG.info("Deployment successful");
+                voidFuture.complete();
             } else {
                 LOG.error("Error deploying verticles. Shutting down.");
+                voidFuture.fail(blockingResult.cause());
             }
         });
     }
