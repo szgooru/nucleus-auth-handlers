@@ -204,6 +204,11 @@ public final class UpdateUserExecutor implements DBExecutor {
         if (userDTO.getThumbnailPath() != null) {
             user.setThumbnailPath(userDTO.getThumbnailPath());
         }
+        
+        if (userDTO.getRosterGlobalUserId() != null) { 
+            user.setRosterGlobalUserId(userDTO.getRosterGlobalUserId());
+        }
+        
         return new ActionResponseDTO<>(user, eventBuilder, errors);
 
     }

@@ -54,6 +54,7 @@ public class ParameterConstants {
     public static final String PARAM_USER_EMAIL_CONFIRM_STATUS = "email_confirm_status";
     public static final String PARAM_USER_IDS = "ids";
     public static final String PARAM_USERS = "users";
+    public static final String PARAM_ROSTER_GLOBAL_USER_ID = "roster_global_userid";
 
     // misc
     public static final String EMAIL_ADDRESS = "email address";

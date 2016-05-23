@@ -100,5 +100,9 @@ public class UserDTO {
     public String getAboutMe() {
         return this.requestBody.getString(ParameterConstants.PARAM_USER_ABOUT_ME);
     }
+    
+    public String getRosterGlobalUserId() { 
+        return this.requestBody.getString(ParameterConstants.PARAM_ROSTER_GLOBAL_USER_ID);
+    }
 
 }
