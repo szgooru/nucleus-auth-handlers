@@ -1,5 +1,12 @@
 package org.gooru.nucleus.auth.handlers.bootstrap;
 
+import io.vertx.core.AbstractVerticle;
+import io.vertx.core.Future;
+import io.vertx.core.eventbus.EventBus;
+import io.vertx.core.eventbus.Message;
+import io.vertx.core.json.JsonArray;
+import io.vertx.core.json.JsonObject;
+
 import java.util.stream.Stream;
 
 import org.gooru.nucleus.auth.handlers.constants.HelperConstants;
@@ -13,13 +20,6 @@ import org.gooru.nucleus.auth.handlers.processors.messageProcessor.ProcessorHand
 import org.gooru.nucleus.auth.handlers.utils.InternalHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import io.vertx.core.AbstractVerticle;
-import io.vertx.core.Future;
-import io.vertx.core.eventbus.EventBus;
-import io.vertx.core.eventbus.Message;
-import io.vertx.core.json.JsonArray;
-import io.vertx.core.json.JsonObject;
 
 public class AuthorizeVerticle extends AbstractVerticle {
     private static final Logger LOG = LoggerFactory.getLogger(AuthorizeVerticle.class);

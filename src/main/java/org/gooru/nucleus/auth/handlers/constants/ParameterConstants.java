@@ -18,6 +18,11 @@ public class ParameterConstants {
     public static final String PARAM_LOGIN_TYPE = "login_type";
     public static final String PARAM_PROFILE_VISIBILITY = "profile_visibility";
     public static final String PARAM_REFERER_DOMAINS = "referer_domains";
+    public static final String PARAM_URL = "url";
+    public static final String PARAM_DESCRIPTION = "description";
+    public static final String PARAM_CONTACT_EMAIL = "contact_email";
+    public static final String PARAM_PERMISSION = "permission";
+       
 
     // User
     public static final String PARAM_USER = "user";

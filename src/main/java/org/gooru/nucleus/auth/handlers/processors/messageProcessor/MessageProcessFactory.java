@@ -26,6 +26,8 @@ public final class MessageProcessFactory {
                     handler = new UserPrefsMessageProcessor();
                 } else if (handlerType.equals(ProcessorHandlerType.AUTHENTICATION_GLA_VERSION)) {
                     handler = new AuthenticationGLAVersionMessageProcessor();
+                }  else if (handlerType.equals(ProcessorHandlerType.AUTH_CLIENT)) {
+                    handler = new AuthClientMessageProcessor();
                 } else {
                     LOG.debug("None of the handlers matched, looks like invalid handler type.");
                 }

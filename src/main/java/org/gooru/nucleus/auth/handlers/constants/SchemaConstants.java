@@ -10,6 +10,7 @@ public class SchemaConstants {
     public static final String COUNTRY = "country";
     public static final String AUTH_CLIENT = "auth_client";
     public static final String USER_PREFERENCE = "user_preference";
+    public static final String USER_PERMISSION = "user_permission";
 
     // primary key column name
     public static final String ID = "id";

@@ -1,6 +1,7 @@
 package org.gooru.nucleus.auth.handlers.processors.repositories.activejdbc;
 
 import org.gooru.nucleus.auth.handlers.processors.messageProcessor.MessageContext;
+import org.gooru.nucleus.auth.handlers.processors.repositories.AuthClientRepo;
 import org.gooru.nucleus.auth.handlers.processors.repositories.AuthenticationGLARepo;
 import org.gooru.nucleus.auth.handlers.processors.repositories.AuthenticationRepo;
 import org.gooru.nucleus.auth.handlers.processors.repositories.AuthorizeRepo;
@@ -27,6 +28,10 @@ public final class AJRepoFactory {
 
     public static AuthorizeRepo getAuthorizeRepo(MessageContext messageContext) {
         return new AJAuthorizeRepo(messageContext);
+    }
+
+    public static AuthClientRepo getAuthClientRepo(MessageContext messageContext) {
+        return new AJAuthClientRepo(messageContext);
     }
 
     private AJRepoFactory() {
