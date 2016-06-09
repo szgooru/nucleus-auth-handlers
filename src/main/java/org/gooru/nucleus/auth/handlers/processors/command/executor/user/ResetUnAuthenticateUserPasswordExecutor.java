@@ -56,7 +56,7 @@ class ResetUnAuthenticateUserPasswordExecutor implements DBExecutor {
         this.redisClient.del(token);
         MailNotifyBuilder mailNotifyBuilder = new MailNotifyBuilder();
         mailNotifyBuilder.setTemplateName(MailTemplateConstants.PASSWORD_CHANGED)
-            .addToAddress(userIdentity.getEmailId()).putContext(ParameterConstants.MAIL_TOKEN, token)
+            .addToAddress(userIdentity.getEmailId()).putContext(ParameterConstants.MAIL_TOKEN, InternalHelper.encodeToken(token))
             .putContext(ParameterConstants.PARAM_USER_USERNAME, userIdentity.getUsername());
         return new MessageResponse.Builder().addMailNotify(mailNotifyBuilder.build()).setContentTypeJson()
             .setStatusNoOutput().successful().build();

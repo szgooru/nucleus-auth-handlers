@@ -2,7 +2,6 @@ package org.gooru.nucleus.auth.handlers.processors.command.executor.user;
 
 import static org.gooru.nucleus.auth.handlers.utils.ServerValidatorUtility.reject;
 import static org.gooru.nucleus.auth.handlers.utils.ServerValidatorUtility.rejectIfNull;
-import io.vertx.core.json.JsonObject;
 
 import org.gooru.nucleus.auth.handlers.constants.HelperConstants;
 import org.gooru.nucleus.auth.handlers.constants.HttpConstants;
@@ -18,6 +17,8 @@ import org.gooru.nucleus.auth.handlers.processors.repositories.activejdbc.entiti
 import org.gooru.nucleus.auth.handlers.utils.InternalHelper;
 import org.gooru.nucleus.auth.handlers.utils.ServerValidatorUtility;
 import org.javalite.activejdbc.LazyList;
+
+import io.vertx.core.json.JsonObject;
 
 class UpdateUserEmailExecutor implements DBExecutor {
 
@@ -64,7 +65,7 @@ class UpdateUserEmailExecutor implements DBExecutor {
         this.redisClient.set(token, tokenData.toString(), HelperConstants.EXPIRE_IN_SECONDS);
         MailNotifyBuilder mailNotifyBuilder = new MailNotifyBuilder();
         mailNotifyBuilder.setTemplateName(MailTemplateConstants.EMAIL_ADDRESS_CHANGE_REQUEST).addToAddress(newEmailId)
-            .putContext(ParameterConstants.MAIL_TOKEN, token)
+            .putContext(ParameterConstants.MAIL_TOKEN, InternalHelper.encodeToken(token))
             .putContext(ParameterConstants.OLD_EMAIL_ID, userIdentity.getEmailId())
             .putContext(ParameterConstants.NEW_EMAIL_ID, newEmailId);
         return new MessageResponse.Builder().setContentTypeJson().setResponseBody(null)

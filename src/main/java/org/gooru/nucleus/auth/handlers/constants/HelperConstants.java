@@ -27,6 +27,8 @@ public final class HelperConstants {
     public static final int EXPIRE_IN_SECONDS = 86400;
     
     public static final String CREATE_APP_KEY = "create.app.key";
+    
+    public static final String CHAR_ENCODING_UTF8 = "UTF-8";
 
     static {
         Map<String, String> gender = new HashMap<>();

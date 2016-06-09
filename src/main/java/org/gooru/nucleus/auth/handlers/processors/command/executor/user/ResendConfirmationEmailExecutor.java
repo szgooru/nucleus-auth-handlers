@@ -2,7 +2,6 @@ package org.gooru.nucleus.auth.handlers.processors.command.executor.user;
 
 import static org.gooru.nucleus.auth.handlers.utils.ServerValidatorUtility.reject;
 import static org.gooru.nucleus.auth.handlers.utils.ServerValidatorUtility.rejectIfNull;
-import io.vertx.core.json.JsonObject;
 
 import org.gooru.nucleus.auth.handlers.constants.HttpConstants;
 import org.gooru.nucleus.auth.handlers.constants.MailTemplateConstants;
@@ -17,6 +16,8 @@ import org.gooru.nucleus.auth.handlers.processors.repositories.activejdbc.entiti
 import org.gooru.nucleus.auth.handlers.processors.repositories.activejdbc.entities.AJEntityUserIdentity;
 import org.gooru.nucleus.auth.handlers.utils.InternalHelper;
 import org.javalite.activejdbc.LazyList;
+
+import io.vertx.core.json.JsonObject;
 
 class ResendConfirmationEmailExecutor implements DBExecutor {
 
@@ -61,7 +62,7 @@ class ResendConfirmationEmailExecutor implements DBExecutor {
         this.redisClient.set(token, tokenData.toString(), EXPIRE_IN_SECONDS);
         MailNotifyBuilder mailConfirmNotifyBuilder = new MailNotifyBuilder();
         mailConfirmNotifyBuilder.setTemplateName(MailTemplateConstants.USER_REGISTARTION_CONFIRMATION)
-            .addToAddress(userIdentity.getEmailId()).putContext(ParameterConstants.MAIL_TOKEN, token)
+            .addToAddress(userIdentity.getEmailId()).putContext(ParameterConstants.MAIL_TOKEN, InternalHelper.encodeToken(token))
             .putContext(ParameterConstants.PARAM_USER_ID, user.getId().toString());
         return new MessageResponse.Builder().addMailNotify(mailConfirmNotifyBuilder.build()).setContentTypeJson()
             .setStatusOkay().successful().build();
