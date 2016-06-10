@@ -12,6 +12,8 @@ public class ConfigRegistry implements Initializer {
     private static final String MAIL_REST_API_URL = "mail.rest.api.url";
 
     private static final String EVENT_REST_API_URL = "event.rest.api.url";
+    
+    private static final String SEND_CONFIRMATION_EMAIL = "send.confirmation.email";
 
     private JsonObject config;
 
@@ -32,6 +34,10 @@ public class ConfigRegistry implements Initializer {
         return this.config.getString(EVENT_REST_API_URL);
     }
 
+    public boolean sendConfirmationEmail() {
+        return this.config.getBoolean(SEND_CONFIRMATION_EMAIL);
+    }
+    
     public static ConfigRegistry instance() {
         return Holder.INSTANCE;
     }

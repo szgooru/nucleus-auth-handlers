@@ -1,5 +1,7 @@
 package org.gooru.nucleus.auth.handlers.utils;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -131,6 +133,14 @@ public final class InternalHelper {
                 }
             }
         });
+    }
+    
+    public static String encodeToken(String token) {
+        try {
+            return URLEncoder.encode(token, HelperConstants.CHAR_ENCODING_UTF8);
+        } catch (UnsupportedEncodingException uee) {
+            return token;
+        }
     }
 
     private InternalHelper() {

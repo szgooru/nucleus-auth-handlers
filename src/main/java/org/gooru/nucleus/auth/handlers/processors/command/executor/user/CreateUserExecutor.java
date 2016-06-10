@@ -5,7 +5,6 @@ import static org.gooru.nucleus.auth.handlers.utils.ServerValidatorUtility.addVa
 import static org.gooru.nucleus.auth.handlers.utils.ServerValidatorUtility.rejectError;
 import static org.gooru.nucleus.auth.handlers.utils.ServerValidatorUtility.rejectIfNull;
 import static org.gooru.nucleus.auth.handlers.utils.ServerValidatorUtility.rejectIfNullOrEmpty;
-import io.vertx.core.json.JsonObject;
 
 import java.util.Date;
 
@@ -15,6 +14,7 @@ import org.gooru.nucleus.auth.handlers.constants.MailTemplateConstants;
 import org.gooru.nucleus.auth.handlers.constants.MessageCodeConstants;
 import org.gooru.nucleus.auth.handlers.constants.ParameterConstants;
 import org.gooru.nucleus.auth.handlers.constants.SchemaConstants;
+import org.gooru.nucleus.auth.handlers.infra.ConfigRegistry;
 import org.gooru.nucleus.auth.handlers.infra.RedisClient;
 import org.gooru.nucleus.auth.handlers.processors.command.executor.AJResponseJsonTransformer;
 import org.gooru.nucleus.auth.handlers.processors.command.executor.ActionResponseDTO;
@@ -34,6 +34,8 @@ import org.gooru.nucleus.auth.handlers.processors.repositories.activejdbc.entiti
 import org.gooru.nucleus.auth.handlers.processors.repositories.activejdbc.entities.AJEntityUserIdentity;
 import org.gooru.nucleus.auth.handlers.utils.InternalHelper;
 import org.javalite.activejdbc.LazyList;
+
+import io.vertx.core.json.JsonObject;
 
 class CreateUserExecutor implements DBExecutor {
 
@@ -96,9 +98,15 @@ class CreateUserExecutor implements DBExecutor {
         tokenData.put(ParameterConstants.PARAM_USER_ID, userIdentity.getUserId());
         this.redisClient.set(emailToken, tokenData.toString(), HelperConstants.EXPIRE_IN_SECONDS);
         MailNotifyBuilder mailNotifyBuilder = new MailNotifyBuilder();
-        mailNotifyBuilder.setTemplateName(MailTemplateConstants.USER_REGISTARTION_CONFIRMATION)
-            .addToAddress(userIdentity.getEmailId()).putContext(ParameterConstants.MAIL_TOKEN, emailToken)
-            .putContext(ParameterConstants.PARAM_USER_ID, userIdentity.getUserId());
+        final ConfigRegistry configRegistry = ConfigRegistry.instance();
+        if (configRegistry.sendConfirmationEmail()) {
+            mailNotifyBuilder.setTemplateName(MailTemplateConstants.USER_REGISTARTION_CONFIRMATION)
+                .addToAddress(userIdentity.getEmailId()).putContext(ParameterConstants.MAIL_TOKEN, InternalHelper.encodeToken(token))
+                .putContext(ParameterConstants.PARAM_USER_ID, userIdentity.getUserId());
+        } else {
+            mailNotifyBuilder.setTemplateName(MailTemplateConstants.WELCOME_MAIL)
+                .addToAddress(userIdentity.getEmailId());
+        }
         return new MessageResponse.Builder().setResponseBody(accessToken).setEventData(eventBuilder.build())
             .addMailNotify(mailNotifyBuilder.build())
             .setHeader(HelperConstants.LOCATION, HelperConstants.USER_ENTITY_URI + userIdentity.getUserId())
