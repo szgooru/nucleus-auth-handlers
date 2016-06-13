@@ -69,6 +69,7 @@ public final class UpdateUserExecutor implements DBExecutor {
                 AJEntityUserIdentity.where(AJEntityUserIdentity.GET_BY_USER_ID, userId);
             AJEntityUserIdentity userIdentity = results.get(0);
             userIdentity.setUsername(userDTO.getUsername());
+            userIdentity.setCanonicalUsername(userDTO.getUsername().toLowerCase());
             userIdentity.saveIt();
             eventBuilder.putPayLoadObject(SchemaConstants.USER_IDENTITY,
                 AJResponseJsonTransformer.transform(userIdentity.toJson(false)));
@@ -122,7 +123,7 @@ public final class UpdateUserExecutor implements DBExecutor {
                 ParameterConstants.PARAM_USER_USERNAME, MessageCodeConstants.AU0018,
                 ParameterConstants.PARAM_USER_USERNAME, "4", "20");
             LazyList<AJEntityUserIdentity> results =
-                AJEntityUserIdentity.where(AJEntityUserIdentity.GET_BY_USERNAME, username);
+                AJEntityUserIdentity.where(AJEntityUserIdentity.GET_BY_CANONICAL_USERNAME, username.toLowerCase());
             addValidator(errors, !(results.size() == 0), ParameterConstants.PARAM_USER_USERNAME,
                 MessageCodeConstants.AU0023, username, ParameterConstants.PARAM_USER_USERNAME);
         }

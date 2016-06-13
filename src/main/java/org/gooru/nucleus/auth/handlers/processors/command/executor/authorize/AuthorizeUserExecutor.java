@@ -169,8 +169,10 @@ class AuthorizeUserExecutor implements DBExecutor {
                 username.append(randomNumber.nextInt(1000));
             }
             userIdentity.setUsername(username.toString());
+            userIdentity.setCanonicalUsername(username.toString().toLowerCase());
         } else {
             userIdentity.setUsername(userDTO.getUsername());
+            userIdentity.setCanonicalUsername(userDTO.getUsername().toLowerCase());
         }
         userIdentity.saveIt();
         eventBuilder.putPayLoadObject(SchemaConstants.USER_IDENTITY,

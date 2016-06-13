@@ -60,6 +60,7 @@ public class ParameterConstants {
     public static final String PARAM_USER_IDS = "ids";
     public static final String PARAM_USERS = "users";
     public static final String PARAM_ROSTER_GLOBAL_USER_ID = "roster_global_userid";
+    public static final String PARAM_USER_CANONICAL_USERNAME = "canonical_username";
 
     // misc
     public static final String EMAIL_ADDRESS = "email address";

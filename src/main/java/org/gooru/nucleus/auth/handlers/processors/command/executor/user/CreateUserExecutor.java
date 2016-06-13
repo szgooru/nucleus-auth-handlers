@@ -138,7 +138,7 @@ class CreateUserExecutor implements DBExecutor {
                 ParameterConstants.PARAM_USER_USERNAME, MessageCodeConstants.AU0018,
                 ParameterConstants.PARAM_USER_USERNAME, "4", "20");
             LazyList<AJEntityUserIdentity> results =
-                AJEntityUserIdentity.where(AJEntityUserIdentity.GET_BY_USERNAME, username);
+                AJEntityUserIdentity.where(AJEntityUserIdentity.GET_BY_CANONICAL_USERNAME, username.toLowerCase());
             addValidator(errors, !(results.size() == 0), ParameterConstants.PARAM_USER_USERNAME,
                 MessageCodeConstants.AU0023, username, ParameterConstants.PARAM_USER_USERNAME);
         }
@@ -242,6 +242,7 @@ class CreateUserExecutor implements DBExecutor {
         final String clientId) {
         final AJEntityUserIdentity userIdentity = new AJEntityUserIdentity();
         userIdentity.setUsername(userDTO.getUsername());
+        userIdentity.setCanonicalUsername(userDTO.getUsername().toLowerCase());
         if (user.getEmailId() != null) {
             userIdentity.setEmailId(user.getEmailId());
         }

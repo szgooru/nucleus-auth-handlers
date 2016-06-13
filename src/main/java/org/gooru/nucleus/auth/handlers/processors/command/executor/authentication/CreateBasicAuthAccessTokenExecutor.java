@@ -82,7 +82,7 @@ public final class CreateBasicAuthAccessTokenExecutor implements DBExecutor {
             userIdentity = userIdentityEmail.size() > 0 ? userIdentityEmail.get(0) : null;
         } else {
             LazyList<AJEntityUserIdentity> userIdentityUsername =
-                AJEntityUserIdentity.where(AJEntityUserIdentity.GET_BY_USERNAME_PASSWORD, username, password);
+                AJEntityUserIdentity.where(AJEntityUserIdentity.GET_BY_CANONICAL_USERNAME_PASSWORD, username.toLowerCase(), password);
             userIdentity = userIdentityUsername.size() > 0 ? userIdentityUsername.get(0) : null;
         }
         rejectIfNull(userIdentity, MessageCodeConstants.AU0008, HttpConstants.HttpStatus.UNAUTHORIZED.getCode());
