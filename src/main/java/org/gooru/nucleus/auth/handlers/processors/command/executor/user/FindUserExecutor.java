@@ -44,7 +44,7 @@ class FindUserExecutor implements DBExecutor {
             List<Map> results = Base.findAll(AJEntityUser.FIND_USER_USING_EMAIL, email);
             user = results.size() > 0 ? results.get(0) : null;
         } else if (username != null) {
-            List<Map> results = Base.findAll(AJEntityUser.FIND_USER_USING_USERNAME, username.toString());
+            List<Map> results = Base.findAll(AJEntityUser.FIND_USER_USING_USERNAME, username.toLowerCase());
             user = results.size() > 0 ? results.get(0) : null;
         }
         return new MessageResponse.Builder().setResponseBody(AJResponseJsonTransformer.transform(user))
