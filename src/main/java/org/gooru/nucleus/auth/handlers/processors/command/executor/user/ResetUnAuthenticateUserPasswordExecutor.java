@@ -1,5 +1,6 @@
 package org.gooru.nucleus.auth.handlers.processors.command.executor.user;
 
+import static org.gooru.nucleus.auth.handlers.utils.ServerValidatorUtility.reject;
 import static org.gooru.nucleus.auth.handlers.utils.ServerValidatorUtility.rejectIfNull;
 
 import org.gooru.nucleus.auth.handlers.constants.HttpConstants;
@@ -41,8 +42,8 @@ class ResetUnAuthenticateUserPasswordExecutor implements DBExecutor {
 
     @Override
     public void validateRequest() {
-        String emailId = this.redisClient.get(token);
-        rejectIfNull(emailId, MessageCodeConstants.AU0028, HttpConstants.HttpStatus.UNAUTHORIZED.getCode());
+        String emailId = this.redisClient.get(token);        
+        reject(emailId == null, MessageCodeConstants.AU0028, ParameterConstants.PARAM_USER_TOKEN, HttpConstants.HttpStatus.GONE.getCode());
         LazyList<AJEntityUserIdentity> results = AJEntityUserIdentity.where(AJEntityUserIdentity.GET_BY_EMAIL, emailId);
         userIdentity = results.size() > 0 ? results.get(0) : null;
         ServerValidatorUtility.rejectIfNull(userIdentity, MessageCodeConstants.AU0026,

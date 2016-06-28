@@ -5,6 +5,7 @@ import static org.gooru.nucleus.auth.handlers.utils.ServerValidatorUtility.addVa
 import static org.gooru.nucleus.auth.handlers.utils.ServerValidatorUtility.rejectError;
 import static org.gooru.nucleus.auth.handlers.utils.ServerValidatorUtility.rejectIfNull;
 import static org.gooru.nucleus.auth.handlers.utils.ServerValidatorUtility.rejectIfNullOrEmpty;
+import io.vertx.core.json.JsonObject;
 
 import java.util.Date;
 
@@ -35,8 +36,6 @@ import org.gooru.nucleus.auth.handlers.processors.repositories.activejdbc.entiti
 import org.gooru.nucleus.auth.handlers.utils.InternalHelper;
 import org.javalite.activejdbc.LazyList;
 
-import io.vertx.core.json.JsonObject;
-
 class CreateUserExecutor implements DBExecutor {
 
     private RedisClient redisClient;
@@ -62,8 +61,7 @@ class CreateUserExecutor implements DBExecutor {
     @Override
     public void validateRequest() {
         ActionResponseDTO<AJEntityUser> userValidator = createUserValidator(userDTO);
-        userValidator.getModel().setBirthDate(dob);
-        rejectError(userValidator.getErrors(), HttpConstants.HttpStatus.BAD_REQUEST.getCode());
+        userValidator.getModel().setBirthDate(dob); 
         user = userValidator.getModel();
     }
 
@@ -137,10 +135,6 @@ class CreateUserExecutor implements DBExecutor {
             addValidator(errors, ((username.length() < 4 || username.length() > 20)),
                 ParameterConstants.PARAM_USER_USERNAME, MessageCodeConstants.AU0018,
                 ParameterConstants.PARAM_USER_USERNAME, "4", "20");
-            LazyList<AJEntityUserIdentity> results =
-                AJEntityUserIdentity.where(AJEntityUserIdentity.GET_BY_CANONICAL_USERNAME, username.toLowerCase());
-            addValidator(errors, !(results.size() == 0), ParameterConstants.PARAM_USER_USERNAME,
-                MessageCodeConstants.AU0023, username, ParameterConstants.PARAM_USER_USERNAME);
         }
         final String emailId = userDTO.getEmailId();
         addValidatorIfNullOrEmptyError(errors, ParameterConstants.PARAM_USER_EMAIL_ID, userDTO.getEmailId(),
@@ -148,10 +142,6 @@ class CreateUserExecutor implements DBExecutor {
         if (emailId != null) {
             addValidator(errors, !(emailId.indexOf("@") > 1), ParameterConstants.PARAM_USER_EMAIL_ID,
                 MessageCodeConstants.AU0020);
-            LazyList<AJEntityUserIdentity> results =
-                AJEntityUserIdentity.where(AJEntityUserIdentity.GET_BY_EMAIL, emailId);
-            addValidator(errors, !(results.size() == 0), ParameterConstants.PARAM_USER_EMAIL_ID,
-                MessageCodeConstants.AU0023, emailId, ParameterConstants.EMAIL_ADDRESS);
         }
         final String userCategory = userDTO.getUserCategory();
         if (userCategory != null) {
@@ -234,7 +224,16 @@ class CreateUserExecutor implements DBExecutor {
         } else if (userDTO.getSchool() != null) {
             user.setSchool(userDTO.getSchool());
         }
-
+        rejectError(errors, HttpConstants.HttpStatus.BAD_REQUEST.getCode()); 
+        LazyList<AJEntityUserIdentity> emailAdressResult =
+            AJEntityUserIdentity.where(AJEntityUserIdentity.GET_BY_EMAIL, emailId);
+        addValidator(errors, !(emailAdressResult.size() == 0), ParameterConstants.PARAM_USER_EMAIL_ID,
+            MessageCodeConstants.AU0023, emailId, ParameterConstants.EMAIL_ADDRESS); 
+        LazyList<AJEntityUserIdentity> results =
+            AJEntityUserIdentity.where(AJEntityUserIdentity.GET_BY_CANONICAL_USERNAME, username.toLowerCase());
+        addValidator(errors, !(results.size() == 0), ParameterConstants.PARAM_USER_USERNAME,
+            MessageCodeConstants.AU0023, username, ParameterConstants.PARAM_USER_USERNAME);
+        rejectError(errors, HttpConstants.HttpStatus.CONFLICT.getCode()); 
         return new ActionResponseDTO<>(user, errors);
     }
 

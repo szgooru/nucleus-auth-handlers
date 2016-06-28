@@ -8,6 +8,8 @@ import org.gooru.nucleus.auth.handlers.constants.HttpConstants;
 import org.gooru.nucleus.auth.handlers.constants.MessageConstants;
 import org.gooru.nucleus.auth.handlers.processors.exceptions.AccessDeniedException;
 import org.gooru.nucleus.auth.handlers.processors.exceptions.BadRequestException;
+import org.gooru.nucleus.auth.handlers.processors.exceptions.ConflictException;
+import org.gooru.nucleus.auth.handlers.processors.exceptions.GoneException;
 import org.gooru.nucleus.auth.handlers.processors.exceptions.NotFoundException;
 import org.gooru.nucleus.auth.handlers.processors.exceptions.UnauthorizedException;
 import org.slf4j.Logger;
@@ -116,6 +118,16 @@ public class MessageResponse {
 
         public Builder setStatusNotFound() {
             this.httpStatus = HttpConstants.HttpStatus.NOT_FOUND;
+            return this;
+        }
+        
+        public Builder setStatusGone() {
+            this.httpStatus = HttpConstants.HttpStatus.GONE;
+            return this;
+        }
+        
+        public Builder setStatusConflict() {
+            this.httpStatus = HttpConstants.HttpStatus.CONFLICT;
             return this;
         }
 
@@ -246,6 +258,10 @@ public class MessageResponse {
                 setStatusForbidden().failed();
             } else if (throwable instanceof UnauthorizedException) {
                 setStatusUnauthorized().failed();
+            } else if (throwable instanceof ConflictException) {
+                setStatusConflict().failed();
+            }  else if (throwable instanceof GoneException) {
+                setStatusGone().failed();
             } else {
                 setStatusInternalError().failed();
             }
