@@ -21,7 +21,7 @@ public class AJEntityUser extends Model {
     public static final String FIND_USER_USING_EMAIL =
         "select u.*, ui.username, ui.login_type, ui.provision_type from user_demographic  u   inner join user_identity ui    on (u.id = ui.user_id)  where ui.email_id = ?";
     public static final String FIND_USER_USING_USERNAME =
-        "select u.*, ui.username, ui.login_type, ui.provision_type from user_demographic  u   inner join user_identity ui    on (u.id = ui.user_id)  where ui.username = ?";
+        "select u.*, ui.username, ui.login_type, ui.provision_type from user_demographic  u   inner join user_identity ui    on (u.id = ui.user_id)  where ui.canonical_username = ?";
 
     public static final String FIND_USERS =
         "select u.firstname, u.lastname, u.id, u.thumbnail_path, ui.username from user_demographic  u   inner join user_identity ui    on (u.id = ui.user_id)  where u.id in (";

@@ -26,6 +26,8 @@ public class HttpConstants {
         NOT_FOUND(404, "Not Found"),
         NOT_ACCEPTABLE(406, "Not Acceptable"),
         TIMED_OUT(408, "Request Timeout"),
+        CONFLICT(409, "Conflict"),
+        GONE(410, "Gone"),
         TOO_LARGE(413, "Request Entity Too Large"),
         TOO_MANY_REQUESTS(429, "Too Many Requests"),
         ERROR(500, "Internal Server Error");

@@ -53,7 +53,6 @@ public final class UpdateUserExecutor implements DBExecutor {
     @Override
     public void validateRequest() {
         ActionResponseDTO<AJEntityUser> userValidator = updateUserValidator();
-        rejectError(userValidator.getErrors(), HttpConstants.HttpStatus.BAD_REQUEST.getCode());
         user = userValidator.getModel();
         eventBuilder = userValidator.getEventBuilder();
     }
@@ -122,10 +121,6 @@ public final class UpdateUserExecutor implements DBExecutor {
             addValidator(errors, ((username.length() < 4 || username.length() > 20)),
                 ParameterConstants.PARAM_USER_USERNAME, MessageCodeConstants.AU0018,
                 ParameterConstants.PARAM_USER_USERNAME, "4", "20");
-            LazyList<AJEntityUserIdentity> results =
-                AJEntityUserIdentity.where(AJEntityUserIdentity.GET_BY_CANONICAL_USERNAME, username.toLowerCase());
-            addValidator(errors, !(results.size() == 0), ParameterConstants.PARAM_USER_USERNAME,
-                MessageCodeConstants.AU0023, username, ParameterConstants.PARAM_USER_USERNAME);
         }
 
         if (userDTO.getCountryId() != null) {
@@ -209,7 +204,14 @@ public final class UpdateUserExecutor implements DBExecutor {
         if (userDTO.getRosterGlobalUserId() != null) { 
             user.setRosterGlobalUserId(userDTO.getRosterGlobalUserId());
         }
-        
+        rejectError(errors, HttpConstants.HttpStatus.BAD_REQUEST.getCode());
+        if (username != null) {
+            LazyList<AJEntityUserIdentity> results =
+                AJEntityUserIdentity.where(AJEntityUserIdentity.GET_BY_CANONICAL_USERNAME, username.toLowerCase());
+            addValidator(errors, !(results.size() == 0), ParameterConstants.PARAM_USER_USERNAME,
+                MessageCodeConstants.AU0023, username, ParameterConstants.PARAM_USER_USERNAME);
+        }
+        rejectError(errors, HttpConstants.HttpStatus.CONFLICT.getCode());
         return new ActionResponseDTO<>(user, eventBuilder, errors);
 
     }
