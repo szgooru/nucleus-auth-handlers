@@ -1,9 +1,11 @@
 package org.gooru.nucleus.auth.handlers.utils;
 
 import static org.gooru.nucleus.auth.handlers.constants.HttpConstants.HttpStatus.BAD_REQUEST;
+import static org.gooru.nucleus.auth.handlers.constants.HttpConstants.HttpStatus.CONFLICT;
 import static org.gooru.nucleus.auth.handlers.constants.HttpConstants.HttpStatus.FORBIDDEN;
 import static org.gooru.nucleus.auth.handlers.constants.HttpConstants.HttpStatus.NOT_FOUND;
 import static org.gooru.nucleus.auth.handlers.constants.HttpConstants.HttpStatus.UNAUTHORIZED;
+import static org.gooru.nucleus.auth.handlers.constants.HttpConstants.HttpStatus.GONE;
 import io.vertx.core.json.JsonObject;
 
 import java.util.Map;
@@ -11,6 +13,8 @@ import java.util.ResourceBundle;
 
 import org.gooru.nucleus.auth.handlers.processors.exceptions.AccessDeniedException;
 import org.gooru.nucleus.auth.handlers.processors.exceptions.BadRequestException;
+import org.gooru.nucleus.auth.handlers.processors.exceptions.ConflictException;
+import org.gooru.nucleus.auth.handlers.processors.exceptions.GoneException;
 import org.gooru.nucleus.auth.handlers.processors.exceptions.NotFoundException;
 import org.gooru.nucleus.auth.handlers.processors.exceptions.UnauthorizedException;
 
@@ -59,7 +63,16 @@ public class ServerValidatorUtility {
             exceptionHandler(errorCode, code, placeHolderReplacer);
         }
     }
-
+    
+    public static void reject(final Boolean data, final String code, final String fieldName, final int errorCode,
+        final String... placeHolderReplacer) {
+        if (data) {
+            JsonObject errors = new JsonObject();
+            errors.put(fieldName, generateErrorMessage(code, placeHolderReplacer));
+            rejectError(errors, errorCode);
+        }
+    }
+    
     private static void exceptionHandler(final int errorCode, final String code, final String... placeHolderReplacer) {
         if (errorCode == NOT_FOUND.getCode()) {
             throw new NotFoundException(generateErrorMessage(code, placeHolderReplacer));
@@ -69,6 +82,10 @@ public class ServerValidatorUtility {
             throw new UnauthorizedException(generateErrorMessage(code, placeHolderReplacer));
         } else if (errorCode == BAD_REQUEST.getCode()) {
             throw new BadRequestException(generateErrorMessage(code, placeHolderReplacer));
+        } else if (errorCode == CONFLICT.getCode()) {
+            throw new ConflictException(generateErrorMessage(code, placeHolderReplacer));
+        } else if (errorCode == GONE.getCode()) {
+            throw new GoneException(generateErrorMessage(code, placeHolderReplacer));
         }
     }
 
@@ -111,6 +128,10 @@ public class ServerValidatorUtility {
         if (errors != null && !errors.isEmpty()) {
             if (errorCode == BAD_REQUEST.getCode()) {
                 throw new BadRequestException(errors.toString());
+            } else if(errorCode == CONFLICT.getCode()) { 
+                throw new ConflictException(errors.toString());
+            } else if(errorCode == GONE.getCode()) { 
+                throw new GoneException(errors.toString());
             }
         }
     }
@@ -128,6 +149,10 @@ public class ServerValidatorUtility {
             throw new AccessDeniedException(e.getMessage());
         } else if (e instanceof UnauthorizedException) {
             throw new UnauthorizedException(e.getMessage());
+        } else if (e instanceof ConflictException) { 
+            throw new ConflictException(e.getMessage());
+        } else if (e instanceof GoneException) { 
+            throw new GoneException(e.getMessage());
         } else {
             throw new RuntimeException("internal api error");
         }
