@@ -33,7 +33,7 @@ class FindUsersExecutor implements DBExecutor {
         ServerValidatorUtility.rejectIfNullOrEmpty(ids, MessageCodeConstants.AU0043, 400,
             ParameterConstants.PARAM_USER_IDS);
         final String[] userIds = ids.split(",");
-        ServerValidatorUtility.reject(userIds.length > 30, MessageCodeConstants.AU0044, 400);
+        ServerValidatorUtility.reject(userIds.length > 50, MessageCodeConstants.AU0044, 400);
         Stream.of(userIds).forEach(userId -> {
             try {
                 UUID.fromString(userId);
