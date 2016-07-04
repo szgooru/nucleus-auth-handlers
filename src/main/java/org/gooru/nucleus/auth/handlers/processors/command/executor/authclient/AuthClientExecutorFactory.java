@@ -6,5 +6,5 @@ import org.gooru.nucleus.auth.handlers.processors.messageProcessor.MessageContex
 public final class AuthClientExecutorFactory {
     public static DBExecutor CreateAuthClient(MessageContext messageContext) {
         return new CreateAuthClientExecutor(messageContext);
-    }   
+    }
 }

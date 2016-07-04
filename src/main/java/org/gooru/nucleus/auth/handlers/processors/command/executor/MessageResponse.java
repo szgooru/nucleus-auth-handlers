@@ -120,12 +120,12 @@ public class MessageResponse {
             this.httpStatus = HttpConstants.HttpStatus.NOT_FOUND;
             return this;
         }
-        
+
         public Builder setStatusGone() {
             this.httpStatus = HttpConstants.HttpStatus.GONE;
             return this;
         }
-        
+
         public Builder setStatusConflict() {
             this.httpStatus = HttpConstants.HttpStatus.CONFLICT;
             return this;
@@ -260,7 +260,7 @@ public class MessageResponse {
                 setStatusUnauthorized().failed();
             } else if (throwable instanceof ConflictException) {
                 setStatusConflict().failed();
-            }  else if (throwable instanceof GoneException) {
+            } else if (throwable instanceof GoneException) {
                 setStatusGone().failed();
             } else {
                 setStatusInternalError().failed();

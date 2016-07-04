@@ -134,7 +134,7 @@ public final class InternalHelper {
             }
         });
     }
-    
+
     public static String encodeToken(String token) {
         try {
             return URLEncoder.encode(token, HelperConstants.CHAR_ENCODING_UTF8);
