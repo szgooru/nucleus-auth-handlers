@@ -26,28 +26,24 @@ public class UserPrefsVerticle extends AbstractVerticle {
         final EventBus eb = vertx.eventBus();
         final ConfigRegistry configRegistry = ConfigRegistry.instance();
 
-        eb.consumer(
-            MessagebusEndpoints.MBEP_USER_PREFS,
-            message -> {
-                LOG.debug("Received message: " + message.body());
-                vertx.executeBlocking(
-                    future -> {
-                        MessageResponse result =
-                            new ProcessorBuilder(ProcessorHandlerType.USER_PREFS, message).build().process();
-                        future.complete(result);
-                    },
-                    res -> {
-                        MessageResponse result = (MessageResponse) res.result();
-                        message.reply(result.reply(), result.deliveryOptions());
+        eb.consumer(MessagebusEndpoints.MBEP_USER_PREFS, message -> {
+            LOG.debug("Received message: " + message.body());
+            vertx.executeBlocking(future -> {
+                MessageResponse result =
+                    new ProcessorBuilder(ProcessorHandlerType.USER_PREFS, message).build().process();
+                future.complete(result);
+            }, res -> {
+                MessageResponse result = (MessageResponse) res.result();
+                message.reply(result.reply(), result.deliveryOptions());
 
-                        final JsonObject eventData = result.event();
-                        if (eventData != null) {
-                            final String accessToken = getAccessToken(message, result);
-                            InternalHelper.executeHTTPClientPost(configRegistry.getEventRestApiUrl(),
-                                eventData.toString(), accessToken);
-                        }
-                    });
-            }).completionHandler(result -> {
+                final JsonObject eventData = result.event();
+                if (eventData != null) {
+                    final String accessToken = getAccessToken(message, result);
+                    InternalHelper
+                        .executeHTTPClientPost(configRegistry.getEventRestApiUrl(), eventData.toString(), accessToken);
+                }
+            });
+        }).completionHandler(result -> {
             if (result.succeeded()) {
                 LOG.info("User prefs end point ready to listen");
                 voidFuture.complete();

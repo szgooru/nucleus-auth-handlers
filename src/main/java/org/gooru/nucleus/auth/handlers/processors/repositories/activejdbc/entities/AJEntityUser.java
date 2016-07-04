@@ -187,12 +187,12 @@ public class AJEntityUser extends Model {
     public String getSchoolDistrict() {
         return getString(ParameterConstants.PARAM_USER_SCHOOL_DISTRICT);
     }
-
-    public void setRosterGlobalUserId(String rosterGlobalUserId) {
+    
+    public void setRosterGlobalUserId(String rosterGlobalUserId) { 
         setString(ParameterConstants.PARAM_ROSTER_GLOBAL_USER_ID, rosterGlobalUserId);
     }
-
-    public String getRosterGlobalUserId() {
+    
+    public String getRosterGlobalUserId() { 
         return getString(ParameterConstants.PARAM_ROSTER_GLOBAL_USER_ID);
     }
 }

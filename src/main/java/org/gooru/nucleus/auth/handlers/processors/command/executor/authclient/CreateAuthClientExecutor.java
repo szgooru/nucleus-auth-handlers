@@ -46,9 +46,8 @@ public final class CreateAuthClientExecutor implements DBExecutor {
         ServerValidatorUtility.reject((permission == null), MessageCodeConstants.AU0050, 403);
         JsonObject jsonPermission = permission.getPermission();
         ServerValidatorUtility.reject((jsonPermission == null), MessageCodeConstants.AU0050, 403);
-        ServerValidatorUtility.reject(
-            (jsonPermission.getBoolean(HelperConstants.CREATE_APP_KEY) == null || !jsonPermission
-                .getBoolean(HelperConstants.CREATE_APP_KEY)), MessageCodeConstants.AU0050, 403);
+        ServerValidatorUtility.reject((jsonPermission.getBoolean(HelperConstants.CREATE_APP_KEY) == null || !jsonPermission.getBoolean(HelperConstants.CREATE_APP_KEY)),
+            MessageCodeConstants.AU0050, 403);
     }
 
     @Override

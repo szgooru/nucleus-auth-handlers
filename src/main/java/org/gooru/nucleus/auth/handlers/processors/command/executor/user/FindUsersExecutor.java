@@ -10,11 +10,11 @@ import java.util.stream.Stream;
 
 import org.gooru.nucleus.auth.handlers.constants.MessageCodeConstants;
 import org.gooru.nucleus.auth.handlers.constants.ParameterConstants;
+import org.gooru.nucleus.auth.handlers.processors.command.executor.AJResponseJsonTransformer;
 import org.gooru.nucleus.auth.handlers.processors.command.executor.DBExecutor;
 import org.gooru.nucleus.auth.handlers.processors.command.executor.MessageResponse;
 import org.gooru.nucleus.auth.handlers.processors.messageProcessor.MessageContext;
 import org.gooru.nucleus.auth.handlers.processors.repositories.activejdbc.entities.AJEntityUser;
-import org.gooru.nucleus.auth.handlers.processors.repositories.activejdbc.formatter.JsonFormatterBuilder;
 import org.gooru.nucleus.auth.handlers.utils.ServerValidatorUtility;
 import org.javalite.activejdbc.Base;
 
@@ -54,8 +54,7 @@ class FindUsersExecutor implements DBExecutor {
         List<Map> results = Base.findAll(AJEntityUser.FIND_USERS + "'" + ids + "')");
         JsonArray users = new JsonArray();
         if (results != null) {
-            results.forEach(user -> users.add(JsonFormatterBuilder.buildSimpleJsonFormatter(false, null).mapToJson(
-                (Map<String, Object>) user)));
+            results.forEach(user -> users.add(AJResponseJsonTransformer.transform((Map<String, Object>) user)));
         }
         return new MessageResponse.Builder()
             .setResponseBody(new JsonObject().put(ParameterConstants.PARAM_USERS, users)).setContentTypeJson()

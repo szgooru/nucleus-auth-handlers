@@ -7,11 +7,11 @@ import org.gooru.nucleus.auth.handlers.constants.HttpConstants;
 import org.gooru.nucleus.auth.handlers.constants.MessageCodeConstants;
 import org.gooru.nucleus.auth.handlers.constants.MessageConstants;
 import org.gooru.nucleus.auth.handlers.constants.ParameterConstants;
+import org.gooru.nucleus.auth.handlers.processors.command.executor.AJResponseJsonTransformer;
 import org.gooru.nucleus.auth.handlers.processors.command.executor.DBExecutor;
 import org.gooru.nucleus.auth.handlers.processors.command.executor.MessageResponse;
 import org.gooru.nucleus.auth.handlers.processors.messageProcessor.MessageContext;
 import org.gooru.nucleus.auth.handlers.processors.repositories.activejdbc.entities.AJEntityUser;
-import org.gooru.nucleus.auth.handlers.processors.repositories.activejdbc.formatter.JsonFormatterBuilder;
 import org.gooru.nucleus.auth.handlers.utils.ServerValidatorUtility;
 import org.javalite.activejdbc.Base;
 
@@ -44,8 +44,7 @@ class FetchUserExecutor implements DBExecutor {
 
     @Override
     public MessageResponse executeRequest() {
-        return new MessageResponse.Builder()
-            .setResponseBody(JsonFormatterBuilder.buildSimpleJsonFormatter(false, null).mapToJson(user))
+        return new MessageResponse.Builder().setResponseBody(AJResponseJsonTransformer.transform(user))
             .setContentTypeJson().setStatusOkay().successful().build();
     }
 

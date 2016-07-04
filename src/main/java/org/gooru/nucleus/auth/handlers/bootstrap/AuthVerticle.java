@@ -19,28 +19,23 @@ public class AuthVerticle extends AbstractVerticle {
     @Override
     public void start(Future<Void> voidFuture) throws Exception {
         final EventBus eb = vertx.eventBus();
-        eb.consumer(
-            MessagebusEndpoints.MBEP_AUTH,
-            message -> {
-                LOG.debug("Received message: " + message.body());
-                vertx.executeBlocking(
-                    future -> {
-                        JsonObject result = getAccessToken(message.headers().get(MessageConstants.MSG_HEADER_TOKEN));
-                        future.complete(result);
-                    },
-                    res -> {
-                        if (res.result() != null) {
-                            JsonObject result = (JsonObject) res.result();
-                            DeliveryOptions options =
-                                new DeliveryOptions().addHeader(MessageConstants.MSG_OP_STATUS,
-                                    MessageConstants.MSG_OP_STATUS_SUCCESS);
-                            message.reply(result, options);
-                        } else {
-                            message.reply(null);
-                        }
-                    });
+        eb.consumer(MessagebusEndpoints.MBEP_AUTH, message -> {
+            LOG.debug("Received message: " + message.body());
+            vertx.executeBlocking(future -> {
+                JsonObject result = getAccessToken(message.headers().get(MessageConstants.MSG_HEADER_TOKEN));
+                future.complete(result);
+            }, res -> {
+                if (res.result() != null) {
+                    JsonObject result = (JsonObject) res.result();
+                    DeliveryOptions options = new DeliveryOptions()
+                        .addHeader(MessageConstants.MSG_OP_STATUS, MessageConstants.MSG_OP_STATUS_SUCCESS);
+                    message.reply(result, options);
+                } else {
+                    message.reply(null);
+                }
+            });
 
-            }).completionHandler(result -> {
+        }).completionHandler(result -> {
             if (result.succeeded()) {
                 LOG.info("Auth end point ready to listen");
                 voidFuture.complete();

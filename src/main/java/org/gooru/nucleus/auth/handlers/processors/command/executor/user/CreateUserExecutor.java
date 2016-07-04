@@ -17,6 +17,7 @@ import org.gooru.nucleus.auth.handlers.constants.ParameterConstants;
 import org.gooru.nucleus.auth.handlers.constants.SchemaConstants;
 import org.gooru.nucleus.auth.handlers.infra.ConfigRegistry;
 import org.gooru.nucleus.auth.handlers.infra.RedisClient;
+import org.gooru.nucleus.auth.handlers.processors.command.executor.AJResponseJsonTransformer;
 import org.gooru.nucleus.auth.handlers.processors.command.executor.ActionResponseDTO;
 import org.gooru.nucleus.auth.handlers.processors.command.executor.DBExecutor;
 import org.gooru.nucleus.auth.handlers.processors.command.executor.MessageResponse;
@@ -32,7 +33,6 @@ import org.gooru.nucleus.auth.handlers.processors.repositories.activejdbc.entiti
 import org.gooru.nucleus.auth.handlers.processors.repositories.activejdbc.entities.AJEntityState;
 import org.gooru.nucleus.auth.handlers.processors.repositories.activejdbc.entities.AJEntityUser;
 import org.gooru.nucleus.auth.handlers.processors.repositories.activejdbc.entities.AJEntityUserIdentity;
-import org.gooru.nucleus.auth.handlers.processors.repositories.activejdbc.formatter.JsonFormatterBuilder;
 import org.gooru.nucleus.auth.handlers.utils.InternalHelper;
 import org.javalite.activejdbc.LazyList;
 
@@ -61,7 +61,7 @@ class CreateUserExecutor implements DBExecutor {
     @Override
     public void validateRequest() {
         ActionResponseDTO<AJEntityUser> userValidator = createUserValidator(userDTO);
-        userValidator.getModel().setBirthDate(dob);
+        userValidator.getModel().setBirthDate(dob); 
         user = userValidator.getModel();
     }
 
@@ -83,12 +83,11 @@ class CreateUserExecutor implements DBExecutor {
         final String token = InternalHelper.generateToken(userContext.getClientId(), userIdentity.getUserId());
         saveAccessToken(token, accessToken, userContext.getAccessTokenValidity());
         accessToken.put(ParameterConstants.PARAM_ACCESS_TOKEN, token);
-
         final EventBuilder eventBuilder = new EventBuilder();
         eventBuilder.putPayLoadObject(SchemaConstants.USER_DEMOGRAPHIC,
-            JsonFormatterBuilder.buildSimpleJsonFormatter(false, HelperConstants.USERS_JSON_FIELDS).toJson(user));
+            AJResponseJsonTransformer.transform(user.toJson(false), HelperConstants.USERS_JSON_FIELDS));
         eventBuilder.putPayLoadObject(SchemaConstants.USER_IDENTITY,
-            JsonFormatterBuilder.buildSimpleJsonFormatter(false, null).toJson(userIdentity));
+            AJResponseJsonTransformer.transform(userIdentity.toJson(false)));
         eventBuilder.setEventName(Event.CREATE_USER.getName());
         // generate email confirmation token and build the mail notify.
         final String emailToken = InternalHelper.generateEmailConfirmToken(userIdentity.getUserId());
@@ -100,12 +99,11 @@ class CreateUserExecutor implements DBExecutor {
         final ConfigRegistry configRegistry = ConfigRegistry.instance();
         if (configRegistry.sendConfirmationEmail()) {
             mailNotifyBuilder.setTemplateName(MailTemplateConstants.USER_REGISTARTION_CONFIRMATION)
-                .addToAddress(userIdentity.getEmailId())
-                .putContext(ParameterConstants.MAIL_TOKEN, InternalHelper.encodeToken(token))
+                .addToAddress(userIdentity.getEmailId()).putContext(ParameterConstants.MAIL_TOKEN, InternalHelper.encodeToken(token))
                 .putContext(ParameterConstants.PARAM_USER_ID, userIdentity.getUserId());
         } else {
-            mailNotifyBuilder.setTemplateName(MailTemplateConstants.WELCOME_MAIL).addToAddress(
-                userIdentity.getEmailId());
+            mailNotifyBuilder.setTemplateName(MailTemplateConstants.WELCOME_MAIL)
+                .addToAddress(userIdentity.getEmailId());
         }
         return new MessageResponse.Builder().setResponseBody(accessToken).setEventData(eventBuilder.build())
             .addMailNotify(mailNotifyBuilder.build())
@@ -226,16 +224,16 @@ class CreateUserExecutor implements DBExecutor {
         } else if (userDTO.getSchool() != null) {
             user.setSchool(userDTO.getSchool());
         }
-        rejectError(errors, HttpConstants.HttpStatus.BAD_REQUEST.getCode());
+        rejectError(errors, HttpConstants.HttpStatus.BAD_REQUEST.getCode()); 
         LazyList<AJEntityUserIdentity> emailAdressResult =
             AJEntityUserIdentity.where(AJEntityUserIdentity.GET_BY_EMAIL, emailId);
         addValidator(errors, !(emailAdressResult.size() == 0), ParameterConstants.PARAM_USER_EMAIL_ID,
-            MessageCodeConstants.AU0023, emailId, ParameterConstants.EMAIL_ADDRESS);
+            MessageCodeConstants.AU0023, emailId, ParameterConstants.EMAIL_ADDRESS); 
         LazyList<AJEntityUserIdentity> results =
             AJEntityUserIdentity.where(AJEntityUserIdentity.GET_BY_CANONICAL_USERNAME, username.toLowerCase());
         addValidator(errors, !(results.size() == 0), ParameterConstants.PARAM_USER_USERNAME,
             MessageCodeConstants.AU0023, username, ParameterConstants.PARAM_USER_USERNAME);
-        rejectError(errors, HttpConstants.HttpStatus.CONFLICT.getCode());
+        rejectError(errors, HttpConstants.HttpStatus.CONFLICT.getCode()); 
         return new ActionResponseDTO<>(user, errors);
     }
 

@@ -12,6 +12,7 @@ import org.gooru.nucleus.auth.handlers.constants.MessageCodeConstants;
 import org.gooru.nucleus.auth.handlers.constants.MessageConstants;
 import org.gooru.nucleus.auth.handlers.constants.ParameterConstants;
 import org.gooru.nucleus.auth.handlers.constants.SchemaConstants;
+import org.gooru.nucleus.auth.handlers.processors.command.executor.AJResponseJsonTransformer;
 import org.gooru.nucleus.auth.handlers.processors.command.executor.ActionResponseDTO;
 import org.gooru.nucleus.auth.handlers.processors.command.executor.DBExecutor;
 import org.gooru.nucleus.auth.handlers.processors.command.executor.MessageResponse;
@@ -25,7 +26,6 @@ import org.gooru.nucleus.auth.handlers.processors.repositories.activejdbc.entiti
 import org.gooru.nucleus.auth.handlers.processors.repositories.activejdbc.entities.AJEntityState;
 import org.gooru.nucleus.auth.handlers.processors.repositories.activejdbc.entities.AJEntityUser;
 import org.gooru.nucleus.auth.handlers.processors.repositories.activejdbc.entities.AJEntityUserIdentity;
-import org.gooru.nucleus.auth.handlers.processors.repositories.activejdbc.formatter.JsonFormatterBuilder;
 import org.javalite.activejdbc.LazyList;
 
 public final class UpdateUserExecutor implements DBExecutor {
@@ -61,9 +61,8 @@ public final class UpdateUserExecutor implements DBExecutor {
     public MessageResponse executeRequest() {
         user.saveIt();
         eventBuilder.setEventName(Event.UPDATE_USER.getName());
-
         eventBuilder.putPayLoadObject(SchemaConstants.USER_DEMOGRAPHIC,
-            JsonFormatterBuilder.buildSimpleJsonFormatter(false, HelperConstants.USERS_JSON_FIELDS).toJson(user));
+            AJResponseJsonTransformer.transform(user.toJson(false), HelperConstants.USERS_JSON_FIELDS));
         if (userDTO.getUsername() != null) {
             LazyList<AJEntityUserIdentity> results =
                 AJEntityUserIdentity.where(AJEntityUserIdentity.GET_BY_USER_ID, userId);
@@ -72,7 +71,7 @@ public final class UpdateUserExecutor implements DBExecutor {
             userIdentity.setCanonicalUsername(userDTO.getUsername().toLowerCase());
             userIdentity.saveIt();
             eventBuilder.putPayLoadObject(SchemaConstants.USER_IDENTITY,
-                JsonFormatterBuilder.buildSimpleJsonFormatter(false, null).toJson(userIdentity));
+                AJResponseJsonTransformer.transform(userIdentity.toJson(false)));
         }
         return new MessageResponse.Builder().setContentTypeJson().setEventData(eventBuilder.build())
             .setStatusNoOutput().successful().build();
@@ -150,7 +149,7 @@ public final class UpdateUserExecutor implements DBExecutor {
         } else if (userDTO.getState() != null) {
             user.setState(userDTO.getState());
             user.setStateId(null);
-        } else if (userDTO.getStateId() != null && userDTO.getStateId().isEmpty()) {
+        }  else if (userDTO.getStateId() != null && userDTO.getStateId().isEmpty()) {
             user.setStateId(null);
             user.setState(null);
         }
@@ -169,7 +168,7 @@ public final class UpdateUserExecutor implements DBExecutor {
         } else if (userDTO.getSchoolDistrict() != null) {
             user.setSchoolDistrict(userDTO.getSchoolDistrict());
             user.setSchoolDistrictId(null);
-        } else if (userDTO.getSchoolDistrictId() != null && userDTO.getSchoolDistrictId().isEmpty()) {
+        }  else if (userDTO.getSchoolDistrictId() != null && userDTO.getSchoolDistrictId().isEmpty()) {
             user.setSchoolDistrictId(null);
             user.setSchoolDistrict(null);
         }
@@ -201,8 +200,8 @@ public final class UpdateUserExecutor implements DBExecutor {
         if (userDTO.getThumbnailPath() != null) {
             user.setThumbnailPath(userDTO.getThumbnailPath());
         }
-
-        if (userDTO.getRosterGlobalUserId() != null) {
+        
+        if (userDTO.getRosterGlobalUserId() != null) { 
             user.setRosterGlobalUserId(userDTO.getRosterGlobalUserId());
         }
         rejectError(errors, HttpConstants.HttpStatus.BAD_REQUEST.getCode());
