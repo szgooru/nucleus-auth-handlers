@@ -11,7 +11,6 @@ import org.gooru.nucleus.auth.handlers.constants.MessageCodeConstants;
 import org.gooru.nucleus.auth.handlers.constants.MessageConstants;
 import org.gooru.nucleus.auth.handlers.constants.ParameterConstants;
 import org.gooru.nucleus.auth.handlers.constants.SchemaConstants;
-import org.gooru.nucleus.auth.handlers.processors.command.executor.AJResponseJsonTransformer;
 import org.gooru.nucleus.auth.handlers.processors.command.executor.DBExecutor;
 import org.gooru.nucleus.auth.handlers.processors.command.executor.MessageResponse;
 import org.gooru.nucleus.auth.handlers.processors.data.transform.model.UserPrefsDTO;
@@ -20,6 +19,7 @@ import org.gooru.nucleus.auth.handlers.processors.event.EventBuilder;
 import org.gooru.nucleus.auth.handlers.processors.messageProcessor.MessageContext;
 import org.gooru.nucleus.auth.handlers.processors.repositories.activejdbc.entities.AJEntityUserIdentity;
 import org.gooru.nucleus.auth.handlers.processors.repositories.activejdbc.entities.AJEntityUserPreference;
+import org.gooru.nucleus.auth.handlers.processors.repositories.activejdbc.formatter.JsonFormatterBuilder;
 import org.javalite.activejdbc.LazyList;
 
 public final class UpdateUserPrefsExecutor implements DBExecutor {
@@ -68,9 +68,11 @@ public final class UpdateUserPrefsExecutor implements DBExecutor {
         }
         userPreference.saveIt();
         EventBuilder eventBuilder = new EventBuilder();
-        eventBuilder.putPayLoadObject(SchemaConstants.USER_PREFERENCE,
-            AJResponseJsonTransformer.transform(userPreference.toJson(false), HelperConstants.USERS_PREFS_JSON_FIELDS))
-            .setEventName(Event.UPDATE_USER_PREFS.getName());
+        eventBuilder.putPayLoadObject(
+            SchemaConstants.USER_PREFERENCE,
+            JsonFormatterBuilder.buildSimpleJsonFormatter(false, HelperConstants.USERS_PREFS_JSON_FIELDS).toJson(
+                userPreference)).setEventName(Event.UPDATE_USER_PREFS.getName());
+        
         return new MessageResponse.Builder().setContentTypeJson().setEventData(eventBuilder.build())
             .setStatusNoOutput().successful().build();
 
