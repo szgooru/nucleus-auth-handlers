@@ -46,8 +46,8 @@ class UpdateUserEmailExecutor implements DBExecutor {
         LazyList<AJEntityUserIdentity> results =
             AJEntityUserIdentity.where(AJEntityUserIdentity.GET_BY_EMAIL, newEmailId);
         AJEntityUserIdentity userIdentity = results.size() > 0 ? results.get(0) : null;
-        reject(userIdentity != null, MessageCodeConstants.AU0023, ParameterConstants.PARAM_USER_EMAIL_ID, HttpConstants.HttpStatus.CONFLICT.getCode(),
-            newEmailId, ParameterConstants.EMAIL_ADDRESS);
+        reject(userIdentity != null, MessageCodeConstants.AU0023, ParameterConstants.PARAM_USER_EMAIL_ID,
+            HttpConstants.HttpStatus.CONFLICT.getCode(), newEmailId, ParameterConstants.EMAIL_ADDRESS);
 
     }
 

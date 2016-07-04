@@ -10,7 +10,6 @@ import org.gooru.nucleus.auth.handlers.constants.MessageCodeConstants;
 import org.gooru.nucleus.auth.handlers.constants.ParameterConstants;
 import org.gooru.nucleus.auth.handlers.constants.SchemaConstants;
 import org.gooru.nucleus.auth.handlers.infra.RedisClient;
-import org.gooru.nucleus.auth.handlers.processors.command.executor.AJResponseJsonTransformer;
 import org.gooru.nucleus.auth.handlers.processors.command.executor.DBExecutor;
 import org.gooru.nucleus.auth.handlers.processors.command.executor.MessageResponse;
 import org.gooru.nucleus.auth.handlers.processors.email.notify.MailNotifyBuilder;
@@ -19,6 +18,7 @@ import org.gooru.nucleus.auth.handlers.processors.event.EventBuilder;
 import org.gooru.nucleus.auth.handlers.processors.messageProcessor.MessageContext;
 import org.gooru.nucleus.auth.handlers.processors.repositories.activejdbc.entities.AJEntityUser;
 import org.gooru.nucleus.auth.handlers.processors.repositories.activejdbc.entities.AJEntityUserIdentity;
+import org.gooru.nucleus.auth.handlers.processors.repositories.activejdbc.formatter.JsonFormatterBuilder;
 import org.javalite.activejdbc.LazyList;
 
 class ConfirmUserEmailExecutor implements DBExecutor {
@@ -72,8 +72,9 @@ class ConfirmUserEmailExecutor implements DBExecutor {
             AJEntityUser user = (results.size() > 0) ? results.get(0) : null;
             user.setEmailId(emailId);
             user.saveIt();
+
             eventBuilder.put(SchemaConstants.USER_DEMOGRAPHIC,
-                AJResponseJsonTransformer.transform(user.toJson(false), HelperConstants.USERS_JSON_FIELDS));
+                JsonFormatterBuilder.buildSimpleJsonFormatter(false, HelperConstants.USERS_JSON_FIELDS).toJson(user));
         }
         MailNotifyBuilder mailNotifyBuilder = null;
         if (!userIdentity.getEmailConfirmStatus()) {
@@ -85,8 +86,9 @@ class ConfirmUserEmailExecutor implements DBExecutor {
         userIdentity.setEmailConfirmStatus(true);
         userIdentity.saveIt();
         this.redisClient.del(token);
-        eventBuilder
-            .put(SchemaConstants.USER_IDENTITY, AJResponseJsonTransformer.transform(userIdentity.toJson(false)));
+
+        eventBuilder.put(SchemaConstants.USER_IDENTITY, JsonFormatterBuilder.buildSimpleJsonFormatter(false, null)
+            .toJson(userIdentity));
         return new MessageResponse.Builder().setEventData(eventBuilder.build())
             .addMailNotify(mailNotifyBuilder.build()).setContentTypeJson().setStatusNoOutput().successful().build();
     }

@@ -42,8 +42,9 @@ class ResetUnAuthenticateUserPasswordExecutor implements DBExecutor {
 
     @Override
     public void validateRequest() {
-        String emailId = this.redisClient.get(token);        
-        reject(emailId == null, MessageCodeConstants.AU0028, ParameterConstants.PARAM_USER_TOKEN, HttpConstants.HttpStatus.GONE.getCode());
+        String emailId = this.redisClient.get(token);
+        reject(emailId == null, MessageCodeConstants.AU0028, ParameterConstants.PARAM_USER_TOKEN,
+            HttpConstants.HttpStatus.GONE.getCode());
         LazyList<AJEntityUserIdentity> results = AJEntityUserIdentity.where(AJEntityUserIdentity.GET_BY_EMAIL, emailId);
         userIdentity = results.size() > 0 ? results.get(0) : null;
         ServerValidatorUtility.rejectIfNull(userIdentity, MessageCodeConstants.AU0026,
@@ -57,7 +58,8 @@ class ResetUnAuthenticateUserPasswordExecutor implements DBExecutor {
         this.redisClient.del(token);
         MailNotifyBuilder mailNotifyBuilder = new MailNotifyBuilder();
         mailNotifyBuilder.setTemplateName(MailTemplateConstants.PASSWORD_CHANGED)
-            .addToAddress(userIdentity.getEmailId()).putContext(ParameterConstants.MAIL_TOKEN, InternalHelper.encodeToken(token))
+            .addToAddress(userIdentity.getEmailId())
+            .putContext(ParameterConstants.MAIL_TOKEN, InternalHelper.encodeToken(token))
             .putContext(ParameterConstants.PARAM_USER_USERNAME, userIdentity.getUsername());
         return new MessageResponse.Builder().addMailNotify(mailNotifyBuilder.build()).setContentTypeJson()
             .setStatusNoOutput().successful().build();

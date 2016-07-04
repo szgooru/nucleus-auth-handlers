@@ -62,7 +62,8 @@ class ResendConfirmationEmailExecutor implements DBExecutor {
         this.redisClient.set(token, tokenData.toString(), EXPIRE_IN_SECONDS);
         MailNotifyBuilder mailConfirmNotifyBuilder = new MailNotifyBuilder();
         mailConfirmNotifyBuilder.setTemplateName(MailTemplateConstants.USER_REGISTARTION_CONFIRMATION)
-            .addToAddress(userIdentity.getEmailId()).putContext(ParameterConstants.MAIL_TOKEN, InternalHelper.encodeToken(token))
+            .addToAddress(userIdentity.getEmailId())
+            .putContext(ParameterConstants.MAIL_TOKEN, InternalHelper.encodeToken(token))
             .putContext(ParameterConstants.PARAM_USER_ID, user.getId().toString());
         return new MessageResponse.Builder().addMailNotify(mailConfirmNotifyBuilder.build()).setContentTypeJson()
             .setStatusOkay().successful().build();
