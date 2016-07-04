@@ -68,11 +68,11 @@ public final class UpdateUserPrefsExecutor implements DBExecutor {
         }
         userPreference.saveIt();
         EventBuilder eventBuilder = new EventBuilder();
-
         eventBuilder.putPayLoadObject(
             SchemaConstants.USER_PREFERENCE,
             JsonFormatterBuilder.buildSimpleJsonFormatter(false, HelperConstants.USERS_PREFS_JSON_FIELDS).toJson(
                 userPreference)).setEventName(Event.UPDATE_USER_PREFS.getName());
+        
         return new MessageResponse.Builder().setContentTypeJson().setEventData(eventBuilder.build())
             .setStatusNoOutput().successful().build();
 

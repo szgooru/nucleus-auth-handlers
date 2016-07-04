@@ -25,29 +25,25 @@ public class AuthenticationVerticle extends AbstractVerticle {
     public void start(Future<Void> voidFuture) throws Exception {
         final EventBus eb = vertx.eventBus();
         final ConfigRegistry configRegistry = ConfigRegistry.instance();
-        eb.consumer(
-            MessagebusEndpoints.MBEP_AUTHENTICATION,
-            message -> {
-                LOG.debug("Received message: " + message.body());
-                vertx.executeBlocking(
-                    future -> {
-                        MessageResponse result =
-                            new ProcessorBuilder(ProcessorHandlerType.AUTHENTICATION, message).build().process();
-                        future.complete(result);
-                    },
-                    res -> {
-                        MessageResponse result = (MessageResponse) res.result();
-                        message.reply(result.reply(), result.deliveryOptions());
-                        final JsonObject eventData = result.event();
-                        if (eventData != null) {
-                            final String accessToken = getAccessToken(message, result);
-                            InternalHelper.executeHTTPClientPost(configRegistry.getEventRestApiUrl(),
-                                eventData.toString(), accessToken);
-                        }
+        eb.consumer(MessagebusEndpoints.MBEP_AUTHENTICATION, message -> {
+            LOG.debug("Received message: " + message.body());
+            vertx.executeBlocking(future -> {
+                MessageResponse result =
+                    new ProcessorBuilder(ProcessorHandlerType.AUTHENTICATION, message).build().process();
+                future.complete(result);
+            }, res -> {
+                MessageResponse result = (MessageResponse) res.result();
+                message.reply(result.reply(), result.deliveryOptions());
+                final JsonObject eventData = result.event();
+                if (eventData != null) {
+                    final String accessToken = getAccessToken(message, result);
+                    InternalHelper
+                        .executeHTTPClientPost(configRegistry.getEventRestApiUrl(), eventData.toString(), accessToken);
+                }
 
-                    });
+            });
 
-            }).completionHandler(result -> {
+        }).completionHandler(result -> {
             if (result.succeeded()) {
                 LOG.info("authentication end point ready to listen");
                 voidFuture.complete();

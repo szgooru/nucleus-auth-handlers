@@ -25,34 +25,31 @@ public class AuthenticationGLAVersionVerticle extends AbstractVerticle {
     public void start(Future<Void> voidFuture) throws Exception {
         final EventBus eb = vertx.eventBus();
         final ConfigRegistry configRegistry = ConfigRegistry.instance();
-        eb.consumer(
-            MessagebusEndpoints.MBEP_GLA_VERSION_AUTHENTICATION,
-            message -> vertx.executeBlocking(future -> {
-                MessageResponse result =
-                    new ProcessorBuilder(ProcessorHandlerType.AUTHENTICATION_GLA_VERSION, message).build().process();
-                future.complete(result);
-            }, res -> {
-                MessageResponse result = (MessageResponse) res.result();
-                message.reply(result.reply(), result.deliveryOptions());
+        eb.consumer(MessagebusEndpoints.MBEP_GLA_VERSION_AUTHENTICATION, message -> vertx.executeBlocking(future -> {
+            MessageResponse result =
+                new ProcessorBuilder(ProcessorHandlerType.AUTHENTICATION_GLA_VERSION, message).build().process();
+            future.complete(result);
+        }, res -> {
+            MessageResponse result = (MessageResponse) res.result();
+            message.reply(result.reply(), result.deliveryOptions());
 
-                final JsonObject eventData = result.event();
-                if (eventData != null) {
-                    final String accessToken = getAccessToken(message, result);
-                    InternalHelper.executeHTTPClientPost(configRegistry.getEventRestApiUrl(), eventData.toString(),
-                        accessToken);
-                }
+            final JsonObject eventData = result.event();
+            if (eventData != null) {
+                final String accessToken = getAccessToken(message, result);
+                InternalHelper
+                    .executeHTTPClientPost(configRegistry.getEventRestApiUrl(), eventData.toString(), accessToken);
+            }
 
-            }))
-            .completionHandler(
-                result -> {
-                    if (result.succeeded()) {
-                        LOG.info("authentication GLA 2.0 end point ready to listen");
-                        voidFuture.complete();
-                    } else {
-                        LOG.error("Error registering the authentication gla 2.0  handler. Halting the authentication gla 2.0 machinery");
-                        voidFuture.fail(result.cause());
-                    }
-                });
+        })).completionHandler(result -> {
+            if (result.succeeded()) {
+                LOG.info("authentication GLA 2.0 end point ready to listen");
+                voidFuture.complete();
+            } else {
+                LOG.error(
+                    "Error registering the authentication gla 2.0  handler. Halting the authentication gla 2.0 machinery");
+                voidFuture.fail(result.cause());
+            }
+        });
     }
 
     private String getAccessToken(Message<?> message, MessageResponse messageResponse) {

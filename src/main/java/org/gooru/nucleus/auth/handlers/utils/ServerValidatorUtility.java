@@ -63,7 +63,7 @@ public class ServerValidatorUtility {
             exceptionHandler(errorCode, code, placeHolderReplacer);
         }
     }
-
+    
     public static void reject(final Boolean data, final String code, final String fieldName, final int errorCode,
         final String... placeHolderReplacer) {
         if (data) {
@@ -72,7 +72,7 @@ public class ServerValidatorUtility {
             rejectError(errors, errorCode);
         }
     }
-
+    
     private static void exceptionHandler(final int errorCode, final String code, final String... placeHolderReplacer) {
         if (errorCode == NOT_FOUND.getCode()) {
             throw new NotFoundException(generateErrorMessage(code, placeHolderReplacer));
@@ -128,9 +128,9 @@ public class ServerValidatorUtility {
         if (errors != null && !errors.isEmpty()) {
             if (errorCode == BAD_REQUEST.getCode()) {
                 throw new BadRequestException(errors.toString());
-            } else if (errorCode == CONFLICT.getCode()) {
+            } else if(errorCode == CONFLICT.getCode()) { 
                 throw new ConflictException(errors.toString());
-            } else if (errorCode == GONE.getCode()) {
+            } else if(errorCode == GONE.getCode()) { 
                 throw new GoneException(errors.toString());
             }
         }
@@ -149,9 +149,9 @@ public class ServerValidatorUtility {
             throw new AccessDeniedException(e.getMessage());
         } else if (e instanceof UnauthorizedException) {
             throw new UnauthorizedException(e.getMessage());
-        } else if (e instanceof ConflictException) {
+        } else if (e instanceof ConflictException) { 
             throw new ConflictException(e.getMessage());
-        } else if (e instanceof GoneException) {
+        } else if (e instanceof GoneException) { 
             throw new GoneException(e.getMessage());
         } else {
             throw new RuntimeException("internal api error");

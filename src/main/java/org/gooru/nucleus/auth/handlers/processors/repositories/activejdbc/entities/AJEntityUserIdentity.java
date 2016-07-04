@@ -32,7 +32,7 @@ public class AJEntityUserIdentity extends Model {
     public void setUsername(String username) {
         set(ParameterConstants.PARAM_USER_USERNAME, username);
     }
-
+    
     public void setCanonicalUsername(String canonicalUsername) {
         set(ParameterConstants.PARAM_USER_CANONICAL_USERNAME, canonicalUsername);
     }
