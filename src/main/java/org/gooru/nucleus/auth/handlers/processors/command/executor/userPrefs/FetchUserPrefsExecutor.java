@@ -6,11 +6,11 @@ import org.gooru.nucleus.auth.handlers.constants.HelperConstants;
 import org.gooru.nucleus.auth.handlers.constants.MessageConstants;
 import org.gooru.nucleus.auth.handlers.constants.ParameterConstants;
 import org.gooru.nucleus.auth.handlers.infra.ConfigRegistry;
-import org.gooru.nucleus.auth.handlers.processors.command.executor.AJResponseJsonTransformer;
 import org.gooru.nucleus.auth.handlers.processors.command.executor.DBExecutor;
 import org.gooru.nucleus.auth.handlers.processors.command.executor.MessageResponse;
 import org.gooru.nucleus.auth.handlers.processors.messageProcessor.MessageContext;
 import org.gooru.nucleus.auth.handlers.processors.repositories.activejdbc.entities.AJEntityUserPreference;
+import org.gooru.nucleus.auth.handlers.processors.repositories.activejdbc.formatter.JsonFormatterBuilder;
 import org.javalite.activejdbc.LazyList;
 
 public final class FetchUserPrefsExecutor implements DBExecutor {
@@ -43,8 +43,8 @@ public final class FetchUserPrefsExecutor implements DBExecutor {
         JsonObject result = null;
         if (userPreference != null) {
             result =
-                AJResponseJsonTransformer.transform(userPreference.toJson(false),
-                    HelperConstants.USERS_PREFS_JSON_FIELDS);
+                new JsonObject(JsonFormatterBuilder.buildSimpleJsonFormatter(false,
+                    HelperConstants.USERS_PREFS_JSON_FIELDS).toJson(userPreference));
         } else {
             result = ConfigRegistry.instance().getDefaultUserPrefs();
         }

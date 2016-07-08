@@ -17,7 +17,6 @@ import org.gooru.nucleus.auth.handlers.constants.MessageConstants;
 import org.gooru.nucleus.auth.handlers.constants.ParameterConstants;
 import org.gooru.nucleus.auth.handlers.constants.SchemaConstants;
 import org.gooru.nucleus.auth.handlers.infra.RedisClient;
-import org.gooru.nucleus.auth.handlers.processors.command.executor.AJResponseJsonTransformer;
 import org.gooru.nucleus.auth.handlers.processors.command.executor.ActionResponseDTO;
 import org.gooru.nucleus.auth.handlers.processors.command.executor.DBExecutor;
 import org.gooru.nucleus.auth.handlers.processors.command.executor.MessageResponse;
@@ -30,6 +29,7 @@ import org.gooru.nucleus.auth.handlers.processors.messageProcessor.MessageContex
 import org.gooru.nucleus.auth.handlers.processors.repositories.activejdbc.entities.AJEntityAuthClient;
 import org.gooru.nucleus.auth.handlers.processors.repositories.activejdbc.entities.AJEntityUser;
 import org.gooru.nucleus.auth.handlers.processors.repositories.activejdbc.entities.AJEntityUserIdentity;
+import org.gooru.nucleus.auth.handlers.processors.repositories.activejdbc.formatter.JsonFormatterBuilder;
 import org.gooru.nucleus.auth.handlers.utils.InternalHelper;
 import org.javalite.activejdbc.LazyList;
 
@@ -146,7 +146,7 @@ class AuthorizeUserExecutor implements DBExecutor {
         }
         user.saveIt();
         eventBuilder.putPayLoadObject(SchemaConstants.USER_DEMOGRAPHIC,
-            AJResponseJsonTransformer.transform(user.toJson(false), HelperConstants.USERS_JSON_FIELDS));
+            JsonFormatterBuilder.buildSimpleJsonFormatter(false, HelperConstants.USERS_JSON_FIELDS).toJson(user));
 
         final AJEntityUserIdentity userIdentity = createUserIdentityValue(grantType, user, clientId);
         if (isEmailIdentity) {
@@ -176,7 +176,7 @@ class AuthorizeUserExecutor implements DBExecutor {
         }
         userIdentity.saveIt();
         eventBuilder.putPayLoadObject(SchemaConstants.USER_IDENTITY,
-            AJResponseJsonTransformer.transform(userIdentity.toJson(false)));
+            JsonFormatterBuilder.buildSimpleJsonFormatter(false, null).toJson(userIdentity));
         return new ActionResponseDTO<>(userIdentity, eventBuilder);
     }
 
