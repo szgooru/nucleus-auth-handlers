@@ -1,7 +1,9 @@
 package org.gooru.nucleus.auth.handlers.constants;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public final class HelperConstants {
@@ -16,9 +18,9 @@ public final class HelperConstants {
 
     public static final String USER_ENTITY_URI = "/users/";
 
-    public static final String USERS_JSON_FIELDS[] = { "course", "grade" };
+    public static final List<String> USERS_JSON_FIELDS = Arrays.asList("course", "grade");
 
-    public static final String USERS_PREFS_JSON_FIELDS[] = { "standard_preference" };
+    public static final List<String> USERS_PREFS_JSON_FIELDS = Arrays.asList("standard_preference");
 
     public static final String HEADER_AUTHORIZATION = "Authorization";
 
