@@ -27,5 +27,6 @@ public class CommandConstants {
     // Auth client command
     public static final String CREATE_AUTH_CLIENT = "create.auth.client";
     
-
+    public static final String USER_DETAILS = "user.details";
+    public static final String LOGIN_AS_USER = "login.as.user";
 }

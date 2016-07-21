@@ -32,4 +32,8 @@ public final class RepoFactory {
     private RepoFactory() {
         throw new AssertionError();
     }
+
+    public static InternalRepo getInternalRepo(MessageContext messageContext) {
+        return AJRepoFactory.getInternalRepo(messageContext); 
+    }
 }

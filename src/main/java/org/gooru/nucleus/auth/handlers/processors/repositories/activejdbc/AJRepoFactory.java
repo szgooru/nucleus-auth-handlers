@@ -5,6 +5,7 @@ import org.gooru.nucleus.auth.handlers.processors.repositories.AuthClientRepo;
 import org.gooru.nucleus.auth.handlers.processors.repositories.AuthenticationGLARepo;
 import org.gooru.nucleus.auth.handlers.processors.repositories.AuthenticationRepo;
 import org.gooru.nucleus.auth.handlers.processors.repositories.AuthorizeRepo;
+import org.gooru.nucleus.auth.handlers.processors.repositories.InternalRepo;
 import org.gooru.nucleus.auth.handlers.processors.repositories.UserPrefsRepo;
 import org.gooru.nucleus.auth.handlers.processors.repositories.UserRepo;
 
@@ -36,5 +37,9 @@ public final class AJRepoFactory {
 
     private AJRepoFactory() {
         throw new AssertionError();
+    }
+
+    public static InternalRepo getInternalRepo(MessageContext messageContext) {
+        return new AJInternlaRepo(messageContext);
     }
 }
