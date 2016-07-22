@@ -37,8 +37,7 @@ public final class CreateAuthClientExecutor implements DBExecutor {
 
     @Override
     public void checkSanity() {
-        //userId = messageContext.user().getUserId();
-        userId = "416922ac-7404-400b-883a-4993e23d1c8f";
+        userId = messageContext.user().getUserId();
     }
 
     @Override
