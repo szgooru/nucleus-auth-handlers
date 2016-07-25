@@ -25,7 +25,7 @@ import org.javalite.activejdbc.LazyList;
 
 import io.vertx.core.json.JsonObject;
 
-public class UserDetailsExecutor implements DBExecutor {
+public class AuthenticateExecutor implements DBExecutor {
 
 	private final MessageContext messageContext;
 	private String basicAuthCredentials;
@@ -38,7 +38,7 @@ public class UserDetailsExecutor implements DBExecutor {
 			"metadata", "roster_id", "roster_global_userid");
      
 
-	 public UserDetailsExecutor(MessageContext messageContext) {
+	 public AuthenticateExecutor(MessageContext messageContext) {
 		this.messageContext = messageContext;
 	}
 
@@ -90,6 +90,8 @@ public class UserDetailsExecutor implements DBExecutor {
 		response.put(ParameterConstants.PARAM_USER_ID, userIdentity.getUserId());
 		response.put(ParameterConstants.PARAM_USER_USERNAME, userIdentity.getUsername());
         response.put(ParameterConstants.PARAM_CDN_URLS, authClient.getCdnUrls());
+        final String token = InternalHelper.generateToken(authClient.getClientId(), userIdentity.getUserId());
+        response.put(ParameterConstants.PARAM_ACCESS_TOKEN, token);
 		return new MessageResponse.Builder().setResponseBody(response)
 	            .setContentTypeJson().setStatusOkay().successful().build();
 	}

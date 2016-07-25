@@ -15,12 +15,12 @@ public class InternalMessageProcessor implements MessageProcessorHandler {
     public MessageResponse process(MessageContext messageContext) {
         MessageResponse result = null;
         switch (messageContext.command()) {
-        case CommandConstants.USER_DETAILS:
-            result = RepoFactory.getInternalRepo(messageContext).userDetails();
+        case CommandConstants.INTERNAL_AUTHENTICATE:
+            result = RepoFactory.getInternalRepo(messageContext).authenticate();
             break;
             
-        case CommandConstants.LOGIN_AS_USER:
-            result = RepoFactory.getInternalRepo(messageContext).loginAsUser();
+        case CommandConstants.INTERNAL_IMPERSONATE:
+            result = RepoFactory.getInternalRepo(messageContext).impersonate();
             break;
             
         default:

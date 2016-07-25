@@ -15,13 +15,13 @@ public class AJInternlaRepo implements InternalRepo {
     }
 
     @Override
-    public MessageResponse userDetails() {
-        return TransactionExecutor.executeTransaction(InternalExecutorFactory.userDetails(messageContext));
+    public MessageResponse authenticate() {
+        return TransactionExecutor.executeTransaction(InternalExecutorFactory.authenticate(messageContext));
     }
 
     @Override
-    public MessageResponse loginAsUser() {
-        return TransactionExecutor.executeTransaction(InternalExecutorFactory.loginAsUser(messageContext));
+    public MessageResponse impersonate() {
+        return TransactionExecutor.executeTransaction(InternalExecutorFactory.impersonate(messageContext));
     }
 
 }

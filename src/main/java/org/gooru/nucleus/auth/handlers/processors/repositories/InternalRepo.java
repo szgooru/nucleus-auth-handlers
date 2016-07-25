@@ -4,7 +4,7 @@ import org.gooru.nucleus.auth.handlers.processors.command.executor.MessageRespon
 
 public interface InternalRepo {
 
-    MessageResponse userDetails();
+    MessageResponse authenticate();
     
-    MessageResponse loginAsUser();
+    MessageResponse impersonate();
 }

@@ -4,7 +4,9 @@ import static org.gooru.nucleus.auth.handlers.utils.ServerValidatorUtility.rejec
 import static org.gooru.nucleus.auth.handlers.utils.ServerValidatorUtility.rejectIfNull;
 import static org.gooru.nucleus.auth.handlers.utils.ServerValidatorUtility.rejectIfNullOrEmpty;
 
+import java.util.Arrays;
 import java.util.Base64;
+import java.util.List;
 
 import org.gooru.nucleus.auth.handlers.constants.HelperConstants.GrantType;
 import org.gooru.nucleus.auth.handlers.constants.HttpConstants;
@@ -26,7 +28,7 @@ import org.slf4j.LoggerFactory;
 
 import io.vertx.core.json.JsonObject;
 
-public class LoginAsUserExecutor implements DBExecutor {
+public class ImpersonateExecutor implements DBExecutor {
 
 	private RedisClient redisClient;
 	private final MessageContext messageContext;
@@ -34,9 +36,12 @@ public class LoginAsUserExecutor implements DBExecutor {
 	private AJEntityUserIdentity userIdentity;
 	private AuthClientDTO authClientDTO;
 	private AJEntityAuthClient authClient;
-	private static Logger LOGGER = LoggerFactory.getLogger(LoginAsUserExecutor.class);
+	private static Logger LOGGER = LoggerFactory.getLogger(ImpersonateExecutor.class);
+    private static List<String> ALLOWED_GRANT_TYPES =
+        Arrays.asList(GrantType.CREDENTIAL.getType(), GrantType.GOOGLE.getType(), GrantType.ANONYMOUS.getType(),
+            GrantType.SAML.getType(), GrantType.WSFED.getType());
 	
-	public LoginAsUserExecutor(MessageContext messageContext) {
+	public ImpersonateExecutor(MessageContext messageContext) {
 		this.messageContext = messageContext;
 		this.redisClient = RedisClient.instance();
 	}
@@ -45,8 +50,8 @@ public class LoginAsUserExecutor implements DBExecutor {
 	public void checkSanity() {
 		basicAuthCredentials = messageContext.headers().get(MessageConstants.MSG_HEADER_BASIC_AUTH);
 		authClientDTO = new AuthClientDTO(messageContext.requestBody());
-        reject(!(GrantType.CREDENTIAL.getType().equalsIgnoreCase(authClientDTO.getGrantType())),
-            MessageCodeConstants.AU0003, HttpConstants.HttpStatus.UNAUTHORIZED.getCode());
+        reject(!(ALLOWED_GRANT_TYPES.contains(authClientDTO.getGrantType())), MessageCodeConstants.AU0003,
+            HttpConstants.HttpStatus.UNAUTHORIZED.getCode());
 		rejectIfNullOrEmpty(basicAuthCredentials, MessageCodeConstants.AU0006,
 	            HttpConstants.HttpStatus.UNAUTHORIZED.getCode());
 
