@@ -85,5 +85,8 @@ public class ParameterConstants {
     public static final String MAIL_TOKEN = "token";
     public static final String OLD_EMAIL_ID = "old_email_id";
     public static final String NEW_EMAIL_ID = "new_email_id";
+    
+    public static final String PARAM_CUSTOMIZE_MAIL_TEMPLATE = "customize_mail_template";
+    
 
 }
